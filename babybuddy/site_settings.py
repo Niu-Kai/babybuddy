@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 import dbsettings
 
-from django.forms.fields import BooleanField
+from django.forms.fields import BooleanField, TimeField
 from core.fields import NapStartMaxTimeField, NapStartMinTimeField
 from .widgets import TimeInput
 from django.forms.widgets import CheckboxInput
@@ -33,6 +33,23 @@ class NapSettings(dbsettings.Group):
         description=_("Default maximum nap start time"),
         help_text=_(
             "The maximum default time that a sleep entry is consider a nap. If set the nap property will be preselected if the start time is within the bounds."
+        ),
+        widget=TimeInput,
+    )
+
+
+class DayStartValue(dbsettings.TimeValue):
+    field = TimeField
+
+
+class DashboardSettings(dbsettings.Group):
+    day_start = DayStartValue(
+        default=time(0),
+        description=_("Start of the day"),
+        help_text=_(
+            "Dashboard daily totals count entries before this time towards the "
+            "previous day. Set e.g. 03:00 so a late-night feed belongs to the "
+            "day before."
         ),
         widget=TimeInput,
     )

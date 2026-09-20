@@ -15,7 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager as TaggitTaggableManager
 from taggit.models import GenericTaggedItemBase, TagBase
 
-from babybuddy.site_settings import NapSettings, FeedingSettings
+from babybuddy.site_settings import DashboardSettings, NapSettings, FeedingSettings
 from core.utils import random_color, timezone_aware_duration
 
 
@@ -199,6 +199,7 @@ class BMI(models.Model):
 
 class Child(models.Model):
     model_name = "child"
+    settings = DashboardSettings(_("Dashboard settings"))
     first_name = models.CharField(max_length=255, verbose_name=_("First name"))
     last_name = models.CharField(
         blank=True, max_length=255, verbose_name=_("Last name")

@@ -13,6 +13,39 @@ from core.templatetags.misc import feeding_time_diff_base
 register = template.Library()
 
 
+def _day_bounds(moment):
+    """
+    Start and end (exclusive) of the dashboard day containing `moment`.
+
+    The site setting "Start of the day" (#965) decides when one day turns
+    into the next: with the default 00:00 this is the calendar day; with
+    03:00, an entry at 01:30 belongs to the previous day.
+    """
+    moment = timezone.localtime(moment)
+    day_start = models.Child.settings.day_start or timezone.datetime.min.time()
+    start = moment.replace(
+        hour=day_start.hour, minute=day_start.minute, second=0, microsecond=0
+    )
+    if moment < start:
+        start -= timezone.timedelta(days=1)
+    return start, start + timezone.timedelta(days=1)
+
+
+def _day_bounds_for_date(date):
+    """Bounds of the dashboard day labelled by the calendar `date`."""
+    start = timezone.make_aware(
+        timezone.datetime.combine(
+            date, models.Child.settings.day_start or timezone.datetime.min.time()
+        )
+    )
+    return start, start + timezone.timedelta(days=1)
+
+
+def _day_end(moment):
+    """Last instant of the dashboard day containing `moment`."""
+    return _day_bounds(moment)[1] - timezone.timedelta(microseconds=1)
+
+
 def _hide_empty(context):
     return context["request"].user.settings.dashboard_hide_empty
 
@@ -68,14 +101,10 @@ def card_diaperchange_types(context, child, date=None):
     :returns: a dictionary with the wet/solid/empty statistics.
     """
     if not date:
-        date = timezone.localtime()
+        max_date = _day_bounds(timezone.localtime())[1]
     else:
-        date = timezone.datetime.combine(date, timezone.localtime().min.time())
-        date = timezone.make_aware(date)
-    max_date = (date + timezone.timedelta(days=1)).replace(hour=0, minute=0, second=0)
-    min_date = (max_date - timezone.timedelta(days=7)).replace(
-        hour=0, minute=0, second=0
-    )
+        max_date = _day_bounds_for_date(date)[1]
+    min_date = max_date - timezone.timedelta(days=7)
 
     stats = {}
     for x in range(7):
@@ -127,15 +156,10 @@ def card_breastfeeding(context, child, date=None):
     :returns: a dictionary with the statistics.
     """
     if date:
-        date = timezone.datetime.combine(date, timezone.localtime().min.time())
-        date = timezone.make_aware(date)
+        max_date = _day_bounds_for_date(date)[1]
     else:
-        date = timezone.localtime()
-
-    max_date = (date + timezone.timedelta(days=1)).replace(hour=0, minute=0, second=0)
-    min_date = (max_date - timezone.timedelta(days=7)).replace(
-        hour=0, minute=0, second=0
-    )
+        max_date = _day_bounds(timezone.localtime())[1]
+    min_date = max_date - timezone.timedelta(days=7)
 
     instances = (
         models.Feeding.objects.filter(child=child)
@@ -198,8 +222,8 @@ def card_feeding_recent(context, child, end_date=None):
     if not end_date:
         end_date = timezone.localtime()
 
-    # push end_date to very end of that day
-    end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=9999)
+    # push end_date to very end of that (dashboard) day
+    end_date = _day_end(end_date)
     # we need a datetime to use the range helper in the model
     start_date = end_date - timezone.timedelta(
         days=8
@@ -209,16 +233,13 @@ def card_feeding_recent(context, child, end_date=None):
         start__range=[start_date, end_date]
     )
 
-    # prepare the result list for the last 7 days
-    dates = [end_date - timezone.timedelta(days=i) for i in range(8)]
+    # prepare the result list for the last 7 days, labelled by day start
+    dates = [_day_bounds(end_date - timezone.timedelta(days=i))[0] for i in range(8)]
     results = [{"date": d, "total": 0, "count": 0} for d in dates]
 
     # do one pass over the data and add it to the appropriate day
     for instance in instances:
-        # convert to local tz and push feed_date to end so we're comparing apples to apples for the date
-        feed_date = timezone.localtime(instance.end).replace(
-            hour=23, minute=59, second=59, microsecond=9999
-        )
+        feed_date = _day_end(instance.end)
         idx = (end_date - feed_date).days
         result = results[idx]
         result["total"] += instance.amount if instance.amount is not None else 0
@@ -314,20 +335,18 @@ def card_pumping_recent(context, child, end_date=None):
     if not end_date:
         end_date = timezone.localtime()
 
-    end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=9999)
+    end_date = _day_end(end_date)
     start_date = end_date - timezone.timedelta(days=8)
 
     instances = models.Pumping.objects.filter(child=child).filter(
         start__range=[start_date, end_date]
     )
 
-    dates = [end_date - timezone.timedelta(days=i) for i in range(8)]
+    dates = [_day_bounds(end_date - timezone.timedelta(days=i))[0] for i in range(8)]
     results = [{"date": d, "total": 0, "count": 0} for d in dates]
 
     for instance in instances:
-        pump_date = timezone.localtime(instance.end).replace(
-            hour=23, minute=59, second=59, microsecond=9999
-        )
+        pump_date = _day_end(instance.end)
         idx = (end_date - pump_date).days
         result = results[idx]
         result["total"] += instance.amount if instance.amount is not None else 0
@@ -375,8 +394,8 @@ def card_sleep_recent(context, child, end_date=None):
     if not end_date:
         end_date = timezone.localtime()
 
-    # push end_date to very end of that day
-    end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=9999)
+    # push end_date to very end of that (dashboard) day
+    end_date = _day_end(end_date)
     # we need a datetime to use the range helper in the model
     start_date = end_date - timezone.timedelta(
         days=8
@@ -388,8 +407,8 @@ def card_sleep_recent(context, child, end_date=None):
         end__range=[start_date, end_date]
     )
 
-    # prepare the result list for the last 7 days
-    dates = [end_date - timezone.timedelta(days=i) for i in range(8)]
+    # prepare the result list for the last 7 days, labelled by day start
+    dates = [_day_bounds(end_date - timezone.timedelta(days=i))[0] for i in range(8)]
     results = [{"date": d, "total": timezone.timedelta(), "count": 0} for d in dates]
 
     # do one pass over the data and add it to the appropriate day
@@ -397,10 +416,8 @@ def card_sleep_recent(context, child, end_date=None):
         # convert to local tz and push feed_date to end so we're comparing apples to apples for the date
         start = timezone.localtime(instance.start)
         end = timezone.localtime(instance.end)
-        sleep_start_date = start.replace(
-            hour=23, minute=59, second=59, microsecond=9999
-        )
-        sleep_end_date = end.replace(hour=23, minute=59, second=59, microsecond=9999)
+        sleep_start_date = _day_end(start)
+        sleep_end_date = _day_end(end)
         start_idx = (end_date - sleep_start_date).days
         end_idx = (end_date - sleep_end_date).days
         # this is more complicated than feedings because we only want to capture the PORTION of sleep
@@ -411,7 +428,7 @@ def card_sleep_recent(context, child, end_date=None):
             result["total"] += end - start
             result["count"] += 1
         else:  # otherwise we need to split the time up
-            midnight = end.replace(hour=0, minute=0, second=0)
+            midnight = _day_bounds(end)[0]
 
             if 0 <= start_idx < len(results):
                 result = results[start_idx]
@@ -443,11 +460,13 @@ def card_sleep_naps_day(context, child, date=None):
     :returns: a dictionary of nap data statistics.
     """
     if not date:
-        date = timezone.localtime().date()
+        day_start, day_end = _day_bounds(timezone.localtime())
+    else:
+        day_start, day_end = _day_bounds_for_date(date)
     instances = models.Sleep.objects.filter(child=child, nap=True).filter(
-        start__year=date.year, start__month=date.month, start__day=date.day
+        start__gte=day_start, start__lt=day_end
     ) | models.Sleep.objects.filter(child=child, nap=True).filter(
-        end__year=date.year, end__month=date.month, end__day=date.day
+        end__gte=day_start, end__lt=day_end
     )
     empty = len(instances) == 0
 
@@ -857,9 +876,11 @@ def card_tummytime_day(context, child, date=None):
     :returns: a dictionary of all Tummy Time instances and stats for date.
     """
     if not date:
-        date = timezone.localtime().date()
+        day_start, day_end = _day_bounds(timezone.localtime())
+    else:
+        day_start, day_end = _day_bounds_for_date(date)
     instances = models.TummyTime.objects.filter(
-        child=child, end__year=date.year, end__month=date.month, end__day=date.day
+        child=child, end__gte=day_start, end__lt=day_end
     ).order_by("-end")
     empty = len(instances) == 0
 

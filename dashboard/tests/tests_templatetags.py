@@ -415,3 +415,53 @@ class TemplateTagsTestCase(TestCase):
         )
         models.Height.objects.create(child=child, height=51.0, date=date)
         self.assertAlmostEqual(cards._height_statistics(child)["change_weekly"], 1.0)
+
+
+class DayStartTestCase(TestCase):
+    """The "Start of the day" site setting moves the day boundary (#965)."""
+
+    def setUp(self):
+        from dbsettings.loading import set_setting_value
+
+        self.set_day_start = lambda value: set_setting_value(
+            "core.models", "Child", "day_start", value
+        )
+        self.set_day_start(timezone.datetime.min.time())
+        self.child = models.Child.objects.create(
+            first_name="Night", last_name="Owl", birth_date=timezone.localdate()
+        )
+        self.context = {"request": MockUserRequest(get_user_model().objects.first())}
+        self.day = timezone.make_aware(timezone.datetime(2024, 5, 10, 12, 0))
+        # A feeding and a diaper change at 01:00 on 10 May.
+        early = self.day.replace(hour=1)
+        models.Feeding.objects.create(
+            child=self.child, start=early, end=early, type="formula", method="bottle"
+        )
+        models.DiaperChange.objects.create(
+            child=self.child, time=early, wet=True, solid=False
+        )
+
+    def tearDown(self):
+        self.set_day_start(timezone.datetime.min.time())
+
+    def test_default_calendar_day(self):
+        feedings = cards.card_feeding_recent(self.context, self.child, self.day)
+        self.assertEqual(feedings["feedings"][0]["count"], 1)
+        self.assertEqual(feedings["feedings"][0]["date"].date(), self.day.date())
+        changes = cards.card_diaperchange_types(
+            self.context, self.child, self.day.date()
+        )
+        self.assertEqual(changes["stats"][0]["changes"], 1)
+
+    def test_day_starting_at_three(self):
+        self.set_day_start(timezone.datetime(2000, 1, 1, 3, 0).time())
+        feedings = cards.card_feeding_recent(self.context, self.child, self.day)
+        self.assertEqual(feedings["feedings"][0]["count"], 0)
+        self.assertEqual(feedings["feedings"][1]["count"], 1)
+        # Day labels stay calendar dates.
+        self.assertEqual(feedings["feedings"][0]["date"].date(), self.day.date())
+        changes = cards.card_diaperchange_types(
+            self.context, self.child, self.day.date()
+        )
+        self.assertEqual(changes["stats"][0]["changes"], 0)
+        self.assertEqual(changes["stats"][1]["changes"], 1)

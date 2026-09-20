@@ -45,6 +45,7 @@ class SiteSettingsTestCase(TestCase):
         params = {
             "core.models__Sleep__nap_start_max": "20:00:00",
             "core.models__Sleep__nap_start_min": "09:00:00",
+            "core.models__Child__day_start": "00:00:00",
         }
         page = self.c.post("/settings/", params, follow=True)
         self.assertEqual(page.status_code, 200)
@@ -56,3 +57,20 @@ class SiteSettingsTestCase(TestCase):
             Sleep.settings.nap_start_min.strftime("%H:%M:%S"),
             params["core.models__Sleep__nap_start_min"],
         )
+
+    def test_settings_day_start(self):
+        from core.models import Child
+
+        self.c.login(**self.credentials)
+        page = self.c.get("/settings/")
+        self.assertEqual(
+            page.context["form"]["core.models__Child__day_start"].value(), "00:00:00"
+        )
+        params = {
+            "core.models__Sleep__nap_start_max": "18:00:00",
+            "core.models__Sleep__nap_start_min": "06:00:00",
+            "core.models__Child__day_start": "03:00:00",
+        }
+        page = self.c.post("/settings/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(Child.settings.day_start.strftime("%H:%M:%S"), "03:00:00")
