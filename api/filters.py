@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from core import models
+import django_filters
 from django_filters import rest_framework as filters
 
 
@@ -111,3 +112,36 @@ class TimerFilter(StartEndFieldFilter):
 class TummyTimeFilter(StartEndFieldFilter, TagsFieldFilter):
     class Meta(StartEndFieldFilter.Meta):
         model = models.TummyTime
+
+
+class DjangoFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
+    """
+    django-filter 25 dropped the schema hooks Django REST framework's built-in
+    OpenAPI generator still calls, so `/api/schema` (and `generateschema`)
+    raised `AttributeError`. This restores the query parameter listing.
+    """
+
+    def get_schema_operation_parameters(self, view):
+        queryset = getattr(view, "queryset", None)
+        if queryset is None:
+            try:
+                queryset = view.get_queryset()
+            except Exception:
+                return []
+        filterset_class = self.get_filterset_class(view, queryset)
+        if filterset_class is None:
+            return []
+
+        parameters = []
+        for field_name, field in filterset_class.base_filters.items():
+            label = field.label if field.label is not None else field_name
+            parameters.append(
+                {
+                    "name": field_name,
+                    "required": field.extra.get("required", False),
+                    "in": "query",
+                    "description": str(label),
+                    "schema": {"type": "string"},
+                }
+            )
+        return parameters

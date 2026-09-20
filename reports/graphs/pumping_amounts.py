@@ -58,11 +58,16 @@ def pumping_amounts(objects):
     layout_args = utils.default_graph_layout_options()
     layout_args["title"] = "<b>" + _("Total Pumping Amount") + "</b>"
     layout_args["xaxis"]["title"] = _("Date")
+    layout_args["xaxis"]["type"] = "date"
+    layout_args["xaxis"]["autorange"] = True
+    # Pin the auto range to the data so Plotly cannot extend the axis months
+    # into the future (issues #706 and #860).
+    layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(dates)
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
     layout_args["yaxis"]["title"] = _("Pumping Amount")
 
     total_labels = [
-        {"x": x, "y": total * 1.1, "text": str(total), "showarrow": False}
+        {"x": x, "y": total * 1.1, "text": str(round(total, 2)), "showarrow": False}
         for x, total in zip(list(dates), date_totals.values())
     ]
 

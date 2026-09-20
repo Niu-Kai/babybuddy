@@ -389,3 +389,29 @@ class TemplateTagsTestCase(TestCase):
         self.assertIsInstance(data["last"], models.TummyTime)
         stats = {"count": 3, "total": timezone.timedelta(0, 300)}
         self.assertEqual(data["stats"], stats)
+
+    def test_weekly_change_same_day_entries(self):
+        """Two entries on one date must not divide by zero (issue #587)."""
+        child = models.Child.objects.create(
+            first_name="Same", last_name="Day", birth_date=timezone.localdate()
+        )
+        date = timezone.localdate()
+        models.Weight.objects.create(child=child, weight=2.49, date=date)
+        models.Weight.objects.create(child=child, weight=2.42, date=date)
+        self.assertEqual(cards._weight_statistics(child), {"change_weekly": 0.0})
+
+    def test_weekly_change_is_per_week(self):
+        child = models.Child.objects.create(
+            first_name="Two", last_name="Weeks", birth_date=timezone.localdate()
+        )
+        date = timezone.localdate()
+        models.Weight.objects.create(
+            child=child, weight=3.0, date=date - timezone.timedelta(days=14)
+        )
+        models.Weight.objects.create(child=child, weight=3.5, date=date)
+        self.assertAlmostEqual(cards._weight_statistics(child)["change_weekly"], 0.25)
+        models.Height.objects.create(
+            child=child, height=50.0, date=date - timezone.timedelta(days=7)
+        )
+        models.Height.objects.create(child=child, height=51.0, date=date)
+        self.assertAlmostEqual(cards._height_statistics(child)["change_weekly"], 1.0)

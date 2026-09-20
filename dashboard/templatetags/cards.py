@@ -735,27 +735,36 @@ def _sleep_statistics(child):
     return sleep
 
 
+def _weekly_change(instances, attribute):
+    """
+    Average weekly change of a measurement between its oldest and newest entry.
+    :param instances: a QuerySet of a dated measurement model, any ordering.
+    :param attribute: name of the measurement attribute on the model.
+    :returns: a dictionary of statistics, or False when there are no entries.
+    """
+    instances = instances.order_by("-date", "-id")
+    if len(instances) == 0:
+        return False
+
+    newest = instances.first()
+    oldest = instances.last()
+    change = {"change_weekly": 0.0}
+
+    days = (newest.date - oldest.date).days
+    if newest != oldest and days > 0:
+        total_change = getattr(newest, attribute) - getattr(oldest, attribute)
+        change["change_weekly"] = total_change / (days / 7)
+
+    return change
+
+
 def _weight_statistics(child):
     """
     Statistical weight data.
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    weight = {"change_weekly": 0.0}
-
-    instances = models.Weight.objects.filter(child=child).order_by("-date")
-    if len(instances) == 0:
-        return False
-
-    newest = instances.first()
-    oldest = instances.last()
-
-    if newest != oldest:
-        weight_change = newest.weight - oldest.weight
-        weeks = (newest.date - oldest.date).days / 7
-        weight["change_weekly"] = weight_change / weeks
-
-    return weight
+    return _weekly_change(models.Weight.objects.filter(child=child), "weight")
 
 
 def _height_statistics(child):
@@ -764,21 +773,7 @@ def _height_statistics(child):
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    height = {"change_weekly": 0.0}
-
-    instances = models.Height.objects.filter(child=child).order_by("-date")
-    if len(instances) == 0:
-        return False
-
-    newest = instances.first()
-    oldest = instances.last()
-
-    if newest != oldest:
-        height_change = newest.height - oldest.height
-        weeks = (newest.date - oldest.date).days / 7
-        height["change_weekly"] = height_change / weeks
-
-    return height
+    return _weekly_change(models.Height.objects.filter(child=child), "height")
 
 
 def _head_circumference_statistics(child):
@@ -787,21 +782,9 @@ def _head_circumference_statistics(child):
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    head_circumference = {"change_weekly": 0.0}
-
-    instances = models.HeadCircumference.objects.filter(child=child).order_by("-date")
-    if len(instances) == 0:
-        return False
-
-    newest = instances.first()
-    oldest = instances.last()
-
-    if newest != oldest:
-        hc_change = newest.head_circumference - oldest.head_circumference
-        weeks = (newest.date - oldest.date).days / 7
-        head_circumference["change_weekly"] = hc_change / weeks
-
-    return head_circumference
+    return _weekly_change(
+        models.HeadCircumference.objects.filter(child=child), "head_circumference"
+    )
 
 
 def _bmi_statistics(child):
@@ -810,21 +793,7 @@ def _bmi_statistics(child):
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    bmi = {"change_weekly": 0.0}
-
-    instances = models.BMI.objects.filter(child=child).order_by("-date")
-    if len(instances) == 0:
-        return False
-
-    newest = instances.first()
-    oldest = instances.last()
-
-    if newest != oldest:
-        bmi_change = newest.bmi - oldest.bmi
-        weeks = (newest.date - oldest.date).days / 7
-        bmi["change_weekly"] = bmi_change / weeks
-
-    return bmi
+    return _weekly_change(models.BMI.objects.filter(child=child), "bmi")
 
 
 @register.inclusion_tag("cards/timer_list.html", takes_context=True)

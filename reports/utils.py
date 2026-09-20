@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import time
 
 
@@ -6,16 +7,25 @@ def autorangeoptions(dates, padding=10000000):
     """
     Default autorange mix and max for all graphs.
     See: https://github.com/babybuddy/babybuddy/issues/706
-    :param dates: list of datetime.date objects organized latest to oldest.
+    :param dates: list of datetime.date objects (or ISO date strings), any order.
     :param padding: additional padding to add to the bounds.
     :return: a dict of our autorange options.
     """
+    # Accept dates in either order (and ISO date strings) so a graph cannot
+    # hand over swapped bounds, which Plotly silently ignores.
+    stamps = sorted(int(time.mktime(_to_date(d).timetuple())) * 1000 for d in dates)
     return dict(
         {
-            "minallowed": int(time.mktime(dates[-1].timetuple())) * 1000 - padding,
-            "maxallowed": int(time.mktime(dates[0].timetuple())) * 1000 + padding,
+            "minallowed": stamps[0] - padding,
+            "maxallowed": stamps[-1] + padding,
         },
     )
+
+
+def _to_date(value):
+    if isinstance(value, str):
+        return datetime.date.fromisoformat(value)
+    return value
 
 
 def default_graph_layout_options():

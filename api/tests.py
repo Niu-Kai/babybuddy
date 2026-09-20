@@ -1398,3 +1398,16 @@ class CaregiverWebTestCase(APITestCase):
                 (status.HTTP_302_FOUND, status.HTTP_403_FORBIDDEN),
                 f"caregiver should be blocked from {url}",
             )
+
+
+class SchemaAPITestCase(APITestCase):
+    def test_openapi_schema(self):
+        """The live OpenAPI schema must render, including filter parameters."""
+        user = get_user_model().objects.first()
+        self.client.force_authenticate(user=user)
+        response = self.client.get("/api/schema")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        body = response.content.decode()
+        self.assertIn("/api/feedings/", body)
+        self.assertIn("name: child", body)
+        self.assertIn("name: tags", body)
