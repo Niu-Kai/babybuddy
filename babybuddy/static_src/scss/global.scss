@@ -42,7 +42,9 @@
     padding: var(--bs-pagination-padding-y) calc(var(--bs-pagination-padding-x) / 1.75);
 }
 
-// Theme: a deeper, cooler dark surface and a translucent navigation bar.
+// Theme tokens. Dark is the default; a user can pick light or follow the
+// device (see Settings.theme). Components that need more than Bootstrap's
+// own theme variables read the `--dash-*` tokens.
 [data-bs-theme='dark'] {
     --bs-body-bg: #0d1117;
     --bs-body-color: #d7dde5;
@@ -50,10 +52,56 @@
     --bs-secondary-color: rgba(215, 221, 229, 0.62);
     --bs-tertiary-bg: #161b22;
     --bs-border-color: rgba(255, 255, 255, 0.09);
+    --dash-surface: #121821;
+    --dash-border: rgba(255, 255, 255, 0.08);
+    --dash-border-hover: rgba(255, 255, 255, 0.16);
+    --dash-muted: rgba(255, 255, 255, 0.55);
+    --dash-chip-bg: rgba(255, 255, 255, 0.06);
+    --dash-chip-color: rgba(255, 255, 255, 0.78);
+    --dash-track: rgba(255, 255, 255, 0.06);
+    --dash-action-color: #fff;
+    --nav-glass: rgba(13, 17, 23, 0.74);
+    --nav-border: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme='light'] {
+    --bs-body-bg: #f4f6fa;
+    --bs-tertiary-bg: #eceff4;
+    --dash-surface: #fff;
+    --dash-border: rgba(15, 23, 42, 0.1);
+    --dash-border-hover: rgba(15, 23, 42, 0.22);
+    --dash-muted: rgba(15, 23, 42, 0.58);
+    --dash-chip-bg: rgba(15, 23, 42, 0.05);
+    --dash-chip-color: rgba(15, 23, 42, 0.8);
+    --dash-track: rgba(15, 23, 42, 0.08);
+    --dash-action-color: #0f172a;
+    --nav-glass: rgba(255, 255, 255, 0.8);
+    --nav-border: rgba(15, 23, 42, 0.08);
+
+    // Pill choices and toggles are drawn with the "light" outline button,
+    // which vanishes on a light page. Re-point its variables.
+    .btn-outline-light {
+        --bs-btn-color: #212529;
+        --bs-btn-border-color: #c9d0d8;
+        --bs-btn-hover-color: #212529;
+        --bs-btn-hover-bg: #e9ecef;
+        --bs-btn-hover-border-color: #c9d0d8;
+        --bs-btn-active-color: #fff;
+        --bs-btn-active-bg: #{$primary};
+        --bs-btn-active-border-color: #{$primary};
+    }
+
+    .border-light {
+        border-color: var(--bs-border-color) !important;
+    }
+
+    .modal-content {
+        color: var(--bs-body-color);
+    }
 }
 
 .navbar.bg-dark {
-    background: rgba(13, 17, 23, 0.74) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--nav-glass) !important;
+    border-bottom: 1px solid var(--nav-border);
     backdrop-filter: saturate(160%) blur(14px);
 }

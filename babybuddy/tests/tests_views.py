@@ -166,3 +166,39 @@ class ErrorPageTestCase(TestCase):
         self.assertEqual(page.status_code, 404)
         self.assertIn("Page Not Found", page.content.decode())
         self.assertIn("/this-path-does-not-exist/", page.content.decode())
+
+
+class ThemeTestCase(TestCase):
+    """A user can pick a light, dark or device-matching theme (#785)."""
+
+    def setUp(self):
+        call_command("migrate", verbosity=0)
+        self.credentials = {"username": "theme", "password": "theme-pass"}
+        self.user = get_user_model().objects.create_user(
+            is_superuser=True, **self.credentials
+        )
+        self.c = HttpClient()
+        self.c.login(**self.credentials)
+
+    def _set(self, theme):
+        self.user.settings.theme = theme
+        self.user.settings.save()
+
+    def test_default_is_dark(self):
+        page = self.c.get("/user/settings/")
+        self.assertContains(page, 'data-bs-theme="dark"')
+        self.assertNotContains(page, "prefers-color-scheme")
+
+    def test_light(self):
+        self._set("light")
+        page = self.c.get("/user/settings/")
+        self.assertContains(page, 'data-bs-theme="light"')
+
+    def test_auto_follows_device(self):
+        self._set("auto")
+        page = self.c.get("/user/settings/")
+        self.assertContains(page, "prefers-color-scheme")
+
+    def test_anonymous_is_dark(self):
+        page = HttpClient().get("/login/")
+        self.assertContains(page, 'data-bs-theme="dark"')

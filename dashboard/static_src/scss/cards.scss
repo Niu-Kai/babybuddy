@@ -19,11 +19,6 @@ $dashboard-accents: (
     'statistics': #c9d1d9,
 );
 
-$card-surface: #121821;
-$card-border: rgba(255, 255, 255, 0.08);
-$card-border-hover: rgba(255, 255, 255, 0.16);
-$card-muted: rgba(255, 255, 255, 0.55);
-
 .card-dashboard {
     --card-accent: #{map.get($dashboard-accents, 'statistics')};
 
@@ -31,9 +26,9 @@ $card-muted: rgba(255, 255, 255, 0.55);
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
-    border: 1px solid $card-border;
+    border: 1px solid var(--dash-border);
     border-radius: 1.25rem;
-    background: $card-surface;
+    background: var(--dash-surface);
     box-shadow: none;
     transition:
         border-color 0.2s ease,
@@ -42,7 +37,7 @@ $card-muted: rgba(255, 255, 255, 0.55);
     @media (hover: hover) and (prefers-reduced-motion: no-preference) {
         &:hover {
             transform: translateY(-2px);
-            border-color: $card-border-hover;
+            border-color: var(--dash-border-hover);
         }
     }
 
@@ -58,7 +53,7 @@ $card-muted: rgba(255, 255, 255, 0.55);
         font-size: 0.88rem;
         font-weight: 600;
         line-height: 1.2;
-        color: $card-muted;
+        color: var(--dash-muted);
 
         > i {
             display: inline-flex;
@@ -117,7 +112,7 @@ $card-muted: rgba(255, 255, 255, 0.55);
                 font-size: 0.9rem;
                 font-weight: 500;
                 letter-spacing: 0;
-                color: $card-muted;
+                color: var(--dash-muted);
             }
 
             // A trailing time or excerpt sits on its own line under the figure.
@@ -127,20 +122,20 @@ $card-muted: rgba(255, 255, 255, 0.55);
             }
 
             .text-muted {
-                color: $card-muted !important;
+                color: var(--dash-muted) !important;
             }
         }
 
         .card-text {
             font-size: 0.9rem;
-            color: $card-muted;
+            color: var(--dash-muted);
 
             strong {
                 color: var(--bs-emphasis-color);
             }
 
             .border-bottom {
-                border-color: $card-border !important;
+                border-color: var(--dash-border) !important;
             }
         }
 
@@ -196,7 +191,7 @@ $card-muted: rgba(255, 255, 255, 0.55);
     .progress {
         height: 1.15rem;
         border-radius: 999px;
-        background-color: rgba(255, 255, 255, 0.06);
+        background-color: var(--dash-track);
         overflow: hidden;
 
         .progress-bar {
@@ -214,19 +209,19 @@ $card-muted: rgba(255, 255, 255, 0.55);
             }
 
             &.bg-transparent {
-                color: $card-muted;
+                color: var(--dash-muted);
             }
         }
     }
 
     // Lists (timers, today's tummy time).
     .list-group {
-        border-top: 1px solid $card-border;
+        border-top: 1px solid var(--dash-border);
 
         .list-group-item {
             padding: 0.75rem 1.25rem;
             background: transparent;
-            border-color: $card-border;
+            border-color: var(--dash-border);
             color: var(--bs-body-color);
 
             strong {

@@ -1,10 +1,5 @@
 // Dashboard pages: hero, sections and the card grid.
 
-$dash-surface: #121821;
-$dash-border: rgba(255, 255, 255, 0.08);
-$dash-border-hover: rgba(255, 255, 255, 0.16);
-$dash-muted: rgba(255, 255, 255, 0.55);
-
 .dash {
     display: flex;
     flex-direction: column;
@@ -20,12 +15,12 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     justify-content: space-between;
     gap: 1.25rem 2rem;
     padding: 1.5rem 1.75rem;
-    border: 1px solid $dash-border;
+    border: 1px solid var(--dash-border);
     border-radius: 1.5rem;
     background:
         radial-gradient(120% 140% at 0% 0%, rgba(79, 184, 240, 0.18), transparent 55%),
         radial-gradient(90% 120% at 100% 100%, rgba(255, 168, 56, 0.12), transparent 55%),
-        $dash-surface;
+        var(--dash-surface);
 }
 
 .dash-hero-identity {
@@ -41,9 +36,9 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     height: 76px;
     border-radius: 50%;
     object-fit: cover;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--dash-chip-bg);
     box-shadow:
-        0 0 0 3px $dash-surface,
+        0 0 0 3px var(--dash-surface),
         0 0 0 5px rgba(79, 184, 240, 0.65);
 }
 
@@ -66,14 +61,14 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     align-items: center;
     gap: 0.4rem;
     padding: 0.3rem 0.75rem;
-    border: 1px solid $dash-border;
+    border: 1px solid var(--dash-border);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--dash-chip-bg);
     font-size: 0.82rem;
-    color: rgba(255, 255, 255, 0.78);
+    color: var(--dash-chip-color);
 
     i {
-        color: $dash-muted;
+        color: var(--dash-muted);
     }
 }
 
@@ -93,7 +88,7 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     border: 1px solid color-mix(in srgb, var(--action-accent) 35%, transparent);
     border-radius: 999px;
     background: color-mix(in srgb, var(--action-accent) 16%, transparent);
-    color: #fff;
+    color: var(--dash-action-color);
     font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
@@ -108,7 +103,7 @@ $dash-muted: rgba(255, 255, 255, 0.55);
 
     &:hover,
     &:focus-visible {
-        color: #fff;
+        color: var(--dash-action-color);
         background: color-mix(in srgb, var(--action-accent) 28%, transparent);
         border-color: color-mix(in srgb, var(--action-accent) 60%, transparent);
         transform: translateY(-1px);
@@ -138,7 +133,7 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: $dash-muted;
+    color: var(--dash-muted);
 }
 
 .dash-grid {
@@ -181,9 +176,9 @@ $dash-muted: rgba(255, 255, 255, 0.55);
 #view-dashboard\:dashboard {
     .card:not(.card-dashboard) {
         overflow: hidden;
-        border: 1px solid $dash-border;
+        border: 1px solid var(--dash-border);
         border-radius: 1.5rem;
-        background: $dash-surface;
+        background: var(--dash-surface);
         transition:
             border-color 0.2s ease,
             transform 0.2s ease;
@@ -191,7 +186,7 @@ $dash-muted: rgba(255, 255, 255, 0.55);
         @media (hover: hover) and (prefers-reduced-motion: no-preference) {
             &:hover {
                 transform: translateY(-2px);
-                border-color: $dash-border-hover;
+                border-color: var(--dash-border-hover);
             }
         }
 
@@ -214,19 +209,19 @@ $dash-muted: rgba(255, 255, 255, 0.55);
     .child-actions {
         flex-wrap: wrap;
         border-radius: 0.9rem !important;
-        border-color: $dash-border !important;
-        background: rgba(255, 255, 255, 0.04) !important;
+        border-color: var(--dash-border) !important;
+        background: var(--dash-chip-bg) !important;
         overflow: hidden;
 
         .btn {
             flex: 1 1 auto;
             border: 0;
             border-radius: 0;
-            color: rgba(255, 255, 255, 0.75);
+            color: var(--dash-chip-color);
 
             &:hover,
             &:focus-visible {
-                background: rgba(255, 255, 255, 0.08);
+                background: var(--dash-border);
                 color: var(--bs-emphasis-color);
             }
         }

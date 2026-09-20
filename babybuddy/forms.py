@@ -134,6 +134,11 @@ class UserSettingsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["timezone"].choices = timezone_choices()
+        # Older clients may not send a theme; keep the default rather than fail.
+        self.fields["theme"].required = False
+
+    def clean_theme(self):
+        return self.cleaned_data.get("theme") or "dark"
 
     class Meta:
         model = Settings
@@ -142,6 +147,7 @@ class UserSettingsForm(forms.ModelForm):
             "dashboard_hide_empty",
             "dashboard_hide_age",
             "language",
+            "theme",
             "timezone",
             "pagination_count",
         ]

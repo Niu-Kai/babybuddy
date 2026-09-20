@@ -133,6 +133,16 @@ class Settings(models.Model):
         max_length=255,
         verbose_name=_("Language"),
     )
+    theme = models.CharField(
+        choices=[
+            ("auto", _("Match device")),
+            ("light", _("Light")),
+            ("dark", _("Dark")),
+        ],
+        default="dark",
+        max_length=255,
+        verbose_name=_("Theme"),
+    )
     # No `choices` here on purpose: the zone list depends on the host's tzdata,
     # so baking it into a migration made every host with a different tzdata
     # report "models have changes not reflected in a migration" (#984) and let

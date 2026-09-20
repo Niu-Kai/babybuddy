@@ -11961,11 +11961,52 @@ textarea.form-control-lg {
   --bs-secondary-color: rgba(215, 221, 229, 0.62);
   --bs-tertiary-bg: #161b22;
   --bs-border-color: rgba(255, 255, 255, 0.09);
+  --dash-surface: #121821;
+  --dash-border: rgba(255, 255, 255, 0.08);
+  --dash-border-hover: rgba(255, 255, 255, 0.16);
+  --dash-muted: rgba(255, 255, 255, 0.55);
+  --dash-chip-bg: rgba(255, 255, 255, 0.06);
+  --dash-chip-color: rgba(255, 255, 255, 0.78);
+  --dash-track: rgba(255, 255, 255, 0.06);
+  --dash-action-color: #fff;
+  --nav-glass: rgba(13, 17, 23, 0.74);
+  --nav-border: rgba(255, 255, 255, 0.06);
+}
+
+[data-bs-theme=light] {
+  --bs-body-bg: #f4f6fa;
+  --bs-tertiary-bg: #eceff4;
+  --dash-surface: #fff;
+  --dash-border: rgba(15, 23, 42, 0.1);
+  --dash-border-hover: rgba(15, 23, 42, 0.22);
+  --dash-muted: rgba(15, 23, 42, 0.58);
+  --dash-chip-bg: rgba(15, 23, 42, 0.05);
+  --dash-chip-color: rgba(15, 23, 42, 0.8);
+  --dash-track: rgba(15, 23, 42, 0.08);
+  --dash-action-color: #0f172a;
+  --nav-glass: rgba(255, 255, 255, 0.8);
+  --nav-border: rgba(15, 23, 42, 0.08);
+}
+[data-bs-theme=light] .btn-outline-light {
+  --bs-btn-color: #212529;
+  --bs-btn-border-color: #c9d0d8;
+  --bs-btn-hover-color: #212529;
+  --bs-btn-hover-bg: #e9ecef;
+  --bs-btn-hover-border-color: #c9d0d8;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #37abe9;
+  --bs-btn-active-border-color: #37abe9;
+}
+[data-bs-theme=light] .border-light {
+  border-color: var(--bs-border-color) !important;
+}
+[data-bs-theme=light] .modal-content {
+  color: var(--bs-body-color);
 }
 
 .navbar.bg-dark {
-  background: rgba(13, 17, 23, 0.74) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--nav-glass) !important;
+  border-bottom: 1px solid var(--nav-border);
   backdrop-filter: saturate(160%) blur(14px);
 }
 
@@ -12117,16 +12158,16 @@ textarea.form-control-lg {
   display: flex;
   flex-direction: column;
   margin-bottom: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--dash-border);
   border-radius: 1.25rem;
-  background: #121821;
+  background: var(--dash-surface);
   box-shadow: none;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .card-dashboard:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: var(--dash-border-hover);
   }
 }
 .card-dashboard .card-header {
@@ -12140,7 +12181,7 @@ textarea.form-control-lg {
   font-size: 0.88rem;
   font-weight: 600;
   line-height: 1.2;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 .card-dashboard .card-header > i {
   display: inline-flex;
@@ -12192,24 +12233,24 @@ textarea.form-control-lg {
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 .card-dashboard .card-body .card-title > small, .card-dashboard .card-body .card-title > .small {
   display: block;
   margin-top: 0.25rem;
 }
 .card-dashboard .card-body .card-title .text-muted {
-  color: rgba(255, 255, 255, 0.55) !important;
+  color: var(--dash-muted) !important;
 }
 .card-dashboard .card-body .card-text {
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 .card-dashboard .card-body .card-text strong {
   color: var(--bs-emphasis-color);
 }
 .card-dashboard .card-body .card-text .border-bottom {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--dash-border) !important;
 }
 .card-dashboard .card-body .last-feeding-method,
 .card-dashboard .card-body .last-sleep-method {
@@ -12253,7 +12294,7 @@ textarea.form-control-lg {
 .card-dashboard .progress {
   height: 1.15rem;
   border-radius: 999px;
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: var(--dash-track);
   overflow: hidden;
 }
 .card-dashboard .progress .progress-bar {
@@ -12269,15 +12310,15 @@ textarea.form-control-lg {
   background-color: color-mix(in srgb, var(--card-accent) 45%, #fff 22%) !important;
 }
 .card-dashboard .progress .progress-bar.bg-transparent {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 .card-dashboard .list-group {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--dash-border);
 }
 .card-dashboard .list-group .list-group-item {
   padding: 0.75rem 1.25rem;
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: var(--dash-border);
   color: var(--bs-body-color);
 }
 .card-dashboard .list-group .list-group-item strong {
@@ -12370,9 +12411,9 @@ textarea.form-control-lg {
   justify-content: space-between;
   gap: 1.25rem 2rem;
   padding: 1.5rem 1.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--dash-border);
   border-radius: 1.5rem;
-  background: radial-gradient(120% 140% at 0% 0%, rgba(79, 184, 240, 0.18), transparent 55%), radial-gradient(90% 120% at 100% 100%, rgba(255, 168, 56, 0.12), transparent 55%), #121821;
+  background: radial-gradient(120% 140% at 0% 0%, rgba(79, 184, 240, 0.18), transparent 55%), radial-gradient(90% 120% at 100% 100%, rgba(255, 168, 56, 0.12), transparent 55%), var(--dash-surface);
 }
 
 .dash-hero-identity {
@@ -12388,8 +12429,8 @@ textarea.form-control-lg {
   height: 76px;
   border-radius: 50%;
   object-fit: cover;
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 0 0 3px #121821, 0 0 0 5px rgba(79, 184, 240, 0.65);
+  background: var(--dash-chip-bg);
+  box-shadow: 0 0 0 3px var(--dash-surface), 0 0 0 5px rgba(79, 184, 240, 0.65);
 }
 
 .dash-hero-name {
@@ -12411,14 +12452,14 @@ textarea.form-control-lg {
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--dash-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--dash-chip-bg);
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--dash-chip-color);
 }
 .dash-chip i {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 
 .dash-hero-actions {
@@ -12436,7 +12477,7 @@ textarea.form-control-lg {
   border: 1px solid color-mix(in srgb, var(--action-accent) 35%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--action-accent) 16%, transparent);
-  color: #fff;
+  color: var(--dash-action-color);
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
@@ -12446,7 +12487,7 @@ textarea.form-control-lg {
   color: var(--action-accent);
 }
 .dash-action:hover, .dash-action:focus-visible {
-  color: #fff;
+  color: var(--dash-action-color);
   background: color-mix(in srgb, var(--action-accent) 28%, transparent);
   border-color: color-mix(in srgb, var(--action-accent) 60%, transparent);
   transform: translateY(-1px);
@@ -12474,7 +12515,7 @@ textarea.form-control-lg {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--dash-muted);
 }
 
 .dash-grid {
@@ -12510,15 +12551,15 @@ textarea.form-control-lg {
 
 #view-dashboard\:dashboard .card:not(.card-dashboard) {
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--dash-border);
   border-radius: 1.5rem;
-  background: #121821;
+  background: var(--dash-surface);
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   #view-dashboard\:dashboard .card:not(.card-dashboard):hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.16);
+    border-color: var(--dash-border-hover);
   }
 }
 #view-dashboard\:dashboard .card:not(.card-dashboard) .child-photo {
@@ -12536,18 +12577,18 @@ textarea.form-control-lg {
 #view-dashboard\:dashboard .child-actions {
   flex-wrap: wrap;
   border-radius: 0.9rem !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--dash-border) !important;
+  background: var(--dash-chip-bg) !important;
   overflow: hidden;
 }
 #view-dashboard\:dashboard .child-actions .btn {
   flex: 1 1 auto;
   border: 0;
   border-radius: 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--dash-chip-color);
 }
 #view-dashboard\:dashboard .child-actions .btn:hover, #view-dashboard\:dashboard .child-actions .btn:focus-visible {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--dash-border);
   color: var(--bs-emphasis-color);
 }
 
