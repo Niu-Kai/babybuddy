@@ -9,8 +9,8 @@ newer is plenty for a household.
 On the Pi:
 
 ```bash
-git clone --branch fix/local-bugs https://github.com/<your-fork>/babybuddy.git
-sudo REPO=https://github.com/<your-fork>/babybuddy.git BRANCH=fix/local-bugs \
+git clone --branch fix/local-bugs https://github.com/Niu-Kai/babybuddy.git
+sudo REPO=https://github.com/Niu-Kai/babybuddy.git BRANCH=fix/local-bugs \
      bash babybuddy/deploy/pi/install.sh
 ```
 
