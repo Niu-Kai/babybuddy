@@ -3,7 +3,7 @@
     <div class="card card-dashboard card-statistics">
         <div class="card-header">
             <i class="icon-graph pull-left" aria-hidden="true"></i>
-            {% trans "Statistics" %}
+            <a href="{% url "dashboard:dashboard-statistics" child.slug %}">{% trans "Statistics" %}</a>
         </div>
         <div class="card-body text-center">
             {% if stats|length > 0 %}

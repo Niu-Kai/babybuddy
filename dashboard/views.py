@@ -6,6 +6,7 @@ from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from core.models import Child
+from dashboard.templatetags import cards
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -35,3 +36,19 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     model = Child
     permission_required = ("core.view_child",)
     template_name = "dashboard/child.html"
+
+
+class ChildStatistics(PermissionRequiredMixin, DetailView):
+    """
+    The statistics card as a full page (babybuddy/babybuddy#1020).
+    """
+
+    model = Child
+    permission_required = ("core.view_child",)
+    template_name = "dashboard/statistics.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        card = cards.card_statistics({"request": self.request}, self.object)
+        context["stats"] = card["stats"]
+        return context

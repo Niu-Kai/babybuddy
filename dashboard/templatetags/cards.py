@@ -573,7 +573,12 @@ def card_statistics(context, child):
 
     empty = len(stats) == 0
 
-    return {"stats": stats, "empty": empty, "hide_empty": _hide_empty(context)}
+    return {
+        "child": child,
+        "stats": stats,
+        "empty": empty,
+        "hide_empty": _hide_empty(context),
+    }
 
 
 def _diaperchange_statistics(child):

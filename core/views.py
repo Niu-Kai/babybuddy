@@ -305,6 +305,30 @@ class MedicationAdd(CoreAddView):
     form_class = forms.MedicationForm
     success_url = reverse_lazy("core:medication-list")
 
+    def get_initial(self):
+        """
+        `?repeat=<id>` pre-fills the form from an existing entry so a repeat
+        dose is one click away (babybuddy/babybuddy#1068).
+        """
+        initial = super().get_initial()
+        try:
+            source = models.Medication.objects.get(id=self.request.GET.get("repeat"))
+        except (models.Medication.DoesNotExist, ValueError, TypeError):
+            return initial
+        initial.update(
+            {
+                "child": source.child,
+                "name": source.name,
+                "dosage": source.dosage,
+                "dosage_unit": source.dosage_unit,
+            }
+        )
+        if source.next_dose_interval:
+            initial["next_dose_interval"] = (
+                source.next_dose_interval.total_seconds() / 3600
+            )
+        return initial
+
 
 class MedicationUpdate(CoreUpdateView):
     model = models.Medication

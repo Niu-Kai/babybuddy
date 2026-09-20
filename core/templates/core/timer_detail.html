@@ -23,7 +23,15 @@
                     {{ timer }} created by {{ user }}
                 {% endblocktrans %}
             </p>
-            <div class="d-grid gap-4 mb-4">
+            <div id="timer-stopped" class="alert alert-warning d-none" role="alert">
+                {% trans "This timer has already been stopped." %}
+                <a href="{% url 'core:timer-list' %}" class="alert-link">{% trans "View Timers" %}</a>
+            </div>
+            <div class="form-check form-switch d-inline-block mb-4">
+                <input class="form-check-input" type="checkbox" id="timer-keep-screen-on">
+                <label class="form-check-label" for="timer-keep-screen-on">{% trans "Keep screen on" %}</label>
+            </div>
+            <div id="timer-actions" class="d-grid gap-4 mb-4">
                 {% if perms.core.add_feeding %}
                     <a class="btn btn-success btn-lg"
                        href="{% instance_add_url 'core:feeding-add' %}"
@@ -81,5 +89,8 @@
     </div>
 {% endblock %}
 {% block javascript %}
-    <script type="application/javascript">BabyBuddy.Timer.run({{ timer.id }}, 'timer-status');</script>
+    <script type="application/javascript">
+        BabyBuddy.Timer.run({{ timer.id }}, 'timer-status');
+        BabyBuddy.WakeLock.init('timer-keep-screen-on');
+    </script>
 {% endblock %}

@@ -51,6 +51,55 @@ BabyBuddy.PullToRefresh = (function (ptr) {
   });
 })();
 
+/**
+ * Let an optional pill (radio) selection be cleared by clicking the selected
+ * option again. Required groups keep normal radio behaviour
+ * (babybuddy/babybuddy#870).
+ */
+(function deselectablePills() {
+  $(document).on("mousedown touchstart", ".pill-container label", function () {
+    var input = document.getElementById(this.getAttribute("for"));
+    if (input) {
+      input.dataset.wasChecked = input.checked ? "true" : "false";
+    }
+  });
+  $(document).on(
+    "click",
+    ".pill-container input[type=radio]:not([required])",
+    function () {
+      if (this.dataset.wasChecked === "true") {
+        this.checked = false;
+        this.dataset.wasChecked = "false";
+        $(this).trigger("change");
+      }
+    },
+  );
+})();
+
+/**
+ * Add a "copy start time" button under an end time field so a short entry in
+ * the past needs the date and time picked only once
+ * (babybuddy/babybuddy#728).
+ */
+(function copyStartTime() {
+  window.addEventListener("load", function () {
+    var start = document.getElementById("id_start");
+    var end = document.getElementById("id_end");
+    if (!start || !end || !end.dataset.copyLabel) {
+      return;
+    }
+    var button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-sm btn-outline-secondary mt-2";
+    button.textContent = end.dataset.copyLabel;
+    button.addEventListener("click", function () {
+      end.value = start.value;
+      end.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    end.insertAdjacentElement("afterend", button);
+  });
+})();
+
 BabyBuddy.RememberAdvancedToggle = function (ptr) {
   localStorage.setItem("advancedForm", event.newState);
 };

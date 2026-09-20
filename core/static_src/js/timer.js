@@ -34,6 +34,11 @@ BabyBuddy.Timer = (function ($) {
 
       runIntervalId = setInterval(this.tick, 1000);
 
+      // Another user may stop (delete) this timer while the page is open;
+      // detect that so nobody records a second entry from a dead timer
+      // (babybuddy/babybuddy#983).
+      setInterval(Timer.check, 15000);
+
       // If the page just came in to view, update the timer data with the
       // current actual duration. This will (potentially) help mobile
       // phones that lock with the timer page open.
@@ -77,6 +82,21 @@ BabyBuddy.Timer = (function ($) {
       h.text(hours + 1);
     },
 
+    check: function () {
+      $.get("/api/timers/" + timerId + "/").fail(function (response) {
+        if (response.status === 404) {
+          Timer.stopped();
+        }
+      });
+    },
+
+    stopped: function () {
+      clearInterval(runIntervalId);
+      $("#timer-stopped").removeClass("d-none");
+      $("#timer-actions").addClass("d-none");
+      $("#timer-status").addClass("text-body-secondary");
+    },
+
     update: function () {
       $.get("/api/timers/" + timerId + "/", function (data) {
         if (data && "duration" in data) {
@@ -99,3 +119,62 @@ BabyBuddy.Timer = (function ($) {
 
   return Timer;
 })(jQuery);
+
+/**
+ * Keep the screen on while a timer page is open, via the Screen Wake Lock
+ * API. The choice is remembered for the browser session
+ * (babybuddy/babybuddy#1070).
+ */
+BabyBuddy.WakeLock = (function () {
+  var storageKey = "keepScreenOn";
+  var lock = null;
+
+  function request() {
+    navigator.wakeLock
+      .request("screen")
+      .then(function (sentinel) {
+        lock = sentinel;
+      })
+      .catch(function () {
+        lock = null;
+      });
+  }
+
+  function release() {
+    if (lock) {
+      lock.release();
+      lock = null;
+    }
+  }
+
+  return {
+    init: function (checkbox_id) {
+      var checkbox = document.getElementById(checkbox_id);
+      if (!checkbox) {
+        return;
+      }
+      if (!("wakeLock" in navigator)) {
+        checkbox.disabled = true;
+        checkbox.parentElement.classList.add("text-body-secondary");
+        return;
+      }
+      checkbox.checked = sessionStorage.getItem(storageKey) === "true";
+      if (checkbox.checked) {
+        request();
+      }
+      checkbox.addEventListener("change", function () {
+        sessionStorage.setItem(storageKey, checkbox.checked);
+        if (checkbox.checked) {
+          request();
+        } else {
+          release();
+        }
+      });
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible" && checkbox.checked) {
+          request();
+        }
+      });
+    },
+  };
+})();

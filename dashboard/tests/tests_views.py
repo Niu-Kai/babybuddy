@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from faker import Faker
 
-from core.models import Child, Medication, Pumping, TummyTime
+from core.models import Child, DiaperChange, Medication, Pumping, TummyTime
 
 
 class ViewsTestCase(TestCase):
@@ -150,3 +150,28 @@ class DashboardCardPermissionsTestCase(TestCase):
         content = page.content.decode()
         self.assertIn("Dashboard Test Medication", content)
         self.assertIn("Last Feeding", content)
+
+
+class StatisticsViewTestCase(TestCase):
+    def test_statistics_page(self):
+        call_command("migrate", verbosity=0)
+        credentials = {"username": "stats", "password": "stats-pass"}
+        get_user_model().objects.create_user(is_superuser=True, **credentials)
+        child = Child.objects.create(
+            first_name="Stat", last_name="Child", birth_date=timezone.localdate()
+        )
+        c = HttpClient()
+        c.login(**credentials)
+        page = c.get("/children/{}/statistics/".format(child.slug))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "No data yet")
+
+        for hours in (1, 4):
+            DiaperChange.objects.create(
+                child=child,
+                time=timezone.localtime() - timezone.timedelta(hours=hours),
+                wet=True,
+                solid=False,
+            )
+        page = c.get("/children/{}/statistics/".format(child.slug))
+        self.assertContains(page, "Diaper change frequency")

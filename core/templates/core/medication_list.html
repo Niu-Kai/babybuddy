@@ -38,6 +38,13 @@
                             <div class="btn-group btn-group-sm"
                                  role="group"
                                  aria-label="{% trans "Actions" %}">
+                                {% if perms.core.add_medication %}
+                                    <a href="{% url 'core:medication-add' %}?repeat={{ medication.id }}"
+                                       class="btn btn-success"
+                                       title="{% trans "Give again" %}">
+                                        <i class="icon-refresh" aria-hidden="true"></i>
+                                    </a>
+                                {% endif %}
                                 {% if perms.core.change_medication %}
                                     <a href="{% url 'core:medication-update' medication.id %}"
                                        class="btn btn-primary">
