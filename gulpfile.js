@@ -17,6 +17,17 @@ const sass = gulpSass(dartSass);
 const spawn = child_process.spawn;
 
 /**
+ * Options for spawning helper programs. On Windows, `npx`, `pipenv` and
+ * friends are `.cmd` shims that can only be started through a shell.
+ *
+ * @returns {object}
+ * @private
+ */
+function spawnOptions() {
+  return { stdio: "inherit", shell: process.platform === "win32" };
+}
+
+/**
  * Spawns a command for pipenv.
  *
  * @param command
@@ -30,7 +41,7 @@ function _runInPipenv(command) {
   command.unshift("run");
   command = command.concat(process.argv.splice(3));
   return new Promise((resolve, reject) => {
-    spawn("pipenv", command, { stdio: "inherit" }).on("exit", function (code) {
+    spawn("pipenv", command, spawnOptions()).on("exit", function (code) {
       if (code) {
         reject();
       }
@@ -51,7 +62,7 @@ function _runInPipenv(command) {
  */
 function _runCommand(program, command) {
   return new Promise((resolve, reject) => {
-    spawn(program, command, { stdio: "inherit" }).on("exit", function (code) {
+    spawn(program, command, spawnOptions()).on("exit", function (code) {
       if (code) {
         reject();
       }
