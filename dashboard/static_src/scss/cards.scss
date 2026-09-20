@@ -1,136 +1,272 @@
+@use 'sass:color';
 @use 'sass:map';
 
-%card-header-text {
-    font-size: $h4-font-size;
-    font-weight: $headings-font-weight;
-    line-height: $headings-line-height;
-}
+// Dashboard cards.
+// Every card keeps the same markup (cards/base.html): a header with an icon
+// and a link, a body with a headline "title" and supporting "text", and an
+// optional list group. The look is a tonal surface with a per-type accent
+// used for the icon chip, a hairline at the top, links and progress bars.
+// The headline figure stays high-contrast so the information reads first.
+
+// Accent per card type. Deliberately softer and more distinct than the
+// button palette so neighbouring cards are easy to tell apart at a glance.
+$dashboard-accents: (
+    'feeding': #4fb8f0,
+    'pumping': #4fb8f0,
+    'diaperchange': #f0647a,
+    'medication': #c084fc,
+    'sleep': #ffa838,
+    'tummytime': #3ecf83,
+    'note': #8fa3ff,
+    'timer': #c9d1d9,
+    'statistics': #c9d1d9,
+);
+
+$dashboard-radius: 1.25rem;
+$dashboard-surface: rgba(255, 255, 255, 0.045);
+$dashboard-surface-raised: rgba(255, 255, 255, 0.07);
+$dashboard-border: rgba(255, 255, 255, 0.09);
+$dashboard-border-hover: rgba(255, 255, 255, 0.18);
+$dashboard-text-muted: rgba(255, 255, 255, 0.62);
 
 .card-dashboard {
-    margin-bottom: $spacer;
+    --card-accent: #{map.get($dashboard-accents, 'timer')};
 
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+    border: 1px solid $dashboard-border;
+    border-radius: $dashboard-radius;
+    background:
+        linear-gradient(180deg, $dashboard-surface-raised, $dashboard-surface),
+        var(--bs-body-bg);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        0 18px 40px -28px rgba(0, 0, 0, 0.85);
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+
+    // Accent hairline along the top edge.
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--card-accent), transparent 85%);
+        opacity: 0.9;
+        pointer-events: none;
+    }
+
+    @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+        &:hover {
+            transform: translateY(-2px);
+            border-color: $dashboard-border-hover;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.07),
+                0 24px 48px -28px rgba(0, 0, 0, 0.9);
+        }
+    }
+
+    // Header: icon chip + quiet label, no solid bar.
     .card-header {
-        @extend %card-header-text;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
         margin-bottom: 0;
+        padding: 1rem 1.25rem 0.25rem;
+        border: 0;
+        background: transparent;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: $dashboard-text-muted;
+
+        > i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            width: 2.1rem;
+            height: 2.1rem;
+            border-radius: 0.7rem;
+            background: color-mix(in srgb, var(--card-accent) 18%, transparent);
+            color: var(--card-accent);
+            font-size: 1rem;
+            float: none;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.15s ease;
+
+            &:hover,
+            &:focus-visible {
+                color: var(--card-accent);
+            }
+        }
     }
 
     .card-body {
+        padding: 0.5rem 1.25rem 1.25rem;
+        color: var(--bs-body-color);
+
         .card-title {
-            @extend %card-header-text;
+            display: block;
+            margin-bottom: 0.35rem;
+            font-size: clamp(1.3rem, 0.9rem + 1vw, 1.65rem);
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+            color: var(--bs-emphasis-color);
+
+            small {
+                font-size: 0.95rem;
+                font-weight: 500;
+                letter-spacing: 0;
+                color: $dashboard-text-muted;
+            }
+
+            // A trailing time or excerpt sits on its own line under the figure.
+            > small {
+                display: block;
+                margin-top: 0.15rem;
+            }
+
+            .text-muted {
+                color: $dashboard-text-muted !important;
+            }
         }
 
         .card-text {
-            color: $text-muted;
+            font-size: 0.92rem;
+            color: $dashboard-text-muted;
+
+            strong {
+                color: var(--bs-emphasis-color);
+            }
+
+            .border-bottom {
+                border-color: $dashboard-border !important;
+            }
         }
 
-        // Offset horizontal padding in dashboard cards with a carousel.
+        // Large figure used by the carousel cards.
+        .last-feeding-method,
+        .last-sleep-method {
+            font-size: clamp(1.7rem, 1.2rem + 1.4vw, 2.2rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+            color: var(--bs-emphasis-color);
+        }
+
+        // Offset horizontal padding in dashboard cards with a carousel and
+        // turn Bootstrap's full-height arrows into quiet edge controls.
         .carousel {
             margin-left: -$card-spacer-x;
             margin-right: -$card-spacer-x;
             padding-left: $card-spacer-x;
             padding-right: $card-spacer-x;
+
+            .carousel-control-prev,
+            .carousel-control-next {
+                width: 2rem;
+                opacity: 0.45;
+                transition: opacity 0.15s ease;
+
+                &:hover,
+                &:focus-visible {
+                    opacity: 1;
+                }
+            }
+
+            .carousel-control-prev-icon,
+            .carousel-control-next-icon {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
         }
-    }
 
-    .list-group {
-        .list-group-item {
-            color: $white;
+        .badge {
+            font-weight: 600;
+            border-radius: 999px;
+            padding: 0.35em 0.7em;
         }
-    }
-}
-
-.card-diaperchange,
-.card-medication {
-    border-color: map.get($theme-colors, 'danger');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'danger');
-        color: map.get($theme-colors, 'light');
-    }
-
-    .card-body {
-        color: map.get($theme-colors, 'danger');
-    }
-
-    .progress {
-        height: $progress-height * 2;
-    }
-}
-
-.card-feeding,
-.card-pumping {
-    border-color: map.get($theme-colors, 'primary');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'primary');
-        color: map.get($theme-colors, 'light');
-    }
-
-    .card-body {
-        color: map.get($theme-colors, 'primary');
-
-        // Last feeding method header in card.
-        .last-feeding-method {
-            font-size: 2em;
-        }
-    }
-
-    .progress {
-        height: $progress-height * 2;
-    }
-}
-
-.card-sleep {
-    border-color: map.get($theme-colors, 'secondary');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'secondary');
-        color: map.get($theme-colors, 'light');
-    }
-}
-
-.card-statistics, .card-timer {
-    border-color: map.get($theme-colors, 'light');
-
-    .card-header {
-        background-color: map.get($theme-colors, 'light');
-        color: map.get($theme-colors, 'dark');
-
-        a {
-            color: map.get($theme-colors, 'dark');
-        }
-    }
-
-    .card-body {
-        color: map.get($theme-colors, 'light');
 
         .container {
             padding: 0;
         }
     }
-}
 
-.card-tummytime {
-    border-color: map.get($theme-colors, 'success');
+    // Stacked day bars (diaper changes, breastfeeding).
+    .progress {
+        height: 1.1rem;
+        border-radius: 999px;
+        background-color: rgba(255, 255, 255, 0.07);
+        overflow: hidden;
 
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'success');
-        color: map.get($theme-colors, 'light');
+        .progress-bar {
+            font-size: 0.72rem;
+            font-weight: 600;
+            line-height: 1.1rem;
+            color: rgba(0, 0, 0, 0.75);
+
+            &.bg-primary {
+                background-color: var(--card-accent) !important;
+            }
+
+            &.bg-secondary {
+                background-color: color-mix(in srgb, var(--card-accent) 45%, #fff 20%) !important;
+            }
+
+            &.bg-transparent {
+                color: $dashboard-text-muted;
+            }
+        }
     }
 
-    .card-body {
-        color: map.get($theme-colors, 'success');
+    // Lists (timers, today's tummy time).
+    .list-group {
+        border-top: 1px solid $dashboard-border;
+
+        .list-group-item {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border-color: $dashboard-border;
+            color: var(--bs-body-color);
+
+            strong {
+                color: var(--bs-emphasis-color);
+            }
+
+            &.list-group-item-action {
+                transition: background-color 0.15s ease;
+
+                &:hover,
+                &:focus-visible {
+                    background: color-mix(in srgb, var(--card-accent) 10%, transparent);
+                }
+            }
+        }
     }
 }
 
-// Medication Status Card
+// Per-type accents.
+@each $type, $accent in $dashboard-accents {
+    .card-#{$type} {
+        --card-accent: #{$accent};
+    }
+}
+
+// Medication status card (kept on the same surface language).
 .card-medication-status {
-    border-color: map.get($theme-colors, 'primary');
-
-    .card-header, .card-header a {
-        background-color: map.get($theme-colors, 'primary');
-        color: map.get($theme-colors, 'light');
-    }
+    --card-accent: #{map.get($dashboard-accents, 'medication')};
 
     .medication-status-item {
         &:last-child {
@@ -139,7 +275,7 @@
 
         .medication-name {
             font-weight: 600;
-            color: map.get($theme-colors, 'primary');
+            color: var(--bs-emphasis-color);
         }
 
         .medication-actions {

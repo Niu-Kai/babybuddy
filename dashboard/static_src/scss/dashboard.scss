@@ -1,3 +1,69 @@
+// Dashboard pages.
+
 .child-actions {
     flex-wrap: wrap;
+}
+
+// Child dashboard: a touch more breathing room between the masonry columns.
+#dashboard-child {
+    --bs-gutter-x: 1.25rem;
+    padding-top: 0.5rem;
+}
+
+// Dashboard index (several children): child cards on the same tonal surface
+// as the dashboard cards, with the photo bleeding to the rounded edge.
+#view-dashboard\:dashboard {
+    .card:not(.card-dashboard) {
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 1.25rem;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.045)),
+            var(--bs-body-bg);
+        box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.85);
+        transition:
+            border-color 0.2s ease,
+            transform 0.2s ease;
+
+        @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+            &:hover {
+                transform: translateY(-2px);
+                border-color: rgba(255, 255, 255, 0.18);
+            }
+        }
+
+        .child-photo {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+        }
+
+        .card-title {
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .card-text .text-secondary {
+            color: var(--bs-emphasis-color) !important;
+        }
+    }
+
+    .child-actions {
+        border-radius: 0.9rem !important;
+        border-color: rgba(255, 255, 255, 0.12) !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        overflow: hidden;
+
+        .btn {
+            flex: 1 1 auto;
+            border: 0;
+            border-radius: 0;
+            color: rgba(255, 255, 255, 0.75);
+
+            &:hover,
+            &:focus-visible {
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--bs-emphasis-color);
+            }
+        }
+    }
 }
