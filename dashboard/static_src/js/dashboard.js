@@ -1,12 +1,18 @@
 /* Baby Buddy Dashboard
  *
- * Provides a "watch" function to update the dashboard at one minute intervals
- * and/or on visibility state changes.
+ * Provides a "watch" function to refresh the dashboard at a chosen interval
+ * and when the page comes back into view. The refresh swaps the dashboard's
+ * content in place instead of reloading the page, so nothing flashes.
  */
 BabyBuddy.Dashboard = (function ($) {
   var runIntervalId = null;
   var dashboardElement = null;
   var hidden = null;
+  var updating = false;
+  var lastUpdate = 0;
+
+  // Regaining focus should not refresh more often than this.
+  var FOCUS_THROTTLE_MS = 15000;
 
   var Dashboard = {
     watch: function (element_id, refresh_rate) {
@@ -33,11 +39,7 @@ BabyBuddy.Dashboard = (function ($) {
           runIntervalId = setInterval(this.update, refresh_rate);
         }
       } else {
-        window.addEventListener(
-          "focus",
-          Dashboard.handleVisibilityChange,
-          false,
-        );
+        window.addEventListener("focus", Dashboard.handleFocus, false);
         if (refresh_rate) {
           runIntervalId = setInterval(
             Dashboard.handleVisibilityChange,
@@ -53,9 +55,46 @@ BabyBuddy.Dashboard = (function ($) {
       }
     },
 
+    handleFocus: function () {
+      if (Date.now() - lastUpdate > FOCUS_THROTTLE_MS) {
+        Dashboard.handleVisibilityChange();
+      }
+    },
+
     update: function () {
-      // TODO: Someday maybe update in place?
-      location.reload();
+      if (updating) {
+        return;
+      }
+      updating = true;
+
+      fetch(window.location.href, {
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("Dashboard refresh failed: " + response.status);
+          }
+          return response.text();
+        })
+        .then(function (html) {
+          var fresh = new DOMParser()
+            .parseFromString(html, "text/html")
+            .getElementById(dashboardElement.attr("id"));
+          if (!fresh) {
+            // Probably redirected (e.g. logged out); fall back to a reload.
+            window.location.reload();
+            return;
+          }
+          dashboardElement.html(fresh.innerHTML);
+        })
+        .catch(function () {
+          window.location.reload();
+        })
+        .finally(function () {
+          updating = false;
+          lastUpdate = Date.now();
+        });
     },
   };
 
