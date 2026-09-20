@@ -1,0 +1,27 @@
+[Unit]
+Description=Baby Buddy (gunicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=babybuddy
+Group=babybuddy
+WorkingDirectory=/opt/babybuddy/app
+EnvironmentFile=/etc/babybuddy/babybuddy.env
+ExecStart=/opt/babybuddy/app/.venv/bin/gunicorn babybuddy.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 2 \
+    --timeout 60 \
+    --access-logfile - --error-logfile -
+Restart=on-failure
+RestartSec=5
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/babybuddy/app/data /opt/babybuddy/app/media
+
+[Install]
+WantedBy=multi-user.target
