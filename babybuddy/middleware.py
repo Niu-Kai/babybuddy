@@ -20,6 +20,7 @@ from django.http import (
 )
 from django.urls.base import set_script_prefix, get_script_prefix
 
+from . import preferences
 from .models import access_expired
 
 
@@ -63,17 +64,30 @@ class UserTimezoneMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
+    DEVICE_TZ_COOKIE = "babybuddy_device_tz"
+
     def __call__(self, request):
         user = request.user
-        if hasattr(user, "settings") and user.settings.timezone:
-            try:
-                timezone.activate(user.settings.timezone)
-            except (ValueError, KeyError):
-                # An unknown zone (e.g. tzdata differs from the host that set
-                # it) must not make every request fail; fall back to the
-                # default zone instead. ZoneInfoNotFoundError is a KeyError.
-                timezone.deactivate()
-        return self.get_response(request)
+        if hasattr(user, "settings"):
+            name = user.settings.timezone
+            if user.settings.timezone_follow_device:
+                # The device's zone, reported by a cookie the page sets (#611).
+                name = request.COOKIES.get(self.DEVICE_TZ_COOKIE) or name
+            if name:
+                try:
+                    timezone.activate(name)
+                except (ValueError, KeyError):
+                    # An unknown zone (e.g. tzdata differs from the host that
+                    # set it) must not make every request fail; fall back to
+                    # the default zone. ZoneInfoNotFoundError is a KeyError.
+                    timezone.deactivate()
+            preferences.set_time_format(
+                "H:i" if user.settings.use_24_hour_time else None
+            )
+        try:
+            return self.get_response(request)
+        finally:
+            preferences.set_time_format(None)
 
 
 class RollingSessionMiddleware:

@@ -2,6 +2,7 @@
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.views.generic.base import TemplateView
+from django.utils import timezone
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -36,6 +37,14 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
     model = Child
     permission_required = ("core.view_child",)
     template_name = "dashboard/child.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["hidden_cards"] = (
+            self.request.user.settings.dashboard_hidden_cards or []
+        )
+        context["today"] = timezone.localdate()
+        return context
 
 
 class ChildStatistics(PermissionRequiredMixin, DetailView):

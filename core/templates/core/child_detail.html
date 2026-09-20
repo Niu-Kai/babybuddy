@@ -23,6 +23,10 @@
                         {% trans "Born" %} <span class="text-secondary">{{ object.birth_datetime }}</span>
                         <br />
                         {% trans "Age" %} <span class="text-secondary">{{ object.birth_datetime|child_age_string }}</span>
+                        {% if object.is_premature %}
+                            <br />
+                            {% trans "Corrected age" %} <span class="text-secondary">{{ object.due_date|child_age_string }}</span>
+                        {% endif %}
                     </p>
                     {% include "dashboard/child_button_group.html" %}
                     </div>

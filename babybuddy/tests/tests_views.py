@@ -7,6 +7,7 @@ from django.test import Client as HttpClient
 from django.contrib.auth import get_user_model
 from django.core import mail
 from django.core.management import call_command
+from django.utils import timezone
 
 from faker import Faker
 
@@ -202,3 +203,97 @@ class ThemeTestCase(TestCase):
     def test_anonymous_is_dark(self):
         page = HttpClient().get("/login/")
         self.assertContains(page, 'data-bs-theme="dark"')
+
+
+class PreferencesTestCase(TestCase):
+    """24-hour clock, device time zone, dashboard cards and export."""
+
+    def setUp(self):
+        call_command("migrate", verbosity=0)
+        self.credentials = {"username": "prefs", "password": "prefs-pass"}
+        self.user = get_user_model().objects.create_user(
+            is_superuser=True, is_staff=True, **self.credentials
+        )
+        self.c = HttpClient()
+        self.c.login(**self.credentials)
+        from core import models as core_models
+
+        self.child = core_models.Child.objects.create(
+            first_name="Pref", last_name="Kid", birth_date=timezone.localdate()
+        )
+        start = timezone.localtime().replace(hour=13, minute=5, second=0, microsecond=0)
+        if start > timezone.localtime():
+            start -= timezone.timedelta(days=1)
+        core_models.Feeding.objects.create(
+            child=self.child, start=start, end=start, type="formula", method="bottle"
+        )
+
+    def test_24_hour_clock(self):
+        page = self.c.get("/feedings/")
+        self.assertContains(page, "1:05 p.m.")
+        self.user.settings.use_24_hour_time = True
+        self.user.settings.save()
+        page = self.c.get("/feedings/")
+        self.assertContains(page, "13:05")
+        self.assertNotContains(page, "1:05 p.m.")
+
+    def test_device_timezone(self):
+        self.user.settings.timezone = "UTC"
+        self.user.settings.timezone_follow_device = True
+        self.user.settings.save()
+        self.c.cookies["babybuddy_device_tz"] = "Asia/Tokyo"
+        page = self.c.get("/feedings/")
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(timezone.get_current_timezone_name(), "Asia/Tokyo")
+        timezone.deactivate()
+        self.c.cookies["babybuddy_device_tz"] = "Not/AZone"
+        page = self.c.get("/feedings/")
+        self.assertEqual(page.status_code, 200)
+        timezone.deactivate()
+
+    def test_dashboard_cards(self):
+        page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
+        self.assertContains(page, "Last Sleep")
+        self.user.settings.dashboard_hidden_cards = ["sleep_last"]
+        self.user.settings.save()
+        page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
+        self.assertNotContains(page, "Last Sleep")
+        self.assertContains(page, "Last Feeding")
+
+    def test_dashboard_cards_form(self):
+        params = {
+            "first_name": "",
+            "last_name": "",
+            "email": "",
+            "dashboard_refresh_rate": "0:01:00",
+            "language": "en-US",
+            "timezone": "UTC",
+            "pagination_count": 25,
+            "dashboard_cards_present": "1",
+            "dashboard_cards": ["feeding_last", "statistics"],
+        }
+        page = self.c.post("/user/settings/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.user.settings.refresh_from_db()
+        self.assertIn("sleep_last", self.user.settings.dashboard_hidden_cards)
+        self.assertNotIn("feeding_last", self.user.settings.dashboard_hidden_cards)
+
+    def test_export(self):
+        page = self.c.get("/export/")
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page["Content-Type"], "application/zip")
+        import io
+        import zipfile
+
+        archive = zipfile.ZipFile(io.BytesIO(page.content))
+        self.assertIn("child.csv", archive.namelist())
+        self.assertIn("feeding.csv", archive.namelist())
+        self.assertIn("Pref", archive.read("child.csv").decode())
+
+    def test_corrected_age(self):
+        self.child.birth_date = timezone.localdate() - timezone.timedelta(days=60)
+        self.child.due_date = timezone.localdate() - timezone.timedelta(days=10)
+        self.child.save()
+        page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
+        self.assertContains(page, "Corrected age")
+        self.assertEqual(self.child.corrected_birth_date, self.child.due_date)

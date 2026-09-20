@@ -1,5 +1,5 @@
 {% extends "babybuddy/page.html" %}
-{% load breadcrumb cards i18n imagekit static %}
+{% load breadcrumb cards duration i18n imagekit static %}
 {% block title %}
     {% trans "Dashboard" %} - {{ object }}
 {% endblock %}
@@ -33,6 +33,16 @@
                                 <i class="icon-clock" aria-hidden="true"></i>
                                 {% trans "Age" %} {{ object.birth_date|timesince }}
                             </span>
+                            {% if object.is_premature %}
+                                <span class="dash-chip">
+                                    <i class="icon-child" aria-hidden="true"></i>
+                                    {% if object.due_date > today %}
+                                        {% trans "Due" %} {{ object.due_date }}
+                                    {% else %}
+                                        {% trans "Corrected age" %} {{ object.due_date|child_age_string }}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
                         </div>
                     </div>
                     </div>
@@ -71,28 +81,44 @@
                         <h2 id="dash-glance-title" class="dash-section-title">{% trans "At a glance" %}</h2>
                         <div class="dash-grid dash-grid-glance">
                             {% if perms.core.view_feeding %}
-                                <div class="dash-cell">{% card_feeding_last object %}</div>
+                                {% if "feeding_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_feeding_last object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_diaperchange %}
-                                <div class="dash-cell">{% card_diaperchange_last object %}</div>
+                                {% if "diaperchange_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_diaperchange_last object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_sleep %}
-                                <div class="dash-cell">{% card_sleep_last object %}</div>
+                                {% if "sleep_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_sleep_last object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_pumping %}
-                                <div class="dash-cell">{% card_pumping_last object %}</div>
+                                {% if "pumping_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_pumping_last object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_medication %}
-                                <div class="dash-cell">{% card_medication_last object %}</div>
+                                {% if "medication_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_medication_last object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_sleep %}
-                                <div class="dash-cell">{% card_sleep_naps_day object %}</div>
+                                {% if "sleep_naps_day" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_sleep_naps_day object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_tummytime %}
-                                <div class="dash-cell">{% card_tummytime_day object %}</div>
+                                {% if "tummytime_day" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_tummytime_day object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_timer %}
-                                <div class="dash-cell">{% card_timer_list object %}</div>
+                                {% if "timer_list" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_timer_list object %}</div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </section>
@@ -100,24 +126,40 @@
                         <h2 id="dash-trends-title" class="dash-section-title">{% trans "Trends" %}</h2>
                         <div class="dash-grid dash-grid-trends">
                             {% if perms.core.view_feeding %}
-                                <div class="dash-cell">{% card_feeding_recent object %}</div>
-                                <div class="dash-cell">{% card_feeding_last_method object %}</div>
+                                {% if "feeding_recent" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_feeding_recent object %}</div>
+                                {% endif %}
+                                {% if "feeding_last_method" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_feeding_last_method object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_sleep %}
-                                <div class="dash-cell">{% card_sleep_recent object %}</div>
+                                {% if "sleep_recent" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_sleep_recent object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_pumping %}
-                                <div class="dash-cell">{% card_pumping_recent object %}</div>
+                                {% if "pumping_recent" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_pumping_recent object %}</div>
+                                {% endif %}
                             {% endif %}
-                            <div class="dash-cell">{% card_statistics object %}</div>
+                            {% if "statistics" not in hidden_cards %}
+                                <div class="dash-cell">{% card_statistics object %}</div>
+                            {% endif %}
                             {% if perms.core.view_diaperchange %}
-                                <div class="dash-cell">{% card_diaperchange_types object %}</div>
+                                {% if "diaperchange_types" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_diaperchange_types object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_feeding %}
-                                <div class="dash-cell">{% card_breastfeeding object %}</div>
+                                {% if "breastfeeding" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_breastfeeding object %}</div>
+                                {% endif %}
                             {% endif %}
                             {% if perms.core.view_note %}
-                                <div class="dash-cell">{% card_notes_recent object %}</div>
+                                {% if "notes_recent" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_notes_recent object %}</div>
+                                {% endif %}
                             {% endif %}
                         </div>
                     </section>

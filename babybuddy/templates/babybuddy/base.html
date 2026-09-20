@@ -22,6 +22,23 @@
                 })();
             </script>
         {% endif %}
+        {% if user.is_authenticated and user.settings.timezone_follow_device %}
+            {% comment %}Report the device time zone; reload once when it changes (#611).{% endcomment %}
+            <script>
+                (function () {
+                    var zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                    if (!zone) {
+                        return;
+                    }
+                    var match = document.cookie.match(/(?:^|; )babybuddy_device_tz=([^;]*)/);
+                    var previous = match ? decodeURIComponent(match[1]) : null;
+                    if (previous !== zone) {
+                        document.cookie = "babybuddy_device_tz=" + encodeURIComponent(zone) + "; path=/; max-age=31536000; SameSite=Lax";
+                        window.location.reload();
+                    }
+                })();
+            </script>
+        {% endif %}
         <title>
             {% block title %}{% endblock %}
         | Baby Buddy</title>

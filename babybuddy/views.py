@@ -298,3 +298,53 @@ class Welcome(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "babybuddy/welcome.html"
+
+
+class ExportData(StaffOnlyMixin, View):
+    """
+    One-click export of every record as a zip of CSV files, one per model,
+    using the same resources as the admin's per-model export (#124).
+    """
+
+    def get(self, request):
+        import io
+        import zipfile
+
+        from django.contrib import admin as django_admin
+        from django.http import HttpResponse
+        from django.utils import timezone
+        from import_export.resources import modelresource_factory
+
+        from core import models as core_models
+
+        exported = [
+            core_models.Child,
+            core_models.DiaperChange,
+            core_models.Feeding,
+            core_models.Pumping,
+            core_models.Sleep,
+            core_models.TummyTime,
+            core_models.Temperature,
+            core_models.Weight,
+            core_models.Height,
+            core_models.HeadCircumference,
+            core_models.BMI,
+            core_models.Medication,
+            core_models.Note,
+            core_models.Tag,
+        ]
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+            for model in exported:
+                model_admin = django_admin.site._registry.get(model)
+                resource_class = getattr(model_admin, "resource_class", None)
+                if resource_class is None:
+                    resource_class = modelresource_factory(model)
+                dataset = resource_class().export()
+                archive.writestr(f"{model._meta.model_name}.csv", dataset.csv)
+        stamp = timezone.localdate().strftime("%Y%m%d")
+        response = HttpResponse(buffer.getvalue(), content_type="application/zip")
+        response["Content-Disposition"] = (
+            f'attachment; filename="babybuddy-export-{stamp}.zip"'
+        )
+        return response

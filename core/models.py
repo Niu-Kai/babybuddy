@@ -211,6 +211,15 @@ class Child(models.Model):
     )
     birth_date = models.DateField(blank=False, null=False, verbose_name=_("Birth date"))
     birth_time = models.TimeField(blank=True, null=True, verbose_name=_("Birth time"))
+    due_date = models.DateField(
+        blank=True,
+        null=True,
+        verbose_name=_("Due date"),
+        help_text=_(
+            "Optional. For a premature birth, growth percentiles and the "
+            "corrected age count from this date."
+        ),
+    )
     slug = models.SlugField(
         allow_unicode=True,
         blank=False,
@@ -235,6 +244,15 @@ class Child(models.Model):
 
     def __str__(self):
         return self.name()
+
+    @property
+    def is_premature(self):
+        return bool(self.due_date and self.due_date > self.birth_date)
+
+    @property
+    def corrected_birth_date(self):
+        """The date to count age from for growth charts (#369)."""
+        return self.due_date if self.is_premature else self.birth_date
 
     def save(self, *args, **kwargs):
         # The slug follows the name unless it was customised (see ChildForm):

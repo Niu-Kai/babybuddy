@@ -102,6 +102,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            # Global filters: the `time` filter honours the 24-hour preference.
+            "builtins": ["core.templatetags.datetime"],
         },
     },
 ]

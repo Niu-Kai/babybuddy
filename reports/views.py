@@ -253,7 +253,7 @@ class HeadCircumferenceChangeChildReport(PermissionRequiredMixin, DetailView):
         context["target_url"] = self.target_url
         if objects:
             context["html"], context["js"] = graphs.head_circumference_change(
-                objects, percentiles, child.birth_date
+                objects, percentiles, child.corrected_birth_date
             )
         return context
 
@@ -294,7 +294,7 @@ class HeightChangeChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(HeightChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        birthday = child.birth_date
+        birthday = child.corrected_birth_date
         actual_heights = models.Height.objects.filter(child=child)
         percentile_heights = models.HeightPercentile.objects.filter(sex=self.sex)
         context["target_url"] = self.target_url
@@ -459,7 +459,7 @@ class WeightChangeChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(WeightChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        birthday = child.birth_date
+        birthday = child.corrected_birth_date
         actual_weights = models.Weight.objects.filter(child=child)
         percentile_weights = models.WeightPercentile.objects.filter(sex=self.sex)
         context["target_url"] = self.target_url

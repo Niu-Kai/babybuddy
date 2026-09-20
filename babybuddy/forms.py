@@ -6,7 +6,7 @@ from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
-from .models import Settings, timezone_choices
+from .models import DASHBOARD_CARDS, Settings, timezone_choices
 from .widgets import DateTimeInput
 
 
@@ -130,15 +130,35 @@ class UserPasswordForm(PasswordChangeForm):
 
 class UserSettingsForm(forms.ModelForm):
     timezone = forms.ChoiceField(label=_("Timezone"))
+    dashboard_cards = forms.MultipleChoiceField(
+        choices=DASHBOARD_CARDS,
+        label=_("Dashboard cards"),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["timezone"].choices = timezone_choices()
         # Older clients may not send a theme; keep the default rather than fail.
         self.fields["theme"].required = False
+        hidden = self.instance.dashboard_hidden_cards or []
+        self.initial["dashboard_cards"] = [
+            key for key, _label in DASHBOARD_CARDS if key not in hidden
+        ]
 
     def clean_theme(self):
         return self.cleaned_data.get("theme") or "dark"
+
+    def save(self, commit=True):
+        # The checkbox list is absent from the POST both when every card is
+        # unchecked and when a client never sent it; a marker tells them apart.
+        if self.data.get("dashboard_cards_present"):
+            shown = set(self.cleaned_data.get("dashboard_cards") or [])
+            self.instance.dashboard_hidden_cards = [
+                key for key, _label in DASHBOARD_CARDS if key not in shown
+            ]
+        return super().save(commit=commit)
 
     class Meta:
         model = Settings
@@ -149,5 +169,7 @@ class UserSettingsForm(forms.ModelForm):
             "language",
             "theme",
             "timezone",
+            "timezone_follow_device",
+            "use_24_hour_time",
             "pagination_count",
         ]

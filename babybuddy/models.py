@@ -38,6 +38,27 @@ def validate_timezone(value):
         )
 
 
+# Dashboard cards a user can hide (see Settings.dashboard_hidden_cards).
+DASHBOARD_CARDS = [
+    ("feeding_last", _("Last Feeding")),
+    ("diaperchange_last", _("Last Diaper Change")),
+    ("sleep_last", _("Last Sleep")),
+    ("pumping_last", _("Last Pumping")),
+    ("medication_last", _("Last Medication")),
+    ("sleep_naps_day", _("Today's Naps")),
+    ("tummytime_day", _("Today's Tummy Time")),
+    ("timer_list", _("Timers")),
+    ("feeding_recent", _("Recent Feedings")),
+    ("feeding_last_method", _("Last Feeding Method")),
+    ("sleep_recent", _("Recent Sleep")),
+    ("pumping_recent", _("Recent Pumpings")),
+    ("statistics", _("Statistics")),
+    ("diaperchange_types", _("Diaper Changes")),
+    ("breastfeeding", _("Breastfeeding")),
+    ("notes_recent", _("Recent Notes")),
+]
+
+
 class Settings(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     dashboard_refresh_rate = models.DurationField(
@@ -165,6 +186,24 @@ class Settings(models.Model):
         ],
         default=25,
         verbose_name=_("Items Per Page"),
+    )
+    use_24_hour_time = models.BooleanField(
+        default=False,
+        verbose_name=_("24-hour clock"),
+        help_text=_("Show times as 13:05 instead of 1:05 p.m."),
+    )
+    timezone_follow_device = models.BooleanField(
+        default=False,
+        verbose_name=_("Use the device's time zone"),
+        help_text=_(
+            "Follow the time zone of the browser or phone in use, e.g. while "
+            "travelling, instead of the fixed time zone above."
+        ),
+    )
+    dashboard_hidden_cards = models.JSONField(
+        blank=True,
+        default=list,
+        verbose_name=_("Hidden dashboard cards"),
     )
     access_expires = models.DateTimeField(
         blank=True,
