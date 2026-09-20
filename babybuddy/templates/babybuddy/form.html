@@ -16,6 +16,15 @@
                 <div class="row">{% include "babybuddy/form_field.html" %}</div>
             {% endfor %}
         {% endif %}
+        {% if form.overlap_conflict %}
+            <div class="alert alert-warning">
+                <div class="form-check">
+                    {% render_field form.allow_overlap class="form-check-input" %}
+                    <label class="form-check-label"
+                           for="{{ form.allow_overlap.id_for_label }}">{{ form.allow_overlap.label }}</label>
+                </div>
+            </div>
+        {% endif %}
         <button type="submit" class="submit-primary btn btn-primary btn-lg">{% trans "Submit" %}</button>
     </form>
 </div>

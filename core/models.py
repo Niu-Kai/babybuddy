@@ -63,6 +63,9 @@ def validate_unique_period(queryset, model):
     :param model: a model instance with 'start' and 'end' attributes
     :return:
     """
+    if getattr(model, "allow_overlap", False):
+        # The user has confirmed the overlap (see CoreModelForm).
+        return
     if model.id:
         queryset = queryset.exclude(id=model.id)
     if model.start and model.end:

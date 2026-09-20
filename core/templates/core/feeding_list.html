@@ -25,7 +25,8 @@
             <thead>
                 <tr>
                     <th>{% trans "Actions" %}</th>
-                    <th>{% trans "Date" %}</th>
+                    <th>{% trans "Start" %}</th>
+                    <th>{% trans "End" %}</th>
                     {% if not unique_child %}
                         <th>{% trans "Child" %}</th>
                     {% endif %}
@@ -61,6 +62,7 @@
                                 </div>
                             </td>
                             <th scope="row">{{ feeding.start|datetime_short }}</th>
+                            <td>{% if feeding.duration %}{{ feeding.end|datetime_short }}{% endif %}</td>
                             {% if not unique_child %}
                                 <td>
                                     <a href="{% url 'core:child' feeding.child.slug %}">{{ feeding.child }}</a>
@@ -82,7 +84,7 @@
                         </tr>
                         {% if feeding.notes %}
                             <tr class="{{ row_class }} row-details">
-                                <td colspan="8">
+                                <td colspan="9">
                                     <i class="icon-note me-2" aria-hidden="true"></i>{{ feeding.notes }}
                                 </td>
                             </tr>
@@ -90,7 +92,7 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %} 9 {% else %} 8 {% endif %}">{% trans "No feedings found." %}</th>
+                        <th colspan="{% if not unique_child %} 10 {% else %} 9 {% endif %}">{% trans "No feedings found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

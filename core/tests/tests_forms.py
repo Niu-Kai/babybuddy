@@ -1224,3 +1224,114 @@ class MedicationFormsTestCase(FormsTestCaseBase):
         self.assertFormError(
             page.context["form"], "time", "Date/time can not be in the future."
         )
+
+
+class OverlapConfirmationTestCase(FormsTestCaseBase):
+    """An overlapping entry can be saved after explicit confirmation (#702)."""
+
+    def _params(self, allow=False):
+        start = timezone.localtime() - timezone.timedelta(hours=2)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=30)),
+            "nap": False,
+        }
+        if allow:
+            params["allow_overlap"] = "on"
+        return params
+
+    def test_overlap_offers_confirmation_then_saves(self):
+        start = timezone.localtime() - timezone.timedelta(hours=2)
+        models.Sleep.objects.create(
+            child=self.child,
+            start=start + timezone.timedelta(minutes=10),
+            end=start + timezone.timedelta(minutes=20),
+        )
+
+        page = self.c.post("/sleep/add/", self._params(), follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "intersects the specified time period")
+        self.assertContains(page, "Save anyway")
+        self.assertEqual(models.Sleep.objects.filter(child=self.child).count(), 1)
+
+        page = self.c.post("/sleep/add/", self._params(allow=True), follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Sleep entry for {} added".format(str(self.child)))
+        self.assertEqual(models.Sleep.objects.filter(child=self.child).count(), 2)
+
+    def test_no_conflict_no_checkbox(self):
+        page = self.c.post("/sleep/add/", self._params(), follow=True)
+        self.assertNotContains(page, "Save anyway")
+
+
+class FeedingOptionalEndTestCase(FormsTestCaseBase):
+    """A feeding can be recorded without an end time (#772)."""
+
+    def test_feeding_without_end(self):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": "",
+            "type": "breast milk",
+            "method": "left breast",
+        }
+        page = self.c.post("/feedings/add/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Feeding entry for {} added".format(str(self.child)))
+        feeding = models.Feeding.objects.filter(child=self.child).first()
+        self.assertEqual(feeding.start, feeding.end)
+        self.assertEqual(feeding.duration, timezone.timedelta(0))
+
+
+class SingleChildFormTestCase(FormsTestCaseBase):
+    """With one child the child field is hidden (#889)."""
+
+    def test_child_hidden_for_single_child(self):
+        self.assertEqual(models.Child.objects.count(), 1)
+        page = self.c.get("/sleep/add/")
+        self.assertContains(
+            page,
+            'type="hidden" name="child" value="{}" id="id_child"'.format(self.child.id),
+        )
+        self.assertNotContains(page, "btn-group-toggle")
+
+    def test_child_selector_for_several_children(self):
+        second = models.Child.objects.create(
+            first_name="Child", last_name="Two", birth_date=timezone.localdate()
+        )
+        try:
+            page = self.c.get("/sleep/add/")
+            self.assertNotContains(
+                page, 'name="child" value="{}" id="id_child"'.format(self.child.id)
+            )
+            self.assertContains(page, "btn-group-toggle")
+        finally:
+            second.delete()
+
+
+class MedicationRepeatTestCase(FormsTestCaseBase):
+    """`?repeat=<id>` pre-fills a new dose from an existing entry (#1068)."""
+
+    def test_repeat_prefills(self):
+        source = models.Medication.objects.create(
+            child=self.child,
+            name="Paracetamol",
+            dosage=2.5,
+            dosage_unit="ml",
+            time=timezone.localtime() - timezone.timedelta(hours=6),
+            next_dose_interval=timezone.timedelta(hours=4),
+        )
+        page = self.c.get("/medication/add/?repeat={}".format(source.id))
+        self.assertEqual(page.status_code, 200)
+        form = page.context["form"]
+        self.assertEqual(form.initial["name"], "Paracetamol")
+        self.assertEqual(form.initial["dosage"], 2.5)
+        self.assertEqual(form.initial["dosage_unit"], "ml")
+        self.assertEqual(form.initial["next_dose_interval"], 4.0)
+
+    def test_repeat_ignores_garbage(self):
+        page = self.c.get("/medication/add/?repeat=nope")
+        self.assertEqual(page.status_code, 200)
+        self.assertNotIn("name", page.context["form"].initial)

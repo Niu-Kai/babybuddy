@@ -11,9 +11,15 @@
             <div class="carousel-inner">
                 {% for feeding in feedings %}
                     <div class="carousel-item{% if forloop.counter == 1 %} active{% endif %}">
+                        {% comment %}
+                            Without amounts (e.g. exclusive breastfeeding) the count
+                            is the headline figure instead of a "None" total.
+                        {% endcomment %}
                         <div class="last-feeding-method text-center">
                             {% if feeding.total %}
                                 {{ feeding.total|floatformat }}
+                            {% elif feeding.count > 0 %}
+                                {{ feeding.count }}
                             {% else %}
                                 {% trans "None" %}
                             {% endif %}

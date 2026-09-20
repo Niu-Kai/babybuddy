@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from taggit.forms import TagField, TagWidgetMixin
 
 from babybuddy.widgets import DateInput, DateTimeInput, TimeInput
-from core import models
+from core import fields, models
 from core.models import Timer
 from core.widgets import TagsEditor, ChildRadioSelect, PillRadioSelect
 
@@ -100,7 +100,63 @@ class CoreModelForm(forms.ModelForm):
         self.timer_id = kwargs.get("timer", None)
         kwargs = set_initial_values(kwargs, type(self))
         super(CoreModelForm, self).__init__(*args, **kwargs)
+        self.use_tolerant_fields()
+        self.add_overlap_field()
+        self.hide_single_child()
+        self.add_copy_time_hint()
         self.add_timer_field()
+
+    def hide_single_child(self):
+        """
+        With exactly one child there is nothing to choose, so the child field
+        becomes a hidden input (babybuddy/babybuddy#889). `set_initial_values`
+        has already provided the initial value.
+        """
+        if "child" in self.fields and models.Child.count() == 1:
+            self.fields["child"].widget = forms.HiddenInput()
+
+    def add_copy_time_hint(self):
+        """Label for the client-side "copy start time" button (#728)."""
+        if "start" in self.fields and "end" in self.fields:
+            self.fields["end"].widget.attrs["data-copy-label"] = _("Copy start time")
+
+    def add_overlap_field(self):
+        """
+        Entries with a start and end are validated to not overlap another
+        entry. When that validation fails the form re-renders with a
+        confirmation checkbox so the entry can be saved anyway
+        (babybuddy/babybuddy#702, #736).
+        """
+        self.overlap_conflict = False
+        names = {field.name for field in self._meta.model._meta.get_fields()}
+        if {"start", "end"} <= names:
+            self.fields["allow_overlap"] = forms.BooleanField(
+                required=False,
+                label=_("Save anyway, even though it overlaps another entry"),
+                widget=forms.HiddenInput(),
+            )
+
+    def _post_clean(self):
+        if "allow_overlap" in self.fields:
+            self.instance.allow_overlap = bool(self.cleaned_data.get("allow_overlap"))
+        super()._post_clean()
+        if "allow_overlap" in self.fields and any(
+            error.code == "period_intersection"
+            for error in self.non_field_errors().as_data()
+        ):
+            self.overlap_conflict = True
+            self.fields["allow_overlap"].widget = forms.CheckboxInput()
+
+    def use_tolerant_fields(self):
+        """
+        Swap the generated date/time and number fields for variants that
+        accept daylight saving transition times and comma decimals.
+        """
+        for field in self.fields.values():
+            if type(field) is forms.DateTimeField:
+                field.__class__ = fields.DateTimeField
+            elif type(field) is forms.FloatField:
+                field.__class__ = fields.FloatField
 
     def add_timer_field(self):
         """
@@ -367,6 +423,21 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # The duration is optional (babybuddy/babybuddy#772): an entry without
+        # an end time is stored as an instant, like a bottle feeding.
+        self.fields["end"].required = False
+        self.fields["end"].help_text = _(
+            "Leave blank to record the feeding without a duration."
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("start") and not cleaned_data.get("end"):
+            cleaned_data["end"] = cleaned_data["start"]
+        return cleaned_data
+
     class Meta:
         model = models.Feeding
         fields = ["child", "start", "end", "type", "method", "amount", "notes", "tags"]
@@ -411,6 +482,9 @@ class HeightForm(CoreModelForm, TaggableModelForm):
     class Meta:
         model = models.Height
         fields = ["child", "height", "date", "notes", "tags"]
+        help_texts = {
+            "height": _("The WHO percentile report expects centimetres."),
+        }
         widgets = {
             "child": ChildRadioSelect,
             "date": DateInput(),
@@ -618,6 +692,9 @@ class WeightForm(CoreModelForm, TaggableModelForm):
     class Meta:
         model = models.Weight
         fields = ["child", "weight", "date", "notes", "tags"]
+        help_texts = {
+            "weight": _("The WHO percentile report expects kilograms."),
+        }
         widgets = {
             "child": ChildRadioSelect,
             "date": DateInput(),
