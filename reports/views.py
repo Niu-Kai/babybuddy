@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.generic.detail import DetailView
 
 from babybuddy.mixins import PermissionRequiredMixin
@@ -337,6 +339,86 @@ class PumpingAmounts(PermissionRequiredMixin, DetailView):
         changes = models.Pumping.objects.filter(child=child)
         if changes and changes.count() > 0:
             context["html"], context["js"] = graphs.pumping_amounts(changes)
+        return context
+
+
+class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
+    """
+    Day-by-day chart of all activities for the last N days (#218, #881).
+    """
+
+    model = models.Child
+    permission_required = ("core.view_child",)
+    template_name = "reports/activity_pattern.html"
+    default_days = 14
+
+    def get_context_data(self, **kwargs):
+        from reports.graphs.activity_pattern import block_label
+
+        context = super().get_context_data(**kwargs)
+        child = context["object"]
+        user = self.request.user
+        try:
+            days = int(self.request.GET.get("days", self.default_days))
+        except (TypeError, ValueError):
+            days = self.default_days
+        days = max(1, min(days, 90))
+        context["days"] = days
+        last_day = timezone.localdate()
+        first_day = last_day - timezone.timedelta(days=days - 1)
+        window_start = timezone.make_aware(
+            timezone.datetime.combine(first_day, timezone.datetime.min.time())
+        )
+
+        intervals, points, labels = [], [], {}
+        interval_models = (
+            ("sleep", models.Sleep, _("Sleep")),
+            ("feeding", models.Feeding, _("Feeding")),
+            ("tummytime", models.TummyTime, _("Tummy Time")),
+            ("pumping", models.Pumping, _("Pumping")),
+        )
+        for kind, model, name in interval_models:
+            if not user.has_perm(
+                f"{model._meta.app_label}.view_{model._meta.model_name}"
+            ):
+                continue
+            labels[kind] = name
+            for instance in model.objects.filter(
+                child=child, end__gte=window_start
+            ).order_by("start"):
+                end = instance.end
+                if end == instance.start:
+                    # An instant (e.g. a bottle feed) is drawn as a short block.
+                    end = end + timezone.timedelta(minutes=5)
+                intervals.append(
+                    (kind, instance.start, end, block_label(name, instance.start, end))
+                )
+        if user.has_perm("core.view_diaperchange"):
+            labels["diaperchange"] = _("Diaper Change")
+            for instance in models.DiaperChange.objects.filter(
+                child=child, time__gte=window_start
+            ):
+                points.append(
+                    (
+                        "diaperchange",
+                        instance.time,
+                        "{}: {}".format(
+                            _("Diaper Change"),
+                            ", ".join(str(a) for a in instance.attributes()),
+                        ),
+                    )
+                )
+        if user.has_perm("core.view_medication"):
+            labels["medication"] = _("Medication")
+            for instance in models.Medication.objects.filter(
+                child=child, time__gte=window_start
+            ):
+                points.append(("medication", instance.time, instance.name))
+
+        if intervals or points:
+            context["html"], context["js"] = graphs.activity_pattern(
+                intervals, points, first_day, last_day, labels
+            )
         return context
 
 

@@ -476,3 +476,36 @@ class MedicationTestCase(TestCase):
         )
         with self.assertRaises(ValidationError):
             medication.full_clean()
+
+
+class TimerPauseTestCase(TestCase):
+    """Pausing a timer freezes its duration (#190)."""
+
+    def test_timer_pause_resume(self):
+        from unittest import mock
+
+        user = get_user_model().objects.create_user(username="pause", password="x")
+        base = timezone.now()
+        with mock.patch("core.models.timezone.now", return_value=base):
+            timer = models.Timer.objects.create(user=user, start=base)
+        with mock.patch(
+            "core.models.timezone.now",
+            return_value=base + timezone.timedelta(minutes=10),
+        ):
+            timer.pause()
+            self.assertTrue(timer.is_paused)
+        with mock.patch(
+            "core.models.timezone.now",
+            return_value=base + timezone.timedelta(minutes=25),
+        ):
+            self.assertEqual(timer.duration(), timezone.timedelta(minutes=10))
+            timer.resume()
+            self.assertFalse(timer.is_paused)
+        with mock.patch(
+            "core.models.timezone.now",
+            return_value=base + timezone.timedelta(minutes=30),
+        ):
+            self.assertEqual(timer.duration(), timezone.timedelta(minutes=15))
+            timer.restart()
+            self.assertEqual(timer.paused_total, timezone.timedelta())
+            self.assertEqual(timer.duration(), timezone.timedelta())

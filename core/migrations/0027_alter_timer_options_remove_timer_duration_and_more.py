@@ -2,9 +2,10 @@ from django.db import migrations
 
 
 def delete_inactive_timers(apps, schema_editor):
-    from core import models
-
-    for timer in models.Timer.objects.filter(active=False):
+    # Use the historical model: the live one may have columns that do not
+    # exist yet at this point in the migration history.
+    Timer = apps.get_model("core", "Timer")
+    for timer in Timer.objects.filter(active=False):
         timer.delete()
 
 

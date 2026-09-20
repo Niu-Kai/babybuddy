@@ -12,11 +12,13 @@ BabyBuddy.Timer = (function ($) {
   var timerElement = null;
   var lastUpdate = new Date();
   var hidden = null;
+  var isPaused = false;
 
   var Timer = {
-    run: function (timer_id, element_id) {
+    run: function (timer_id, element_id, paused) {
       timerId = timer_id;
       timerElement = $("#" + element_id);
+      isPaused = Boolean(paused);
 
       if (timerElement.length === 0) {
         console.error("BBTimer: Timer element not found.");
@@ -32,7 +34,9 @@ BabyBuddy.Timer = (function ($) {
         return false;
       }
 
-      runIntervalId = setInterval(this.tick, 1000);
+      if (!isPaused) {
+        runIntervalId = setInterval(this.tick, 1000);
+      }
 
       // Another user may stop (delete) this timer while the page is open;
       // detect that so nobody records a second entry from a dead timer
@@ -111,7 +115,14 @@ BabyBuddy.Timer = (function ($) {
           timerElement.find(".timer-minutes").text(parseInt(duration[1]));
           timerElement.find(".timer-seconds").text(parseInt(duration[2]));
           lastUpdate = new Date();
-          runIntervalId = setInterval(Timer.tick, 1000);
+          if (data.paused !== isPaused) {
+            // Paused or resumed elsewhere: show the server's view of it.
+            window.location.reload();
+            return;
+          }
+          if (!isPaused) {
+            runIntervalId = setInterval(Timer.tick, 1000);
+          }
         }
       });
     },

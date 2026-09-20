@@ -216,6 +216,10 @@ class PreferencesTestCase(TestCase):
         )
         self.c = HttpClient()
         self.c.login(**self.credentials)
+        # Other tests may leave a different zone active on this thread.
+        self.user.settings.timezone = "UTC"
+        self.user.settings.save()
+        timezone.activate("UTC")
         from core import models as core_models
 
         self.child = core_models.Child.objects.create(

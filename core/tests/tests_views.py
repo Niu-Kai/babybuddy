@@ -208,6 +208,16 @@ class ViewsTestCase(TestCase):
 
         page = self.c.get("/timers/{}/restart/".format(entry.id))
         self.assertEqual(page.status_code, 405)
+
+        page = self.c.post("/timers/{}/pause/".format(entry.id), follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Paused")
+        entry.refresh_from_db()
+        self.assertTrue(entry.is_paused)
+        page = self.c.post("/timers/{}/resume/".format(entry.id), follow=True)
+        self.assertEqual(page.status_code, 200)
+        entry.refresh_from_db()
+        self.assertFalse(entry.is_paused)
         page = self.c.post("/timers/{}/restart/".format(entry.id), follow=True)
         self.assertEqual(page.status_code, 200)
 

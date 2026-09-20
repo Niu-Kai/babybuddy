@@ -147,6 +147,18 @@ class TimerViewSet(viewsets.ModelViewSet):
         timer.restart()
         return Response(self.serializer_class(timer).data)
 
+    @action(detail=True, methods=["patch"])
+    def pause(self, request, pk=None):
+        timer = self.get_object()
+        timer.pause()
+        return Response(self.serializer_class(timer).data)
+
+    @action(detail=True, methods=["patch"])
+    def resume(self, request, pk=None):
+        timer = self.get_object()
+        timer.resume()
+        return Response(self.serializer_class(timer).data)
+
 
 class TummyTimeViewSet(viewsets.ModelViewSet):
     queryset = models.TummyTime.objects.all()

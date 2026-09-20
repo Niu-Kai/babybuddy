@@ -85,6 +85,8 @@ urlpatterns = [
     path(
         "timers/<int:pk>/restart/", views.TimerRestart.as_view(), name="timer-restart"
     ),
+    path("timers/<int:pk>/pause/", views.TimerPause.as_view(), name="timer-pause"),
+    path("timers/<int:pk>/resume/", views.TimerResume.as_view(), name="timer-resume"),
     path("tummy-time/", views.TummyTimeList.as_view(), name="tummytime-list"),
     path("tummy-time/add/", views.TummyTimeAdd.as_view(), name="tummytime-add"),
     path(

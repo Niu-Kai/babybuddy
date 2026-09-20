@@ -725,6 +725,12 @@ class Timer(models.Model):
         default=timezone.now, blank=False, verbose_name=_("Start time")
     )
     active = models.BooleanField(default=True, editable=False, verbose_name=_("Active"))
+    paused_at = models.DateTimeField(
+        blank=True, editable=False, null=True, verbose_name=_("Paused at")
+    )
+    paused_total = models.DurationField(
+        default=timezone.timedelta, editable=False, verbose_name=_("Paused time")
+    )
     user = models.ForeignKey(
         "auth.User",
         on_delete=models.CASCADE,
@@ -760,11 +766,32 @@ class Timer(models.Model):
         return self.user.get_username()
 
     def duration(self):
-        return timezone.now() - self.start
+        """Elapsed time, not counting time spent paused (#190)."""
+        end = self.paused_at or timezone.now()
+        return end - self.start - self.paused_total
+
+    @property
+    def is_paused(self):
+        return self.paused_at is not None
+
+    def pause(self):
+        """Pause the timer; `duration` freezes until `resume`."""
+        if not self.paused_at:
+            self.paused_at = timezone.now()
+            self.save()
+
+    def resume(self):
+        """Resume a paused timer, keeping the paused time out of `duration`."""
+        if self.paused_at:
+            self.paused_total += timezone.now() - self.paused_at
+            self.paused_at = None
+            self.save()
 
     def restart(self):
         """Restart the timer."""
         self.start = timezone.now()
+        self.paused_at = None
+        self.paused_total = timezone.timedelta()
         self.save()
 
     def stop(self):

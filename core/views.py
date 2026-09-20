@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.db.models.functions import Lower
 from django.forms import Form, ValidationError
 from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -610,6 +611,34 @@ class TimerRestart(PermissionRequiredMixin, RedirectView):
         instance.restart()
         messages.success(request, "{} restarted.".format(instance))
         return super(TimerRestart, self).get(request, *args, **kwargs)
+
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
+
+
+class TimerPause(PermissionRequiredMixin, RedirectView):
+    http_method_names = ["post"]
+    permission_required = ("core.change_timer",)
+
+    def post(self, request, *args, **kwargs):
+        instance = get_object_or_404(models.Timer, id=kwargs["pk"])
+        instance.pause()
+        messages.success(request, _("%(timer)s paused.") % {"timer": instance})
+        return super().get(request, *args, **kwargs)
+
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
+
+
+class TimerResume(PermissionRequiredMixin, RedirectView):
+    http_method_names = ["post"]
+    permission_required = ("core.change_timer",)
+
+    def post(self, request, *args, **kwargs):
+        instance = get_object_or_404(models.Timer, id=kwargs["pk"])
+        instance.resume()
+        messages.success(request, _("%(timer)s resumed.") % {"timer": instance})
+        return super().get(request, *args, **kwargs)
 
     def get_redirect_url(self, *args, **kwargs):
         return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})

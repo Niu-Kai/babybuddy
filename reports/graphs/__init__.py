@@ -1,3 +1,4 @@
+from .activity_pattern import activity_pattern  # NOQA
 from .bmi_change import bmi_change  # NOQA
 from .diaperchange_amounts import diaperchange_amounts  # NOQA
 from .diaperchange_lifetimes import diaperchange_lifetimes  # NOQA

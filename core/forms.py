@@ -52,7 +52,12 @@ def set_initial_values(kwargs, form_type):
         try:
             timer = models.Timer.objects.get(id=timer_id)
             kwargs["initial"].update(
-                {"timer": timer, "start": timer.start, "end": timezone.now()}
+                # The end excludes time the timer spent paused (#190).
+                {
+                    "timer": timer,
+                    "start": timer.start,
+                    "end": timer.start + timer.duration(),
+                }
             )
         except (Timer.DoesNotExist, ValueError, TypeError, OverflowError):
             pass

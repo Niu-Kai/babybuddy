@@ -62,6 +62,8 @@
                 <a href="{% url 'reports:report-pumping-amounts-child' object.slug %}"
                    class="list-group-item list-group-item-action">{% trans "Pumping Amounts" %}</a>
             {% endif %}
+            <a href="{% url 'reports:report-activity-pattern-child' object.slug %}"
+               class="list-group-item list-group-item-action">{% trans "Daily Activity" %}</a>
             {% if perms.core.view_sleep %}
                 <a href="{% url 'reports:report-sleep-pattern-child' object.slug %}"
                    class="list-group-item list-group-item-action">{% trans "Sleep Pattern" %}</a>

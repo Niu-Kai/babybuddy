@@ -842,6 +842,15 @@ class TimerAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         response = self.client.patch(f"{endpoint}restart/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_pause_resume_timer(self):
+        endpoint = "{}{}/".format(self.endpoint, 1)
+        response = self.client.patch(f"{endpoint}pause/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(response.data["paused"])
+        response = self.client.patch(f"{endpoint}resume/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["paused"])
+
 
 class TummyTimeAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
     endpoint = reverse("api:tummytime-list")

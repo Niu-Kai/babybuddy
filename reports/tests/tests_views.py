@@ -215,3 +215,46 @@ class PercentileSwitchTestCase(TestCase):
             self.assertEqual(page.status_code, 200)
             self.assertContains(page, "WHO percentiles: boys")
             self.assertContains(page, "Measurements only")
+
+
+class ActivityPatternTestCase(TestCase):
+    """The daily activity report draws every activity type (#218, #881)."""
+
+    def test_report(self):
+        from django.contrib.auth import get_user_model
+        from django.test import Client as HttpClient
+        from django.utils import timezone
+        from core import models as core_models
+
+        get_user_model().objects.create_user(
+            username="activity", password="activity-pass", is_superuser=True
+        )
+        child = core_models.Child.objects.create(
+            first_name="Busy", last_name="Kid", birth_date=timezone.localdate()
+        )
+        now = timezone.localtime()
+        core_models.Sleep.objects.create(
+            child=child,
+            start=now - timezone.timedelta(hours=30),
+            end=now - timezone.timedelta(hours=20),
+        )
+        core_models.Feeding.objects.create(
+            child=child,
+            start=now - timezone.timedelta(hours=2),
+            end=now - timezone.timedelta(hours=2),
+            type="formula",
+            method="bottle",
+        )
+        core_models.DiaperChange.objects.create(
+            child=child, time=now - timezone.timedelta(hours=1), wet=True, solid=False
+        )
+        c = HttpClient()
+        c.login(username="activity", password="activity-pass")
+        page = c.get("/children/{}/reports/activity/pattern/?days=7".format(child.slug))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Daily Activity")
+        self.assertIn("Plotly.newPlot", page.content.decode())
+        page = c.get(
+            "/children/{}/reports/activity/pattern/?days=oops".format(child.slug)
+        )
+        self.assertEqual(page.status_code, 200)

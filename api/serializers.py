@@ -292,10 +292,11 @@ class TimerSerializer(CoreModelSerializer):
         required=False,
     )
     duration = serializers.DurationField(read_only=True, required=False)
+    paused = serializers.BooleanField(read_only=True, source="is_paused")
 
     class Meta:
         model = models.Timer
-        fields = ("id", "child", "name", "start", "duration", "user")
+        fields = ("id", "child", "name", "start", "duration", "paused", "user")
 
     def validate(self, attrs):
         attrs = super(TimerSerializer, self).validate(attrs)

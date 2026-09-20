@@ -11,11 +11,17 @@
 {% block content %}
     <div class="p-5 mb-4 bg rounded-3 text-center">
         <div class="container-fluid py-1">
-            <h1 id="timer-status" class="display-1">
+            <h1 id="timer-status"
+                class="display-1{% if object.is_paused %} text-body-secondary{% endif %}">
                 <span class="timer-hours">{{ object.duration|hours }}</span>h
                 <span class="timer-minutes">{{ object.duration|minutes }}</span>m
                 <span class="timer-seconds">{{ object.duration|seconds }}</span>s
             </h1>
+            {% if object.is_paused %}
+                <p>
+                    <span class="badge bg-warning text-dark">{% trans "Paused" %}</span>
+                </p>
+            {% endif %}
             {% if timer.child and CHILD_COUNT > 1 %}<h2 class="text-body-secondary">{{ timer.child }}</h2>{% endif %}
             <p class="lead text-secondary">{% trans "Started" %} {{ object.start }}</p>
             <p class="text-body-secondary">
@@ -73,6 +79,27 @@
                     <a class="btn btn-lg btn-primary"
                        href="{% url 'core:timer-update' timer.id %}"
                        role="button"><i class="icon-update" aria-hidden="true"></i></a>
+                    {% if timer.is_paused %}
+                        <form action="{% url 'core:timer-resume' timer.id %}"
+                              role="form"
+                              method="post"
+                              class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-lg btn-success">
+                                <i class="icon-timer" aria-hidden="true"></i> {% trans "Resume" %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <form action="{% url 'core:timer-pause' timer.id %}"
+                              role="form"
+                              method="post"
+                              class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-lg btn-warning">
+                                <i class="icon-stop" aria-hidden="true"></i> {% trans "Pause" %}
+                            </button>
+                        </form>
+                    {% endif %}
                     <form action="{% url 'core:timer-restart' timer.id %}"
                           role="form"
                           method="post"
@@ -90,7 +117,7 @@
 {% endblock %}
 {% block javascript %}
     <script type="application/javascript">
-        BabyBuddy.Timer.run({{ timer.id }}, 'timer-status');
+        BabyBuddy.Timer.run({{ timer.id }}, 'timer-status', {{ timer.is_paused|yesno:"true,false" }});
         BabyBuddy.WakeLock.init('timer-keep-screen-on');
     </script>
 {% endblock %}
