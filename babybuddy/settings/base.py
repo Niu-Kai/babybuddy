@@ -306,6 +306,10 @@ SESSION_COOKIE_SECURE = bool(
 )
 
 # https://docs.djangoproject.com/en/5.0/ref/csrf/#settings
+# Bulk actions in the admin (e.g. "select all" + delete) submit one field per
+# row; Django's default cap of 1000 turns them into a 400 Bad Request.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 20000
+
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = bool(strtobool(os.environ.get("CSRF_COOKIE_SECURE") or "False"))
 CSRF_FAILURE_VIEW = "babybuddy.views.csrf_failure"

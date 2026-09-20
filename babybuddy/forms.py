@@ -6,7 +6,7 @@ from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
-from .models import Settings
+from .models import Settings, timezone_choices
 from .widgets import DateTimeInput
 
 
@@ -129,6 +129,12 @@ class UserPasswordForm(PasswordChangeForm):
 
 
 class UserSettingsForm(forms.ModelForm):
+    timezone = forms.ChoiceField(label=_("Timezone"))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["timezone"].choices = timezone_choices()
+
     class Meta:
         model = Settings
         fields = [

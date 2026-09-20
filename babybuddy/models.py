@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import zoneinfo
 
+from django.core.exceptions import ValidationError
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -12,6 +14,28 @@ from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext_lazy
 
 from rest_framework.authtoken.models import Token
+
+# Entries in tzdata that are not real zones and must not be offered to users.
+TIMEZONE_EXCLUDES = {"Factory", "localtime", "posixrules"}
+
+
+def timezone_choices():
+    """Time zones the running host can actually load, as form choices."""
+    names = sorted(zoneinfo.available_timezones() - TIMEZONE_EXCLUDES)
+    return [(name, name) for name in names]
+
+
+def validate_timezone(value):
+    if value in TIMEZONE_EXCLUDES:
+        raise ValidationError(
+            _("%(value)s is not a valid time zone."), params={"value": value}
+        )
+    try:
+        zoneinfo.ZoneInfo(value)
+    except (ValueError, zoneinfo.ZoneInfoNotFoundError):
+        raise ValidationError(
+            _("%(value)s is not a valid time zone."), params={"value": value}
+        )
 
 
 class Settings(models.Model):
@@ -109,12 +133,15 @@ class Settings(models.Model):
         max_length=255,
         verbose_name=_("Language"),
     )
+    # No `choices` here on purpose: the zone list depends on the host's tzdata,
+    # so baking it into a migration made every host with a different tzdata
+    # report "models have changes not reflected in a migration" (#984) and let
+    # users pick zones the server could not load (#1003). The settings form
+    # offers the runtime list and `validate_timezone` guards the value.
     timezone = models.CharField(
-        choices=sorted(
-            tuple(zip(zoneinfo.available_timezones(), zoneinfo.available_timezones()))
-        ),
-        default=timezone.get_default_timezone_name(),
+        default=timezone.get_default_timezone_name,
         max_length=100,
+        validators=[validate_timezone],
         verbose_name=_("Timezone"),
     )
     pagination_count = models.PositiveIntegerField(

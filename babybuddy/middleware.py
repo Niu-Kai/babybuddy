@@ -68,8 +68,11 @@ class UserTimezoneMiddleware:
         if hasattr(user, "settings") and user.settings.timezone:
             try:
                 timezone.activate(user.settings.timezone)
-            except ValueError:
-                pass
+            except (ValueError, KeyError):
+                # An unknown zone (e.g. tzdata differs from the host that set
+                # it) must not make every request fail; fall back to the
+                # default zone instead. ZoneInfoNotFoundError is a KeyError.
+                timezone.deactivate()
         return self.get_response(request)
 
 

@@ -490,3 +490,22 @@ class FormsTestCase(TestCase):
 
         response = c.post("/logout/", data=data, follow=True)
         self.assertEqual(response.status_code, 200)
+
+
+class TimezoneSettingsTestCase(TestCase):
+    def test_unknown_timezone_rejected(self):
+        from babybuddy.models import validate_timezone
+
+        with self.assertRaises(Exception):
+            validate_timezone("Not/AZone")
+        with self.assertRaises(Exception):
+            validate_timezone("Factory")
+        validate_timezone("America/Los_Angeles")
+
+    def test_form_offers_runtime_zones_only(self):
+        from babybuddy.forms import UserSettingsForm
+
+        names = [name for name, _label in UserSettingsForm().fields["timezone"].choices]
+        self.assertIn("America/Los_Angeles", names)
+        self.assertNotIn("Factory", names)
+        self.assertNotIn("localtime", names)
