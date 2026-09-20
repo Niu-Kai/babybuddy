@@ -1368,3 +1368,64 @@ class PumpingSideTestCase(FormsTestCaseBase):
         page = self.c.post("/pumping/add/", params, follow=True)
         self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
         self.assertIsNone(models.Pumping.objects.filter(child=self.child).first().side)
+
+
+class SmallIssuesTestCase(FormsTestCaseBase):
+    def test_bottle_feeding_has_no_solid_food(self):
+        from core.forms import BottleFeedingForm
+
+        choices = [choice[0] for choice in BottleFeedingForm().fields["type"].choices]
+        self.assertNotIn("solid food", choices)
+        self.assertIn("formula", choices)
+
+    def test_default_diaper_amount(self):
+        from dbsettings.loading import set_setting_value
+
+        page = self.c.get("/changes/add/")
+        self.assertIsNone(page.context["form"].initial.get("amount"))
+        set_setting_value("core.models", "DiaperChange", "default_amount", 1.0)
+        try:
+            page = self.c.get("/changes/add/")
+            self.assertEqual(page.context["form"].initial.get("amount"), 1.0)
+        finally:
+            set_setting_value("core.models", "DiaperChange", "default_amount", 0)
+
+    def test_birth_time_accepts_seconds(self):
+        page = self.c.get("/children/{}/edit/".format(self.child.slug))
+        self.assertContains(page, 'name="birth_time"')
+        self.assertRegex(page.content.decode(), r'name="birth_time"[^>]*step="1"')
+
+    def test_child_slug_editable(self):
+        params = {
+            "first_name": self.child.first_name,
+            "last_name": self.child.last_name,
+            "birth_date": self.localdate_string(),
+            "slug": "kiddo",
+        }
+        page = self.c.post(
+            "/children/{}/edit/".format(self.child.slug), params, follow=True
+        )
+        self.assertEqual(page.status_code, 200)
+        self.child.refresh_from_db()
+        self.assertEqual(self.child.slug, "kiddo")
+
+        params["slug"] = ""
+        page = self.c.post("/children/kiddo/edit/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.child.refresh_from_db()
+        self.assertEqual(self.child.slug, "child-one")
+
+    def test_child_slug_must_be_unique(self):
+        other = models.Child.objects.create(
+            first_name="Other", last_name="Kid", birth_date=timezone.localdate()
+        )
+        params = {
+            "first_name": self.child.first_name,
+            "last_name": self.child.last_name,
+            "birth_date": self.localdate_string(),
+            "slug": other.slug,
+        }
+        page = self.c.post("/children/{}/edit/".format(self.child.slug), params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "already uses this slug")
+        other.delete()

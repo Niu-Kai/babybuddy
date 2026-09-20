@@ -46,6 +46,7 @@ class SiteSettingsTestCase(TestCase):
             "core.models__Sleep__nap_start_max": "20:00:00",
             "core.models__Sleep__nap_start_min": "09:00:00",
             "core.models__Child__day_start": "00:00:00",
+            "core.models__DiaperChange__default_amount": "0",
         }
         page = self.c.post("/settings/", params, follow=True)
         self.assertEqual(page.status_code, 200)
@@ -70,6 +71,7 @@ class SiteSettingsTestCase(TestCase):
             "core.models__Sleep__nap_start_max": "18:00:00",
             "core.models__Sleep__nap_start_min": "06:00:00",
             "core.models__Child__day_start": "03:00:00",
+            "core.models__DiaperChange__default_amount": "0",
         }
         page = self.c.post("/settings/", params, follow=True)
         self.assertEqual(page.status_code, 200)

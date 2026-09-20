@@ -465,3 +465,27 @@ class DayStartTestCase(TestCase):
         )
         self.assertEqual(changes["stats"][0]["changes"], 0)
         self.assertEqual(changes["stats"][1]["changes"], 1)
+
+
+class PumpingDurationTestCase(TestCase):
+    """Recent pumpings also totals time spent pumping per day (#748)."""
+
+    def test_daily_pump_time(self):
+        child = models.Child.objects.create(
+            first_name="Pump", last_name="Kid", birth_date=timezone.localdate()
+        )
+        context = {"request": MockUserRequest(get_user_model().objects.first())}
+        day = timezone.make_aware(timezone.datetime(2024, 5, 10, 12, 0))
+        for hour in (8, 14):
+            start = day.replace(hour=hour)
+            models.Pumping.objects.create(
+                child=child,
+                start=start,
+                end=start + timezone.timedelta(minutes=15),
+                amount=60,
+            )
+        result = cards.card_pumping_recent(context, child, day)
+        self.assertEqual(result["pumpings"][0]["count"], 2)
+        self.assertEqual(
+            result["pumpings"][0]["duration"], timezone.timedelta(minutes=30)
+        )

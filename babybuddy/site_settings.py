@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 import dbsettings
 
-from django.forms.fields import BooleanField, TimeField
+from django.forms.fields import BooleanField, FloatField, TimeField
 from core.fields import NapStartMaxTimeField, NapStartMinTimeField
 from .widgets import TimeInput
 from django.forms.widgets import CheckboxInput
@@ -52,6 +52,20 @@ class DashboardSettings(dbsettings.Group):
             "day before."
         ),
         widget=TimeInput,
+    )
+
+
+class DiaperChangeDefaultAmountValue(dbsettings.FloatValue):
+    field = FloatField
+
+
+class DiaperChangeSettings(dbsettings.Group):
+    default_amount = DiaperChangeDefaultAmountValue(
+        default=0,
+        description=_("Default diaper change amount"),
+        help_text=_(
+            "Pre-filled amount for a new diaper change. 0 leaves the field empty."
+        ),
     )
 
 

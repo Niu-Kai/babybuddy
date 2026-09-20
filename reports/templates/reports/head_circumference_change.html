@@ -8,3 +8,6 @@
     {% include "reports/breadcrumb_common_chunk.html" with target_url=target_url %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Head Circumference" %}</li>
 {% endblock %}
+{% block toolbar %}
+    {% include "reports/percentile_switch.html" with plain="reports:report-head-circumference-change-child" boy="reports:report-head-circumference-change-child-boy" girl="reports:report-head-circumference-change-child-girl" %}
+{% endblock %}

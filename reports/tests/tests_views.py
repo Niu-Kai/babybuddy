@@ -187,3 +187,31 @@ class ReportPermissionsTestCase(TestCase):
         for path in self.allowed + self.denied:
             page = self.c.get("{}{}".format(self.base_url, path))
             self.assertEqual(page.status_code, 200, path)
+
+
+class PercentileSwitchTestCase(TestCase):
+    """Growth reports carry a switch between plain and WHO views (#975)."""
+
+    def test_switch_present(self):
+        from django.contrib.auth import get_user_model
+        from django.test import Client as HttpClient
+        from core.models import Child
+        from django.utils import timezone
+
+        get_user_model().objects.create_user(
+            username="switch", password="switch-pass", is_superuser=True
+        )
+        child = Child.objects.create(
+            first_name="Report", last_name="Kid", birth_date=timezone.localdate()
+        )
+        c = HttpClient()
+        c.login(username="switch", password="switch-pass")
+        for path in (
+            "weight/weight",
+            "height/height",
+            "head-circumference/head-circumference",
+        ):
+            page = c.get("/children/{}/reports/{}/".format(child.slug, path))
+            self.assertEqual(page.status_code, 200)
+            self.assertContains(page, "WHO percentiles: boys")
+            self.assertContains(page, "Measurements only")

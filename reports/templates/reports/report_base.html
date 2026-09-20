@@ -4,6 +4,7 @@
 {% block breadcrumbs %}{{ block.super }}{% endblock %}
 {% block content %}
     <div class="container-fluid">
+        {% block toolbar %}{% endblock %}
         {% if html %}
             {{ html|safe }}
         {% else %}

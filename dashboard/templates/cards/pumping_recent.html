@@ -27,6 +27,13 @@
                                 {% endblocktrans %}
                             {% endif %}
                         </div>
+                        {% if pumping.duration %}
+                            <div class="text-center small">
+                                {% blocktrans trimmed with duration=pumping.duration|duration_string:'m' %}
+                                    {{ duration }} pumping
+                                {% endblocktrans %}
+                            </div>
+                        {% endif %}
                         <div class="text-center small text-body-secondary">{{ pumping.date.date|dayssince }}</div>
                     </div>
                 {% endfor %}

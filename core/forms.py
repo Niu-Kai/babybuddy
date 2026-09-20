@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 
 from taggit.forms import TagField, TagWidgetMixin
@@ -69,6 +70,12 @@ def set_initial_values(kwargs, form_type):
             if last_method not in ["left breast", "right breast"]:
                 last_feed_args["method"] = last_method
             kwargs["initial"].update(last_feed_args)
+
+    # Pre-fill the diaper change amount from the site setting (#990).
+    if form_type == DiaperChangeForm and "amount" not in kwargs["initial"]:
+        default_amount = models.DiaperChange.settings.default_amount
+        if default_amount:
+            kwargs["initial"].update({"amount": default_amount})
 
     # Set default "nap" value for Sleep instances.
     if form_type == SleepForm and "nap" not in kwargs["initial"]:
@@ -338,6 +345,15 @@ class BottleFeedingForm(CoreModelForm, TaggableModelForm):
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Solid food does not come in a bottle (babybuddy/babybuddy#767).
+        self.fields["type"].choices = [
+            choice
+            for choice in self.fields["type"].choices
+            if choice[0] != "solid food"
+        ]
+
     def clean(self):
         cleaned_data = super().clean()
         if "start" in cleaned_data:
@@ -361,6 +377,17 @@ class BottleFeedingForm(CoreModelForm, TaggableModelForm):
 
 
 class ChildForm(forms.ModelForm):
+    slug = forms.SlugField(
+        allow_unicode=True,
+        label=_("Slug"),
+        max_length=100,
+        required=False,
+        help_text=_(
+            "Used in this child's web addresses. Leave empty to derive it from "
+            "the name."
+        ),
+    )
+
     class Meta:
         model = models.Child
         fields = ["first_name", "last_name", "birth_date", "birth_time"]
@@ -370,6 +397,33 @@ class ChildForm(forms.ModelForm):
             "birth_date": DateInput(),
             "birth_time": TimeInput(),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.initial["slug"] = self.instance.slug
+        else:
+            # New children always get a derived slug (babybuddy/babybuddy#923).
+            del self.fields["slug"]
+
+    def clean_slug(self):
+        slug = self.cleaned_data.get("slug", "")
+        if not slug:
+            return ""
+        slug = slugify(slug, allow_unicode=True)
+        conflict = models.Child.objects.filter(slug=slug).exclude(pk=self.instance.pk)
+        if conflict.exists():
+            raise forms.ValidationError(
+                _("Another child already uses this slug."), code="slug_taken"
+            )
+        return slug
+
+    def save(self, commit=True):
+        if "slug" in self.fields:
+            self.instance.slug = self.cleaned_data.get("slug") or ""
+        if not self.instance.slug:
+            self.instance.slug = slugify(self.instance, allow_unicode=True)
+        return super().save(commit=commit)
 
 
 class ChildDeleteForm(forms.ModelForm):

@@ -227,3 +227,44 @@
         }
     }
 }
+
+// Dashboard index on phones: compact child rows instead of tall photo cards
+// (babybuddy/babybuddy#963).
+@media (max-width: 575.98px) {
+    #view-dashboard\:dashboard {
+        .card:not(.card-dashboard) {
+            flex-direction: row;
+            align-items: center;
+
+            > a {
+                flex: 0 0 auto;
+                padding: 0.75rem 0 0.75rem 0.75rem;
+            }
+
+            .child-photo {
+                width: 72px;
+                height: 72px;
+                border-radius: 50%;
+            }
+
+            .card-body {
+                padding: 0.75rem;
+                text-align: left !important;
+            }
+
+            .card-title {
+                margin-bottom: 0.25rem;
+                font-size: 1.1rem;
+            }
+
+            .card-text p {
+                margin-bottom: 0.4rem;
+                font-size: 0.85rem;
+            }
+
+            .child-actions {
+                display: inline-flex;
+            }
+        }
+    }
+}

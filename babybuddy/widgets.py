@@ -27,3 +27,10 @@ class DateInput(DateTimeBaseInput):
 
 class TimeInput(DateTimeBaseInput):
     input_type = "time"
+
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs)
+        # Seconds granularity, e.g. for an exact birth time (#924).
+        if "step" not in attrs:
+            attrs["step"] = 1
+        return attrs

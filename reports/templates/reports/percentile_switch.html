@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %}
+    Switch between the plain measurement chart and the WHO percentile
+    overlays (babybuddy/babybuddy#975). Expects `plain`, `boy` and `girl`
+    URL names and the active `target_url`.
+{% endcomment %}
+<div class="btn-group btn-group-sm mb-3"
+     role="group"
+     aria-label="{% trans "WHO percentiles" %}">
+    <a class="btn btn-outline-secondary{% if target_url == plain %} active{% endif %}"
+       href="{% url plain object.slug %}">{% trans "Measurements only" %}</a>
+    <a class="btn btn-outline-secondary{% if target_url == boy %} active{% endif %}"
+       href="{% url boy object.slug %}">{% trans "WHO percentiles: boys" %}</a>
+    <a class="btn btn-outline-secondary{% if target_url == girl %} active{% endif %}"
+       href="{% url girl object.slug %}">{% trans "WHO percentiles: girls" %}</a>
+</div>

@@ -23,6 +23,15 @@ BabyBuddy.PullToRefresh = (function (ptr) {
     init: function () {
       ptr.init({
         mainElement: "body",
+        // A deliberate pull, not a scroll bounce (babybuddy/babybuddy#1019).
+        distThreshold: 110,
+        distMax: 150,
+        distReload: 90,
+        shouldPullToRefresh: function () {
+          var zoomed =
+            window.visualViewport && window.visualViewport.scale > 1.01;
+          return !window.scrollY && !zoomed;
+        },
         onRefresh: this.onRefresh,
       });
     },

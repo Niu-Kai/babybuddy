@@ -8,3 +8,6 @@
     {% include "reports/breadcrumb_common_chunk.html" with target_url=target_url %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Height" %}</li>
 {% endblock %}
+{% block toolbar %}
+    {% include "reports/percentile_switch.html" with plain="reports:report-height-change-child" boy="reports:report-height-change-child-boy" girl="reports:report-height-change-child-girl" %}
+{% endblock %}

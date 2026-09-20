@@ -12592,6 +12592,36 @@ textarea.form-control-lg {
   color: var(--bs-emphasis-color);
 }
 
+@media (max-width: 575.98px) {
+  #view-dashboard\:dashboard .card:not(.card-dashboard) {
+    flex-direction: row;
+    align-items: center;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) > a {
+    flex: 0 0 auto;
+    padding: 0.75rem 0 0.75rem 0.75rem;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) .child-photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) .card-body {
+    padding: 0.75rem;
+    text-align: left !important;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) .card-title {
+    margin-bottom: 0.25rem;
+    font-size: 1.1rem;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) .card-text p {
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+  }
+  #view-dashboard\:dashboard .card:not(.card-dashboard) .child-actions {
+    display: inline-flex;
+  }
+}
 .reports-list .list-group-item {
   color: #fff;
 }

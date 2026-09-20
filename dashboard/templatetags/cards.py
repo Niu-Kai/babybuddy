@@ -343,7 +343,10 @@ def card_pumping_recent(context, child, end_date=None):
     )
 
     dates = [_day_bounds(end_date - timezone.timedelta(days=i))[0] for i in range(8)]
-    results = [{"date": d, "total": 0, "count": 0} for d in dates]
+    results = [
+        {"date": d, "total": 0, "count": 0, "duration": timezone.timedelta()}
+        for d in dates
+    ]
 
     for instance in instances:
         pump_date = _day_end(instance.end)
@@ -351,6 +354,7 @@ def card_pumping_recent(context, child, end_date=None):
         result = results[idx]
         result["total"] += instance.amount if instance.amount is not None else 0
         result["count"] += 1
+        result["duration"] += instance.duration or timezone.timedelta()
 
     return {
         "pumpings": results,

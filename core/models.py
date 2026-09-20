@@ -15,7 +15,12 @@ from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager as TaggitTaggableManager
 from taggit.models import GenericTaggedItemBase, TagBase
 
-from babybuddy.site_settings import DashboardSettings, NapSettings, FeedingSettings
+from babybuddy.site_settings import (
+    DiaperChangeSettings,
+    DashboardSettings,
+    NapSettings,
+    FeedingSettings,
+)
 from core.utils import random_color, timezone_aware_duration
 
 
@@ -232,7 +237,20 @@ class Child(models.Model):
         return self.name()
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self, allow_unicode=True)
+        # The slug follows the name unless it was customised (see ChildForm):
+        # regenerate it when it is empty or still equal to the slug derived
+        # from the previously saved name.
+        derived_before = None
+        if self.pk:
+            previous = (
+                Child.objects.filter(pk=self.pk)
+                .values("first_name", "last_name")
+                .first()
+            )
+            if previous:
+                derived_before = slugify(Child(**previous), allow_unicode=True)
+        if not self.slug or self.slug == derived_before:
+            self.slug = slugify(self, allow_unicode=True)
         super(Child, self).save(*args, **kwargs)
         cache.set(self.cache_key_count, Child.objects.count(), None)
 
@@ -262,6 +280,7 @@ class Child(models.Model):
 
 class DiaperChange(models.Model):
     model_name = "diaperchange"
+    settings = DiaperChangeSettings(_("Diaper change settings"))
     child = models.ForeignKey(
         "Child",
         on_delete=models.CASCADE,
