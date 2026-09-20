@@ -41,3 +41,19 @@
 .page-link-icon {
     padding: var(--bs-pagination-padding-y) calc(var(--bs-pagination-padding-x) / 1.75);
 }
+
+// Theme: a deeper, cooler dark surface and a translucent navigation bar.
+[data-bs-theme='dark'] {
+    --bs-body-bg: #0d1117;
+    --bs-body-color: #d7dde5;
+    --bs-emphasis-color: #fff;
+    --bs-secondary-color: rgba(215, 221, 229, 0.62);
+    --bs-tertiary-bg: #161b22;
+    --bs-border-color: rgba(255, 255, 255, 0.09);
+}
+
+.navbar.bg-dark {
+    background: rgba(13, 17, 23, 0.74) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    backdrop-filter: saturate(160%) blur(14px);
+}

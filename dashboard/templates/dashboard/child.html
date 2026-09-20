@@ -1,5 +1,5 @@
 {% extends "babybuddy/page.html" %}
-{% load breadcrumb cards i18n %}
+{% load breadcrumb cards i18n imagekit static %}
 {% block title %}
     {% trans "Dashboard" %} - {{ object }}
 {% endblock %}
@@ -11,57 +11,124 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "Dashboard" %}</li>
 {% endblock %}
 {% block content %}
-    <div id="dashboard-child"
-         class="row"
-         data-masonry='{"percentPosition": true }'>
-        {% if perms.core.view_timer %}
-            <div class="col-sm-6 col-lg-4">{% card_timer_list object %}</div>
-        {% endif %}
-        {% if perms.core.view_feeding %}
-            <div class="col-sm-6 col-lg-4">{% card_feeding_last object %}</div>
-        {% endif %}
-        {% if perms.core.view_note %}
-            <div class="col-sm-6 col-lg-4">{% card_notes_recent object %}</div>
-        {% endif %}
-        {% if perms.core.view_diaperchange %}
-            <div class="col-sm-6 col-lg-4">{% card_diaperchange_last object %}</div>
-        {% endif %}
-        {% if perms.core.view_pumping %}
-            <div class="col-sm-6 col-lg-4">{% card_pumping_last object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_pumping_recent object %}</div>
-        {% endif %}
-        {% if perms.core.view_sleep %}
-            <div class="col-sm-6 col-lg-4">{% card_sleep_last object %}</div>
-        {% endif %}
-        {% if perms.core.view_medication %}
-            <div class="col-sm-6 col-lg-4">{% card_medication_last object %}</div>
-        {% endif %}
-        {% if perms.core.view_feeding %}
-            <div class="col-sm-6 col-lg-4">{% card_feeding_last_method object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_feeding_recent object %}</div>
-        {% endif %}
-        <div class="col-sm-6 col-lg-4">{% card_statistics object %}</div>
-        {% if perms.core.view_sleep %}
-            <div class="col-sm-6 col-lg-4">{% card_sleep_recent object %}</div>
-            <div class="col-sm-6 col-lg-4">{% card_sleep_naps_day object %}</div>
-        {% endif %}
-        {% if perms.core.view_tummytime %}
-            <div class="col-sm-6 col-lg-4">{% card_tummytime_day object %}</div>
-        {% endif %}
-        {% if perms.core.view_diaperchange %}
-            <div class="col-sm-6 col-lg-4">{% card_diaperchange_types object %}</div>
-        {% endif %}
-        {% if perms.core.view_feeding %}
-            <div class="col-sm-6 col-lg-4">{% card_breastfeeding object %}</div>
-        {% endif %}
-    </div>
-{% endblock %}
-{% block javascript %}
-    {% if user.settings.dashboard_refresh_rate %}
-        <script type="application/javascript">
+    <div id="dashboard-child" class="dash">
+        <header class="dash-hero">
+            <div class="dash-hero-identity">
+                {% if object.picture %}
+                    {% thumbnail '160x160' object.picture as thumb %}
+                        <img src="{{ thumb.url }}" class="dash-avatar" alt="" />
+                    {% else %}
+                        <img src="{% static 'babybuddy/img/core/child-placeholder.png' %}"
+                             class="dash-avatar"
+                             alt="" />
+                    {% endif %}
+                    <div>
+                        <h1 class="dash-hero-name">{{ object }}</h1>
+                        <div class="dash-hero-meta">
+                            <span class="dash-chip">
+                                <i class="icon-calendar" aria-hidden="true"></i>
+                                {% trans "Born" %} {{ object.birth_date }}
+                            </span>
+                            <span class="dash-chip">
+                                <i class="icon-clock" aria-hidden="true"></i>
+                                {% trans "Age" %} {{ object.birth_date|timesince }}
+                            </span>
+                        </div>
+                    </div>
+                    </div>
+                    <nav class="dash-hero-actions" aria-label="{% trans "Quick add" %}">
+                        {% if perms.core.add_feeding %}
+                            <a class="dash-action dash-action-feeding"
+                               href="{% url 'core:feeding-add' %}?child={{ object.slug }}">
+                                <i class="icon-feeding" aria-hidden="true"></i>
+                                {% trans "Feeding" %}
+                            </a>
+                        {% endif %}
+                        {% if perms.core.add_diaperchange %}
+                            <a class="dash-action dash-action-diaperchange"
+                               href="{% url 'core:diaperchange-add' %}?child={{ object.slug }}">
+                                <i class="icon-diaperchange" aria-hidden="true"></i>
+                                {% trans "Diaper Change" %}
+                            </a>
+                        {% endif %}
+                        {% if perms.core.add_sleep %}
+                            <a class="dash-action dash-action-sleep"
+                               href="{% url 'core:sleep-add' %}?child={{ object.slug }}">
+                                <i class="icon-sleep" aria-hidden="true"></i>
+                                {% trans "Sleep" %}
+                            </a>
+                        {% endif %}
+                        {% if perms.core.add_timer %}
+                            <a class="dash-action dash-action-timer"
+                               href="{% url 'core:timer-add' %}?child={{ object.slug }}">
+                                <i class="icon-timer" aria-hidden="true"></i>
+                                {% trans "Start Timer" %}
+                            </a>
+                        {% endif %}
+                    </nav>
+                    </header>
+                    <section class="dash-section" aria-labelledby="dash-glance-title">
+                        <h2 id="dash-glance-title" class="dash-section-title">{% trans "At a glance" %}</h2>
+                        <div class="dash-grid dash-grid-glance">
+                            {% if perms.core.view_feeding %}
+                                <div class="dash-cell">{% card_feeding_last object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_diaperchange %}
+                                <div class="dash-cell">{% card_diaperchange_last object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_sleep %}
+                                <div class="dash-cell">{% card_sleep_last object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_pumping %}
+                                <div class="dash-cell">{% card_pumping_last object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_medication %}
+                                <div class="dash-cell">{% card_medication_last object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_sleep %}
+                                <div class="dash-cell">{% card_sleep_naps_day object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_tummytime %}
+                                <div class="dash-cell">{% card_tummytime_day object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_timer %}
+                                <div class="dash-cell">{% card_timer_list object %}</div>
+                            {% endif %}
+                        </div>
+                    </section>
+                    <section class="dash-section" aria-labelledby="dash-trends-title">
+                        <h2 id="dash-trends-title" class="dash-section-title">{% trans "Trends" %}</h2>
+                        <div class="dash-grid dash-grid-trends">
+                            {% if perms.core.view_feeding %}
+                                <div class="dash-cell">{% card_feeding_recent object %}</div>
+                                <div class="dash-cell">{% card_feeding_last_method object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_sleep %}
+                                <div class="dash-cell">{% card_sleep_recent object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_pumping %}
+                                <div class="dash-cell">{% card_pumping_recent object %}</div>
+                            {% endif %}
+                            <div class="dash-cell">{% card_statistics object %}</div>
+                            {% if perms.core.view_diaperchange %}
+                                <div class="dash-cell">{% card_diaperchange_types object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_feeding %}
+                                <div class="dash-cell">{% card_breastfeeding object %}</div>
+                            {% endif %}
+                            {% if perms.core.view_note %}
+                                <div class="dash-cell">{% card_notes_recent object %}</div>
+                            {% endif %}
+                        </div>
+                    </section>
+                    </div>
+                {% endblock %}
+                {% block javascript %}
+                    {% if user.settings.dashboard_refresh_rate %}
+                        <script type="application/javascript">
             BabyBuddy.Dashboard.watch('dashboard-child', {{ user.settings.dashboard_refresh_rate_milliseconds }});
-        </script>
-    {% else %}
-        <script type="application/javascript">BabyBuddy.Dashboard.watch('dashboard-child', false);</script>
-    {% endif %}
-{% endblock %}
+                        </script>
+                    {% else %}
+                        <script type="application/javascript">BabyBuddy.Dashboard.watch('dashboard-child', false);</script>
+                    {% endif %}
+                {% endblock %}
