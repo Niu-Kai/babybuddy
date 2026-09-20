@@ -18,5 +18,6 @@
 {% block content %}
     {% if pumping %}
         {% trans "Amount" %}: {{ pumping.amount }}
+        {% if pumping.side %}({{ pumping.get_side_display }}){% endif %}
     {% endif %}
 {% endblock %}

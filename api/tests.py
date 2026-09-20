@@ -196,6 +196,7 @@ class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "id": 2,
                 "child": 1,
                 "amount": 9.0,
+                "side": None,
                 "start": "2017-11-17T15:03:00-05:00",
                 "end": "2017-11-17T15:22:00-05:00",
                 "duration": "00:19:00",
@@ -208,6 +209,7 @@ class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         data = {
             "child": 1,
             "amount": "21.0",
+            "side": "right",
             "start": "2017-11-20T22:52:00-05:00",
             "end": "2017-11-20T23:05:00-05:00",
             "notes": "old device",
@@ -216,6 +218,7 @@ class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         obj = models.Pumping.objects.get(pk=response.data["id"])
         self.assertEqual(str(obj.amount), data["amount"])
+        self.assertEqual(obj.side, "right")
         self.assertEqual(obj.notes, data["notes"])
 
     def test_patch(self):

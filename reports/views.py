@@ -227,15 +227,21 @@ class FeedingPatternChildReport(PermissionRequiredMixin, DetailView):
 
 class HeadCircumferenceChangeChildReport(PermissionRequiredMixin, DetailView):
     """
-    Graph of head circumference change over time.
+    Graph of head circumference change over time, optionally against the WHO
+    percentiles for boys or girls.
     """
 
-    model = models.Child
-    permission_required = (
-        "core.view_child",
-        "core.view_headcircumference",
-    )
-    template_name = "reports/head_circumference_change.html"
+    def __init__(
+        self, sex=None, target_url="reports:report-head-circumference-change-child"
+    ) -> None:
+        self.model = models.Child
+        self.permission_required = (
+            "core.view_child",
+            "core.view_headcircumference",
+        )
+        self.template_name = "reports/head_circumference_change.html"
+        self.sex = sex
+        self.target_url = target_url
 
     def get_context_data(self, **kwargs):
         context = super(HeadCircumferenceChangeChildReport, self).get_context_data(
@@ -243,12 +249,29 @@ class HeadCircumferenceChangeChildReport(PermissionRequiredMixin, DetailView):
         )
         child = context["object"]
         objects = models.HeadCircumference.objects.filter(child=child)
+        percentiles = models.HeadCircumferencePercentile.objects.filter(sex=self.sex)
+        context["target_url"] = self.target_url
         if objects:
-            (
-                context["html"],
-                context["js"],
-            ) = graphs.head_circumference_change(objects)
+            context["html"], context["js"] = graphs.head_circumference_change(
+                objects, percentiles, child.birth_date
+            )
         return context
+
+
+class HeadCircumferenceChangeChildBoyReport(HeadCircumferenceChangeChildReport):
+    def __init__(self):
+        super().__init__(
+            sex="boy",
+            target_url="reports:report-head-circumference-change-child-boy",
+        )
+
+
+class HeadCircumferenceChangeChildGirlReport(HeadCircumferenceChangeChildReport):
+    def __init__(self):
+        super().__init__(
+            sex="girl",
+            target_url="reports:report-head-circumference-change-child-girl",
+        )
 
 
 class HeightChangeChildReport(PermissionRequiredMixin, DetailView):

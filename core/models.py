@@ -448,6 +448,32 @@ class Height(models.Model):
         validate_date(self.date, "date")
 
 
+class HeadCircumferencePercentile(models.Model):
+    model_name = "head circumference percentile"
+    age_in_days = models.DurationField(null=False)
+    p3_head_circumference = models.FloatField(null=False)
+    p15_head_circumference = models.FloatField(null=False)
+    p50_head_circumference = models.FloatField(null=False)
+    p85_head_circumference = models.FloatField(null=False)
+    p97_head_circumference = models.FloatField(null=False)
+    sex = models.CharField(
+        null=False,
+        max_length=255,
+        choices=[
+            ("girl", _("Girl")),
+            ("boy", _("Boy")),
+        ],
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["age_in_days", "sex"],
+                name="unique_age_sex_head_circumference",
+            )
+        ]
+
+
 class HeightPercentile(models.Model):
     model_name = "height percentile"
     age_in_days = models.DurationField(null=False)
@@ -525,6 +551,17 @@ class Pumping(models.Model):
         verbose_name=_("Duration"),
     )
     amount = models.FloatField(blank=False, null=False, verbose_name=_("Amount"))
+    side = models.CharField(
+        blank=True,
+        choices=[
+            ("left", _("Left")),
+            ("right", _("Right")),
+            ("both", _("Both")),
+        ],
+        max_length=255,
+        null=True,
+        verbose_name=_("Side"),
+    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 

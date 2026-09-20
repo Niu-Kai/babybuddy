@@ -118,6 +118,8 @@ class ReportPermissionsTestCase(TestCase):
         "/bmi/bmi/",
         "/head-circumference/head-circumference/",
         "/height/height/",
+        "/head-circumference/boy/",
+        "/head-circumference/girl/",
         "/height/boy/",
         "/height/girl/",
         "/medication/frequency/",

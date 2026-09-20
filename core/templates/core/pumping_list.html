@@ -26,6 +26,7 @@
                         <th>{% trans "Child" %}</th>
                     {% endif %}
                     <th>{% trans "Amount" %}</th>
+                    <th>{% trans "Side" %}</th>
                     <th>{% trans "Duration" %}</th>
                     <th>{% trans "Previous" %}</th>
                     <th>{% trans "Tags" %}</th>
@@ -60,6 +61,7 @@
                                 </td>
                             {% endif %}
                             <td>{{ pumping.amount }}</td>
+                            <td>{% if pumping.side %}{{ pumping.get_side_display }}{% endif %}</td>
                             <td>{{ pumping.duration|duration_string }}</td>
                             <td>
                                 {% if prev_pumping %}
@@ -72,7 +74,7 @@
                         </tr>
                         {% if pumping.notes %}
                             <tr class="{{ row_class }} row-details">
-                                <td colspan="6">
+                                <td colspan="7">
                                     <i class="icon-note me-2" aria-hidden="true"></i>{{ pumping.notes }}
                                 </td>
                             </tr>
@@ -80,7 +82,7 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No pumping entries found." %}</th>
+                        <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No pumping entries found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

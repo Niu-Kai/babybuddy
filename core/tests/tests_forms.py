@@ -1335,3 +1335,36 @@ class MedicationRepeatTestCase(FormsTestCaseBase):
         page = self.c.get("/medication/add/?repeat=nope")
         self.assertEqual(page.status_code, 200)
         self.assertNotIn("name", page.context["form"].initial)
+
+
+class PumpingSideTestCase(FormsTestCaseBase):
+    """Pumping records which side was pumped (#949)."""
+
+    def test_side_saved_and_listed(self):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=15)),
+            "amount": 90,
+            "side": "left",
+        }
+        page = self.c.post("/pumping/add/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
+        pumping = models.Pumping.objects.filter(child=self.child).first()
+        self.assertEqual(pumping.side, "left")
+        page = self.c.get("/pumping/")
+        self.assertContains(page, "Left")
+
+    def test_side_optional(self):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=15)),
+            "amount": 90,
+        }
+        page = self.c.post("/pumping/add/", params, follow=True)
+        self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
+        self.assertIsNone(models.Pumping.objects.filter(child=self.child).first().side)

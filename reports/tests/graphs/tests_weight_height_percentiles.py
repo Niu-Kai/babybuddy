@@ -40,3 +40,29 @@ class WeightHeightPercentilesTestCase(TestCase):
         html_h, js_h = height_change(actual_heights, percentile_heights, c.birth_date)
         self.assertIsNotNone(html_h)
         self.assertIsNotNone(js_h)
+
+
+class HeadCircumferencePercentilesTestCase(TestCase):
+    def test_percentile_graph(self):
+        from reports.graphs.head_circumference_change import head_circumference_change
+
+        c = models.Child.objects.create(
+            first_name="Test", last_name="Child", birth_date=dt.date(2025, 1, 1)
+        )
+        models.HeadCircumference.objects.create(
+            child=c, head_circumference=44.0, date=dt.date(2025, 10, 1)
+        )
+        percentiles = models.HeadCircumferencePercentile.objects.filter(sex="girl")
+        self.assertGreater(percentiles.count(), 1800)
+        newborn = percentiles.order_by("age_in_days").first()
+        self.assertAlmostEqual(newborn.p50_head_circumference, 33.879, places=3)
+
+        html, js = head_circumference_change(
+            models.HeadCircumference.objects.filter(child=c), percentiles, c.birth_date
+        )
+        self.assertIn("P50", js)
+
+        html, js = head_circumference_change(
+            models.HeadCircumference.objects.filter(child=c)
+        )
+        self.assertNotIn("P50", js)

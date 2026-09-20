@@ -552,17 +552,18 @@ class MedicationForm(CoreModelForm, TaggableModelForm):
 class PumpingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {"fields": ["child", "start", "end"], "layout": "required"},
-        {"fields": ["amount"]},
+        {"fields": ["amount", "side"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
     class Meta:
         model = models.Pumping
-        fields = ["child", "start", "end", "amount", "notes", "tags"]
+        fields = ["child", "start", "end", "amount", "side", "notes", "tags"]
         widgets = {
             "child": ChildRadioSelect,
             "start": DateTimeInput(),
             "end": DateTimeInput(),
+            "side": PillRadioSelect(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 

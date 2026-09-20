@@ -71,6 +71,7 @@ class PumpingAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
         "duration",
         "child",
         "amount",
+        "side",
     )
     list_filter = ("child",)
     search_fields = (
