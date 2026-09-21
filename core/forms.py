@@ -747,7 +747,7 @@ class TummyTimeForm(CoreModelForm, TaggableModelForm):
 class WeightForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {
-            "fields": ["child", "weight", "date"],
+            "fields": ["child", "weight", "date", "time"],
             "layout": "required",
         },
         {"fields": ["notes", "tags"], "layout": "advanced"},
@@ -755,12 +755,13 @@ class WeightForm(CoreModelForm, TaggableModelForm):
 
     class Meta:
         model = models.Weight
-        fields = ["child", "weight", "date", "notes", "tags"]
+        fields = ["child", "weight", "date", "time", "notes", "tags"]
         help_texts = {
             "weight": _("The WHO percentile report expects kilograms."),
         }
         widgets = {
             "child": ChildRadioSelect,
             "date": DateInput(),
+            "time": TimeInput(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }

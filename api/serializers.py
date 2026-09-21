@@ -381,7 +381,16 @@ class TummyTimeSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
 class WeightSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Weight
-        fields = ("created_by", "id", "child", "weight", "date", "notes", "tags")
+        fields = (
+            "created_by",
+            "id",
+            "child",
+            "weight",
+            "date",
+            "time",
+            "notes",
+            "tags",
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):

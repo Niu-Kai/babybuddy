@@ -1463,3 +1463,42 @@ class CreatedByTestCase(FormsTestCaseBase):
         change.refresh_from_db()
         self.assertTrue(change.solid)
         self.assertIsNone(change.created_by)
+
+
+class WeightTimeTestCase(FormsTestCaseBase):
+    """Weight entries can carry the time of the weigh-in (#863)."""
+
+    def test_weight_with_time(self):
+        params = {
+            "child": self.child.id,
+            "weight": 4.2,
+            "date": self.localdate_string(),
+            "time": "07:30",
+        }
+        page = self.c.post("/weight/add/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Weight entry for {} added".format(str(self.child)))
+        weight = models.Weight.objects.filter(child=self.child).first()
+        self.assertEqual(weight.time.strftime("%H:%M"), "07:30")
+        page = self.c.get("/weight/")
+        self.assertContains(page, "7:30")
+
+    def test_same_day_ordering(self):
+        today = timezone.localdate()
+        early = models.Weight.objects.create(
+            child=self.child,
+            weight=4.0,
+            date=today,
+            time=timezone.datetime(2000, 1, 1, 7).time(),
+        )
+        late = models.Weight.objects.create(
+            child=self.child,
+            weight=4.1,
+            date=today,
+            time=timezone.datetime(2000, 1, 1, 19).time(),
+        )
+        undated = models.Weight.objects.create(
+            child=self.child, weight=4.05, date=today
+        )
+        ordered = list(models.Weight.objects.filter(child=self.child))
+        self.assertEqual(ordered, [late, early, undated])

@@ -900,6 +900,12 @@ class Weight(CreatedByMixin):
     date = models.DateField(
         blank=False, default=timezone.localdate, null=False, verbose_name=_("Date")
     )
+    time = models.TimeField(
+        blank=True,
+        null=True,
+        verbose_name=_("Time"),
+        help_text=_("Optional, e.g. to tell several weigh-ins on one day apart."),
+    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
@@ -907,7 +913,7 @@ class Weight(CreatedByMixin):
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
-        ordering = ["-date", "-id"]
+        ordering = ["-date", models.F("time").desc(nulls_last=True), "-id"]
         verbose_name = _("Weight")
         verbose_name_plural = _("Weight")
 

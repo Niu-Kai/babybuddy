@@ -51,7 +51,10 @@
                                 {% endif %}
                             </div>
                         </td>
-                        <th scope="row">{{ weight.date }}</th>
+                        <th scope="row">
+                            {{ weight.date }}
+                            {% if weight.time %}<small class="text-body-secondary">{{ weight.time|time }}</small>{% endif %}
+                        </th>
                         {% if not unique_child %}
                             <td>
                                 <a href="{% url 'core:child' weight.child.slug %}">{{ weight.child }}</a>

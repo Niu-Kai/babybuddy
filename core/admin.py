@@ -290,6 +290,7 @@ class WeightAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
         "child",
         "weight",
         "date",
+        "time",
     )
     list_filter = ("child", "tags")
     search_fields = (

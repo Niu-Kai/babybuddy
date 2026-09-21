@@ -948,6 +948,7 @@ class WeightAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "created_by": "",
                 "weight": 9.5,
                 "date": "2017-11-18",
+                "time": None,
                 "notes": "before feed",
                 "tags": [],
             },
