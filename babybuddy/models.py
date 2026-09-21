@@ -58,6 +58,9 @@ DASHBOARD_CARDS = [
     ("notes_recent", _("Recent Notes")),
     ("appointments_upcoming", _("Upcoming Appointments")),
     ("tags_last", _("Time Since Tag")),
+    ("bathtime_last", _("Last Bath")),
+    ("reflux_last", _("Last Reflux")),
+    ("food_recent", _("Recent Foods")),
 ]
 
 

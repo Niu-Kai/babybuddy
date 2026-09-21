@@ -199,3 +199,27 @@ class ProfileView(views.APIView):
         )
         serializer = self.serializer_class(settings)
         return Response(serializer.data)
+
+
+class BathTimeViewSet(viewsets.ModelViewSet):
+    queryset = models.BathTime.objects.all()
+    serializer_class = serializers.BathTimeSerializer
+    filterset_class = filters.BathTimeFilter
+    ordering_fields = ("duration", "end", "start")
+    ordering = "-start"
+
+
+class RefluxViewSet(viewsets.ModelViewSet):
+    queryset = models.Reflux.objects.all()
+    serializer_class = serializers.RefluxSerializer
+    filterset_class = filters.RefluxFilter
+    ordering_fields = ("time",)
+    ordering = "-time"
+
+
+class FoodViewSet(viewsets.ModelViewSet):
+    queryset = models.Food.objects.all()
+    serializer_class = serializers.FoodSerializer
+    filterset_class = filters.FoodFilter
+    ordering_fields = ("time",)
+    ordering = "-time"

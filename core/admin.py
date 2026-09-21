@@ -113,6 +113,8 @@ class FeedingAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
         "type",
         "method",
         "amount",
+        "secondary_type",
+        "secondary_amount",
     )
     list_filter = (
         "child",
@@ -320,3 +322,42 @@ class TagAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
     search_fields = ("name", "color")
     prepopulated_fields = {"slug": ["name"]}
     resource_class = TagImportExportResource
+
+
+class BathTimeImportExportResource(ImportExportResourceBase):
+    class Meta:
+        model = models.BathTime
+
+
+@admin.register(models.BathTime)
+class BathTimeAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
+    list_display = ("child", "start", "end", "duration")
+    list_filter = ("child", "tags")
+    search_fields = ("child__first_name", "child__last_name")
+    resource_class = BathTimeImportExportResource
+
+
+class RefluxImportExportResource(ImportExportResourceBase):
+    class Meta:
+        model = models.Reflux
+
+
+@admin.register(models.Reflux)
+class RefluxAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
+    list_display = ("child", "time")
+    list_filter = ("child", "tags")
+    search_fields = ("child__first_name", "child__last_name")
+    resource_class = RefluxImportExportResource
+
+
+class FoodImportExportResource(ImportExportResourceBase):
+    class Meta:
+        model = models.Food
+
+
+@admin.register(models.Food)
+class FoodAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
+    list_display = ("child", "time")
+    list_filter = ("child", "tags")
+    search_fields = ("child__first_name", "child__last_name")
+    resource_class = FoodImportExportResource

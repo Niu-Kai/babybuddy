@@ -1604,3 +1604,103 @@ class LastBreastTestCase(FormsTestCaseBase):
         feeding = models.Feeding.objects.filter(child=self.child).first()
         self.assertIsNone(feeding.last_breast)
         self.assertEqual(feeding.next_breast, "right")
+
+
+class MixedFeedingTestCase(FormsTestCaseBase):
+    """One feeding with two types and amounts, with totals (#837, #508)."""
+
+    def _params(self, **extra):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=20)),
+            "type": "breast milk",
+            "method": "bottle",
+            "amount": 60,
+            "secondary_type": "formula",
+            "secondary_amount": 40,
+        }
+        params.update(extra)
+        return params
+
+    def test_mixed_feeding_totals(self):
+        page = self.c.post("/feedings/add/", self._params(), follow=True)
+        self.assertContains(page, "Feeding entry for {} added".format(str(self.child)))
+        feeding = models.Feeding.objects.filter(child=self.child).first()
+        self.assertEqual(feeding.total_amount, 100)
+        self.assertEqual(feeding.type_display, "Breast milk + Formula")
+        self.assertEqual(feeding.amount_display, "60 + 40 = 100")
+        page = self.c.get("/feedings/")
+        self.assertContains(page, "Breast milk + Formula")
+        self.assertContains(page, "60 + 40 = 100")
+        from dashboard.templatetags import cards
+        from django.contrib.auth import get_user_model
+
+        class Request:
+            user = get_user_model().objects.first()
+
+        recent = cards.card_feeding_recent({"request": Request()}, self.child)
+        # the feeding may fall on yesterday around midnight; sum the week
+        self.assertEqual(sum(day["total"] for day in recent["feedings"]), 100)
+
+    def test_second_amount_needs_type(self):
+        page = self.c.post("/feedings/add/", self._params(secondary_type=""))
+        self.assertContains(page, "Choose the type of the second amount")
+
+    def test_second_type_must_differ(self):
+        page = self.c.post("/feedings/add/", self._params(secondary_type="breast milk"))
+        self.assertContains(page, "must differ from the first")
+
+
+class NewActivityTypesTestCase(FormsTestCaseBase):
+    """Bath time, reflux and food entries (#1112, #1031, #1032)."""
+
+    def test_bath_time(self):
+        start = timezone.localtime() - timezone.timedelta(hours=2)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=15)),
+        }
+        page = self.c.post("/bath-time/add/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(
+            page, "Bath Time entry for {} added".format(str(self.child))
+        )
+        bath = models.BathTime.objects.get(child=self.child)
+        self.assertEqual(bath.duration, timezone.timedelta(minutes=15))
+        self.assertContains(self.c.get("/bath-time/"), "15 minutes")
+        page = self.c.get(
+            "/children/{}/?date={}".format(
+                self.child.slug, timezone.localtime(bath.end).date().isoformat()
+            )
+        )
+        self.assertContains(page, "finished a bath")
+
+    def test_reflux(self):
+        params = {
+            "child": self.child.id,
+            "time": self.localtime_string(),
+            "severity": "moderate",
+        }
+        page = self.c.post("/reflux/add/", params, follow=True)
+        self.assertContains(page, "Reflux entry for {} added".format(str(self.child)))
+        self.assertContains(self.c.get("/reflux/"), "Moderate")
+
+    def test_food(self):
+        params = {
+            "child": self.child.id,
+            "time": self.localtime_string(),
+            "name": "Banana",
+            "amount": 30,
+            "reaction": "liked",
+        }
+        page = self.c.post("/food/add/", params, follow=True)
+        self.assertContains(page, "Food entry for {} added".format(str(self.child)))
+        page = self.c.get("/food/")
+        self.assertContains(page, "Banana")
+        self.assertContains(page, "Liked it")
+        page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
+        self.assertContains(page, "Recent Foods")
+        self.assertContains(page, "Banana")

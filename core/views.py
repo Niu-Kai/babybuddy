@@ -840,3 +840,86 @@ class WeightDelete(CoreDeleteView):
     model = models.Weight
     permission_required = ("core.delete_weight",)
     success_url = reverse_lazy("core:weight-list")
+
+
+class BathTimeList(
+    PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView
+):
+    model = models.BathTime
+    template_name = "core/bathtime_list.html"
+    permission_required = ("core.view_bathtime",)
+    filterset_class = filters.BathTimeFilter
+
+
+class BathTimeAdd(CoreAddView):
+    model = models.BathTime
+    permission_required = ("core.add_bathtime",)
+    form_class = forms.BathTimeForm
+    success_url = reverse_lazy("core:bathtime-list")
+
+
+class BathTimeUpdate(CoreUpdateView):
+    model = models.BathTime
+    permission_required = ("core.change_bathtime",)
+    form_class = forms.BathTimeForm
+    success_url = reverse_lazy("core:bathtime-list")
+
+
+class BathTimeDelete(CoreDeleteView):
+    model = models.BathTime
+    permission_required = ("core.delete_bathtime",)
+    success_url = reverse_lazy("core:bathtime-list")
+
+
+class RefluxList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
+    model = models.Reflux
+    template_name = "core/reflux_list.html"
+    permission_required = ("core.view_reflux",)
+    filterset_class = filters.RefluxFilter
+
+
+class RefluxAdd(CoreAddView):
+    model = models.Reflux
+    permission_required = ("core.add_reflux",)
+    form_class = forms.RefluxForm
+    success_url = reverse_lazy("core:reflux-list")
+
+
+class RefluxUpdate(CoreUpdateView):
+    model = models.Reflux
+    permission_required = ("core.change_reflux",)
+    form_class = forms.RefluxForm
+    success_url = reverse_lazy("core:reflux-list")
+
+
+class RefluxDelete(CoreDeleteView):
+    model = models.Reflux
+    permission_required = ("core.delete_reflux",)
+    success_url = reverse_lazy("core:reflux-list")
+
+
+class FoodList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
+    model = models.Food
+    template_name = "core/food_list.html"
+    permission_required = ("core.view_food",)
+    filterset_class = filters.FoodFilter
+
+
+class FoodAdd(CoreAddView):
+    model = models.Food
+    permission_required = ("core.add_food",)
+    form_class = forms.FoodForm
+    success_url = reverse_lazy("core:food-list")
+
+
+class FoodUpdate(CoreUpdateView):
+    model = models.Food
+    permission_required = ("core.change_food",)
+    form_class = forms.FoodForm
+    success_url = reverse_lazy("core:food-list")
+
+
+class FoodDelete(CoreDeleteView):
+    model = models.Food
+    permission_required = ("core.delete_food",)
+    success_url = reverse_lazy("core:food-list")

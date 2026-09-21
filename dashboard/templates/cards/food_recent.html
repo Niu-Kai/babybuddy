@@ -1,0 +1,21 @@
+{% extends "cards/base.html" %}
+{% load datetime i18n %}
+{% block header %}
+    <a href="{% url "core:food-list" %}">{% trans "Recent Foods" %}</a>
+{% endblock %}
+{% block title %}
+    {% if foods %}
+        <div>{{ foods.0.name }}</div>
+        <small>{{ foods.0.time|datetime_short }}{% if foods.0.reaction %} · {{ foods.0.get_reaction_display }}{% endif %}</small>
+    {% else %}
+        {% trans "None" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% for food in foods|slice:"1:" %}
+        <div class="py-1 border-bottom">
+            <small class="text-muted">{{ food.time|datetime_short }}</small>
+            <div>{{ food.name }}{% if food.reaction %} <small class="text-muted">{{ food.get_reaction_display }}</small>{% endif %}</div>
+        </div>
+    {% endfor %}
+{% endblock %}

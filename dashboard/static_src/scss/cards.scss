@@ -288,3 +288,28 @@ $dashboard-accents: (
 .icon-appointment::before {
     content: "\e810";
 }
+
+// New activity types reuse existing glyphs and accents.
+.icon-bathtime::before {
+    content: "\f118";
+}
+
+.icon-reflux::before {
+    content: "\f119";
+}
+
+.icon-food::before {
+    content: "\f1b1";
+}
+
+.card-bathtime {
+    --card-accent: #4fb8f0;
+}
+
+.card-reflux {
+    --card-accent: #ffa838;
+}
+
+.card-food {
+    --card-accent: #3ecf83;
+}

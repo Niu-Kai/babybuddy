@@ -90,6 +90,24 @@
                                 {% trans "Tummy Time" %}
                             </a>
                         {% endif %}
+                        {% if perms.core.add_bathtime %}
+                            <a class="dropdown-item p-2" href="{% url 'core:bathtime-add' %}">
+                                <i class="icon-tummytime" aria-hidden="true"></i>
+                                {% trans "Bath Time" %}
+                            </a>
+                        {% endif %}
+                        {% if perms.core.add_reflux %}
+                            <a class="dropdown-item p-2" href="{% url 'core:reflux-add' %}">
+                                <i class="icon-sad" aria-hidden="true"></i>
+                                {% trans "Reflux" %}
+                            </a>
+                        {% endif %}
+                        {% if perms.core.add_food %}
+                            <a class="dropdown-item p-2" href="{% url 'core:food-add' %}">
+                                <i class="icon-feeding" aria-hidden="true"></i>
+                                {% trans "Food" %}
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -227,6 +245,45 @@
                                 <a class="dropdown-item ps-5{% if request.path == '/temperature/add/' %} active{% endif %}"
                                    href="{% url 'core:temperature-add' %}"><i class="icon-add" aria-hidden="true"></i>
                                     {% trans "Temperature reading" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.view_bathtime %}
+                                <a class="dropdown-item{% if request.path == '/bath-time/' %} active{% endif %}"
+                                   href="{% url 'core:bathtime-list' %}">
+                                    <i class="icon-tummytime" aria-hidden="true"></i>
+                                    {% trans "Bath Times" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.add_bathtime %}
+                                <a class="dropdown-item ps-5{% if request.path == '/bath-time/add/' %} active{% endif %}"
+                                   href="{% url 'core:bathtime-add' %}"><i class="icon-add" aria-hidden="true"></i>
+                                    {% trans "Bath Time" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.view_reflux %}
+                                <a class="dropdown-item{% if request.path == '/reflux/' %} active{% endif %}"
+                                   href="{% url 'core:reflux-list' %}">
+                                    <i class="icon-sad" aria-hidden="true"></i>
+                                    {% trans "Reflux Episodes" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.add_reflux %}
+                                <a class="dropdown-item ps-5{% if request.path == '/reflux/add/' %} active{% endif %}"
+                                   href="{% url 'core:reflux-add' %}"><i class="icon-add" aria-hidden="true"></i>
+                                    {% trans "Reflux" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.view_food %}
+                                <a class="dropdown-item{% if request.path == '/food/' %} active{% endif %}"
+                                   href="{% url 'core:food-list' %}">
+                                    <i class="icon-feeding" aria-hidden="true"></i>
+                                    {% trans "Foods" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.add_food %}
+                                <a class="dropdown-item ps-5{% if request.path == '/food/add/' %} active{% endif %}"
+                                   href="{% url 'core:food-add' %}"><i class="icon-add" aria-hidden="true"></i>
+                                    {% trans "Food" %}
                                 </a>
                             {% endif %}
                             {% if perms.core.view_weight %}

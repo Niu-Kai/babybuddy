@@ -208,6 +208,8 @@ class FeedingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Feeding
         fields = (
+            "secondary_type",
+            "secondary_amount",
             "last_breast",
             "created_by",
             "id",
@@ -440,3 +442,40 @@ class ProfileSerializer(serializers.ModelSerializer):
             "api_key",
         )
         extra_kwargs = {k: {"read_only": True} for k in fields}
+
+
+class BathTimeSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
+    class Meta(CoreModelWithDurationSerializer.Meta):
+        model = models.BathTime
+        fields = (
+            "created_by",
+            "id",
+            "child",
+            "start",
+            "end",
+            "duration",
+            "notes",
+            "tags",
+        )
+
+
+class RefluxSerializer(CoreModelSerializer, TaggableSerializer):
+    class Meta:
+        model = models.Reflux
+        fields = ("created_by", "id", "child", "time", "severity", "notes", "tags")
+
+
+class FoodSerializer(CoreModelSerializer, TaggableSerializer):
+    class Meta:
+        model = models.Food
+        fields = (
+            "created_by",
+            "id",
+            "child",
+            "time",
+            "name",
+            "amount",
+            "reaction",
+            "notes",
+            "tags",
+        )

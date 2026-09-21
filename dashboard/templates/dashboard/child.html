@@ -119,6 +119,21 @@
                                 {% if "tags_last" not in hidden_cards %}
                                     <div class="dash-cell">{% card_tags_last object %}</div>
                                 {% endif %}
+                                {% if perms.core.view_bathtime %}
+                                    {% if "bathtime_last" not in hidden_cards %}
+                                        <div class="dash-cell">{% card_bathtime_last object %}</div>
+                                    {% endif %}
+                                {% endif %}
+                                {% if perms.core.view_reflux %}
+                                    {% if "reflux_last" not in hidden_cards %}
+                                        <div class="dash-cell">{% card_reflux_last object %}</div>
+                                    {% endif %}
+                                {% endif %}
+                                {% if perms.core.view_food %}
+                                    {% if "food_recent" not in hidden_cards %}
+                                        <div class="dash-cell">{% card_food_recent object %}</div>
+                                    {% endif %}
+                                {% endif %}
                                 {% if "timer_list" not in hidden_cards %}
                                     <div class="dash-cell">{% card_timer_list object %}</div>
                                 {% endif %}

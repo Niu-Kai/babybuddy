@@ -350,6 +350,7 @@ class BMIForm(CoreModelForm, TaggableModelForm):
 class BottleFeedingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {"fields": ["child", "type", "start", "amount"], "layout": "required"},
+        {"fields": ["secondary_type", "secondary_amount"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
@@ -375,11 +376,21 @@ class BottleFeedingForm(CoreModelForm, TaggableModelForm):
 
     class Meta:
         model = models.Feeding
-        fields = ["child", "start", "type", "amount", "notes", "tags"]
+        fields = [
+            "child",
+            "start",
+            "type",
+            "amount",
+            "secondary_type",
+            "secondary_amount",
+            "notes",
+            "tags",
+        ]
         widgets = {
             "child": ChildRadioSelect,
             "start": DateTimeInput(),
             "type": PillRadioSelect(),
+            "secondary_type": PillRadioSelect(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 
@@ -483,6 +494,7 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {"fields": ["child", "start", "end", "type", "method"], "layout": "required"},
         {"fields": ["amount", "last_breast"]},
+        {"fields": ["secondary_type", "secondary_amount"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
@@ -513,6 +525,8 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
             "type",
             "method",
             "amount",
+            "secondary_type",
+            "secondary_amount",
             "last_breast",
             "notes",
             "tags",
@@ -523,6 +537,7 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
             "end": DateTimeInput(),
             "type": PillRadioSelect(),
             "method": PillRadioSelect(),
+            "secondary_type": PillRadioSelect(),
             "last_breast": PillRadioSelect(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
@@ -797,4 +812,56 @@ class WeightForm(CoreModelForm, TaggableModelForm):
             "date": DateInput(),
             "time": TimeInput(),
             "notes": forms.Textarea(attrs={"rows": 5}),
+        }
+
+
+class BathTimeForm(CoreModelForm, TaggableModelForm):
+    fieldsets = [
+        {"fields": ["child", "start", "end"], "layout": "required"},
+        {"fields": ["notes", "tags"], "layout": "advanced"},
+    ]
+
+    class Meta:
+        model = models.BathTime
+        fields = ["child", "start", "end", "notes", "tags"]
+        widgets = {
+            "child": ChildRadioSelect,
+            "notes": forms.Textarea(attrs={"rows": 5}),
+            "start": DateTimeInput(),
+            "end": DateTimeInput(),
+        }
+
+
+class RefluxForm(CoreModelForm, TaggableModelForm):
+    fieldsets = [
+        {"fields": ["child", "time", "severity"], "layout": "required"},
+        {"fields": ["notes", "tags"], "layout": "advanced"},
+    ]
+
+    class Meta:
+        model = models.Reflux
+        fields = ["child", "time", "severity", "notes", "tags"]
+        widgets = {
+            "child": ChildRadioSelect,
+            "notes": forms.Textarea(attrs={"rows": 5}),
+            "time": DateTimeInput(),
+            "severity": PillRadioSelect(),
+        }
+
+
+class FoodForm(CoreModelForm, TaggableModelForm):
+    fieldsets = [
+        {"fields": ["child", "time", "name"], "layout": "required"},
+        {"fields": ["amount", "reaction"]},
+        {"fields": ["notes", "tags"], "layout": "advanced"},
+    ]
+
+    class Meta:
+        model = models.Food
+        fields = ["child", "time", "name", "amount", "reaction", "notes", "tags"]
+        widgets = {
+            "child": ChildRadioSelect,
+            "notes": forms.Textarea(attrs={"rows": 5}),
+            "time": DateTimeInput(),
+            "reaction": PillRadioSelect(),
         }

@@ -26,6 +26,9 @@ CAREGIVER_VIEW_MODELS = (
     "note",
     "tummytime",
     "appointment",
+    "bathtime",
+    "reflux",
+    "food",
 )
 
 CAREGIVER_ADD_CHANGE_MODELS = (
@@ -39,6 +42,9 @@ CAREGIVER_ADD_CHANGE_MODELS = (
     "note",
     "tummytime",
     "appointment",
+    "bathtime",
+    "reflux",
+    "food",
 )
 
 

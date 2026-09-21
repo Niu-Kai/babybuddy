@@ -1,0 +1,20 @@
+{% extends "cards/base.html" %}
+{% load duration i18n %}
+{% block header %}
+    <a href="{% url "core:reflux-list" %}">{% trans "Last Reflux" %}</a>
+{% endblock %}
+{% block title %}
+    {% if reflux %}
+        <div>
+            {% blocktrans trimmed with time_ago=reflux.time|deltasince|duration_string:'m' %}
+                {{ time_ago }} ago
+            {% endblocktrans %}
+        </div>
+        <small>{{ reflux.time|time }}</small>
+    {% else %}
+        {% trans "None" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% if reflux %}{{ reflux.get_severity_display }}{% endif %}
+{% endblock %}

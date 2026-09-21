@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 
 WATCHED_MODELS = (
     "Appointment",
+    "BathTime",
     "BMI",
+    "Food",
+    "Reflux",
     "DiaperChange",
     "Feeding",
     "HeadCircumference",

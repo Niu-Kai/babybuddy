@@ -1,0 +1,82 @@
+{% extends "babybuddy/page.html" %}
+{% load datetime duration i18n widget_tweaks %}
+{% block title %}
+    {% trans "Bath Times" %}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Bath Times" %}</li>
+{% endblock %}
+{% block content %}
+    <h1>
+        {% trans "Bath Times" %}
+        {% if perms.core.add_bathtime %}
+            <a href="{% url 'core:bathtime-add' %}" class="btn btn-sm btn-success">
+                <i class="icon-tummytime" aria-hidden="true"></i> {% trans "Add Bath Time" %}
+            </a>
+        {% endif %}
+    </h1>
+    {% include "babybuddy/filter.html" %}
+    <div class="table-responsive">
+        <table class="table table-instances table-borderless table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>{% trans "Actions" %}</th>
+                    <th>{% trans "Start" %}</th>
+                    <th>{% trans "End" %}</th>
+                    {% if not unique_child %}
+                        <th>{% trans "Child" %}</th>
+                    {% endif %}
+                    <th>{% trans "Duration" %}</th>
+                    <th>{% trans "By" %}</th>
+                    <th>{% trans "Tags" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bathtime in object_list %}
+                    <tr>
+                        <td>
+                            <div class="btn-group btn-group-sm"
+                                 role="group"
+                                 aria-label="{% trans "Actions" %}">
+                                {% if perms.core.change_bathtime %}
+                                    <a href="{% url 'core:bathtime-update' bathtime.id %}"
+                                       class="btn btn-primary">
+                                        <i class="icon-update" aria-hidden="true"></i>
+                                    </a>
+                                {% endif %}
+                                {% if perms.core.delete_bathtime %}
+                                    <a href="{% url 'core:bathtime-delete' bathtime.id %}"
+                                       class="btn btn-danger">
+                                        <i class="icon-delete" aria-hidden="true"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <th scope="row">{{ bathtime.start|datetime_short }}</th>
+                        <td>{{ bathtime.end|datetime_short }}</td>
+                        {% if not unique_child %}
+                            <td>
+                                <a href="{% url 'core:child' bathtime.child.slug %}">{{ bathtime.child }}</a>
+                            </td>
+                        {% endif %}
+                        <td>{{ bathtime.duration|duration_string }}</td>
+                        <td>{{ bathtime.created_by_display }}</td>
+                        <td>{% include "core/render_tag_list.html" with tags=bathtime.tags.all %}</td>
+                    </tr>
+                    {% if bathtime.notes %}
+                        <tr class="row-details">
+                            <td colspan="6">
+                                <i class="icon-note me-2" aria-hidden="true"></i>{{ bathtime.notes }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% empty %}
+                    <tr>
+                        <th colspan="6">{% trans "No entries found." %}</th>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "babybuddy/paginator.html" %}
+{% endblock %}

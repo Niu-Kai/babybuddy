@@ -242,7 +242,7 @@ def card_feeding_recent(context, child, end_date=None):
         feed_date = _day_end(instance.end)
         idx = (end_date - feed_date).days
         result = results[idx]
-        result["total"] += instance.amount if instance.amount is not None else 0
+        result["total"] += instance.total_amount or 0
         result["count"] += 1
 
     return {
@@ -987,5 +987,51 @@ def card_tags_last(context, child):
         "type": "tag",
         "items": items,
         "empty": len(items) == 0,
+        "hide_empty": _hide_empty(context),
+    }
+
+
+@register.inclusion_tag("cards/bathtime_last.html", takes_context=True)
+def card_bathtime_last(context, child):
+    """The most recent bath."""
+    instance = (
+        models.BathTime.objects.filter(child=child)
+        .filter(**_filter_data_age(context))
+        .order_by("-end")
+        .first()
+    )
+    return {
+        "type": "bathtime",
+        "bathtime": instance,
+        "empty": not instance,
+        "hide_empty": _hide_empty(context),
+    }
+
+
+@register.inclusion_tag("cards/reflux_last.html", takes_context=True)
+def card_reflux_last(context, child):
+    """The most recent reflux episode."""
+    instance = (
+        models.Reflux.objects.filter(child=child)
+        .filter(**_filter_data_age(context))
+        .order_by("-time")
+        .first()
+    )
+    return {
+        "type": "reflux",
+        "reflux": instance,
+        "empty": not instance,
+        "hide_empty": _hide_empty(context),
+    }
+
+
+@register.inclusion_tag("cards/food_recent.html", takes_context=True)
+def card_food_recent(context, child):
+    """The last few foods tried."""
+    instances = models.Food.objects.filter(child=child).order_by("-time")[:4]
+    return {
+        "type": "food",
+        "foods": list(instances),
+        "empty": len(instances) == 0,
         "hide_empty": _hide_empty(context),
     }

@@ -338,6 +338,8 @@ class FeedingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "method": "bottle",
                 "last_breast": None,
                 "amount": 2.5,
+                "secondary_type": None,
+                "secondary_amount": None,
                 "notes": "forgot vitamins :(",
                 "tags": [],
             },
@@ -1469,3 +1471,36 @@ class AppointmentAPITestCase(APITestCase):
         response = self.client.get(reverse("api:appointment-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["results"][0]["title"], "Vaccination")
+
+
+class NewActivityTypesAPITestCase(APITestCase):
+    fixtures = ["tests.json"]
+
+    def setUp(self):
+        self.client.force_authenticate(user=get_user_model().objects.first())
+
+    def test_bath_time(self):
+        data = {
+            "child": 1,
+            "start": "2017-11-20T10:00:00-05:00",
+            "end": "2017-11-20T10:15:00-05:00",
+        }
+        response = self.client.post(reverse("api:bathtime-list"), data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["duration"], "00:15:00")
+
+    def test_reflux_and_food(self):
+        response = self.client.post(
+            reverse("api:reflux-list"),
+            {"child": 1, "time": "2017-11-20T10:00:00-05:00", "severity": "severe"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.post(
+            reverse("api:food-list"),
+            {"child": 1, "time": "2017-11-20T12:00:00-05:00", "name": "Pear"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.get(reverse("api:food-list"))
+        self.assertEqual(response.data["results"][0]["name"], "Pear")

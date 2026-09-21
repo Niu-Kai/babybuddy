@@ -345,6 +345,10 @@ class ExportData(StaffOnlyMixin, View):
             core_models.BMI,
             core_models.Medication,
             core_models.Note,
+            core_models.Appointment,
+            core_models.BathTime,
+            core_models.Reflux,
+            core_models.Food,
             core_models.Tag,
         ]
         buffer = io.BytesIO()

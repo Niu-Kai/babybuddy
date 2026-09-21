@@ -97,3 +97,21 @@ class WeightFilter(TagFilter):
     class Meta:
         model = models.Weight
         fields = ["child"]
+
+
+class BathTimeFilter(TagFilter):
+    class Meta:
+        model = models.BathTime
+        fields = ["child"]
+
+
+class RefluxFilter(TagFilter):
+    class Meta:
+        model = models.Reflux
+        fields = ["child"]
+
+
+class FoodFilter(TagFilter):
+    class Meta:
+        model = models.Food
+        fields = ["child"]

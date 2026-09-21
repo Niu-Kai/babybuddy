@@ -19,8 +19,8 @@
 {% endblock %}
 {% block content %}
     {% if feeding %}
-        {{ feeding.get_type_display }}, {{ feeding.get_method_display }}
-        {% if feeding.amount %}({{ feeding.amount }}){% endif %}
+        {{ feeding.type_display }}, {{ feeding.get_method_display }}
+        {% if feeding.total_amount %}({{ feeding.amount_display }}){% endif %}
         {% if feeding.next_breast_display %}
             <div>{% trans "Start next on" %}: <strong>{{ feeding.next_breast_display }}</strong></div>
         {% endif %}

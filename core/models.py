@@ -433,6 +433,22 @@ class Feeding(CreatedByMixin):
         verbose_name=_("Method"),
     )
     amount = models.FloatField(blank=True, null=True, verbose_name=_("Amount"))
+    secondary_type = models.CharField(
+        blank=True,
+        choices=[
+            ("breast milk", _("Breast milk")),
+            ("formula", _("Formula")),
+            ("fortified breast milk", _("Fortified breast milk")),
+            ("solid food", _("Solid food")),
+        ],
+        max_length=255,
+        null=True,
+        verbose_name=_("Second type"),
+        help_text=_("For a mixed feeding, e.g. breast milk topped up with formula."),
+    )
+    secondary_amount = models.FloatField(
+        blank=True, null=True, verbose_name=_("Second amount")
+    )
     last_breast = models.CharField(
         blank=True,
         choices=[("left", _("Left")), ("right", _("Right"))],
@@ -459,6 +475,31 @@ class Feeding(CreatedByMixin):
 
     def __str__(self):
         return str(_("Feeding"))
+
+    @property
+    def total_amount(self):
+        """Amount of both parts of a mixed feeding, or None if untracked."""
+        if self.amount is None and self.secondary_amount is None:
+            return None
+        return (self.amount or 0) + (self.secondary_amount or 0)
+
+    @property
+    def type_display(self):
+        if self.secondary_type:
+            return "{} + {}".format(
+                self.get_type_display(), self.get_secondary_type_display()
+            )
+        return self.get_type_display()
+
+    @property
+    def amount_display(self):
+        if self.secondary_type and self.secondary_amount is not None:
+            return "{:g} + {:g} = {:g}".format(
+                self.amount or 0, self.secondary_amount, self.total_amount
+            )
+        if self.amount is None:
+            return ""
+        return "{:g}".format(self.amount)
 
     @property
     def next_breast(self):
@@ -488,6 +529,16 @@ class Feeding(CreatedByMixin):
         validate_time(self.start, "start")
         validate_duration(self)
         validate_unique_period(Feeding.objects.filter(child=self.child), self)
+        if self.secondary_amount is not None and not self.secondary_type:
+            raise ValidationError(
+                {"secondary_type": _("Choose the type of the second amount.")},
+                code="secondary_type_required",
+            )
+        if self.secondary_type and self.secondary_type == self.type:
+            raise ValidationError(
+                {"secondary_type": _("The second type must differ from the first.")},
+                code="secondary_type_same",
+            )
 
 
 class HeadCircumference(CreatedByMixin):
@@ -1143,6 +1194,132 @@ class Medication(CreatedByMixin):
 
     def __str__(self):
         return str(_("Medication"))
+
+
+class BathTime(CreatedByMixin):
+    model_name = "bathtime"
+    child = models.ForeignKey(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="bathtime",
+        verbose_name=_("Child"),
+    )
+    start = models.DateTimeField(
+        blank=False,
+        default=timezone.localtime,
+        null=False,
+        verbose_name=_("Start time"),
+    )
+    end = models.DateTimeField(
+        blank=False, default=timezone.localtime, null=False, verbose_name=_("End time")
+    )
+    duration = models.DurationField(
+        editable=False, null=True, verbose_name=_("Duration")
+    )
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
+    tags = TaggableManager(blank=True, through=Tagged)
+
+    objects = models.Manager()
+
+    class Meta:
+        default_permissions = ("view", "add", "change", "delete")
+        ordering = ["-start"]
+        verbose_name = _("Bath Time")
+        verbose_name_plural = _("Bath Times")
+
+    def __str__(self):
+        return str(_("Bath Time"))
+
+    def save(self, *args, **kwargs):
+        if self.start and self.end:
+            self.duration = timezone_aware_duration(self.start, self.end)
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        validate_time(self.start, "start")
+        validate_duration(self)
+
+
+class Reflux(CreatedByMixin):
+    model_name = "reflux"
+    child = models.ForeignKey(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="reflux",
+        verbose_name=_("Child"),
+    )
+    time = models.DateTimeField(
+        blank=False, default=timezone.localtime, null=False, verbose_name=_("Time")
+    )
+    severity = models.CharField(
+        choices=[
+            ("mild", _("Mild")),
+            ("moderate", _("Moderate")),
+            ("severe", _("Severe")),
+        ],
+        default="mild",
+        max_length=255,
+        verbose_name=_("Severity"),
+    )
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
+    tags = TaggableManager(blank=True, through=Tagged)
+
+    objects = models.Manager()
+
+    class Meta:
+        default_permissions = ("view", "add", "change", "delete")
+        ordering = ["-time"]
+        verbose_name = _("Reflux")
+        verbose_name_plural = _("Reflux Episodes")
+
+    def __str__(self):
+        return str(_("Reflux"))
+
+    def clean(self):
+        validate_time(self.time, "time")
+
+
+class Food(CreatedByMixin):
+    model_name = "food"
+    child = models.ForeignKey(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="food",
+        verbose_name=_("Child"),
+    )
+    time = models.DateTimeField(
+        blank=False, default=timezone.localtime, null=False, verbose_name=_("Time")
+    )
+    name = models.CharField(max_length=255, verbose_name=_("Food"))
+    amount = models.FloatField(blank=True, null=True, verbose_name=_("Amount"))
+    reaction = models.CharField(
+        blank=True,
+        choices=[
+            ("liked", _("Liked it")),
+            ("neutral", _("Neutral")),
+            ("disliked", _("Disliked it")),
+            ("allergic", _("Allergic reaction")),
+        ],
+        max_length=255,
+        null=True,
+        verbose_name=_("Reaction"),
+    )
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
+    tags = TaggableManager(blank=True, through=Tagged)
+
+    objects = models.Manager()
+
+    class Meta:
+        default_permissions = ("view", "add", "change", "delete")
+        ordering = ["-time"]
+        verbose_name = _("Food")
+        verbose_name_plural = _("Foods")
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        validate_time(self.time, "time")
 
 
 class WeightPercentile(models.Model):

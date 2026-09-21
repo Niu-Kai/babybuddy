@@ -152,3 +152,18 @@ class DjangoFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
                 }
             )
         return parameters
+
+
+class BathTimeFilter(StartEndFieldFilter, TagsFieldFilter):
+    class Meta(StartEndFieldFilter.Meta):
+        model = models.BathTime
+
+
+class RefluxFilter(TimeFieldFilter, TagsFieldFilter):
+    class Meta(TimeFieldFilter.Meta):
+        model = models.Reflux
+
+
+class FoodFilter(TimeFieldFilter, TagsFieldFilter):
+    class Meta(TimeFieldFilter.Meta):
+        model = models.Food

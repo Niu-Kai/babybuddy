@@ -6,6 +6,9 @@ from django.utils import timezone, timesince
 from django.utils.translation import gettext as _
 
 from core.models import (
+    BathTime,
+    Food,
+    Reflux,
     DiaperChange,
     Feeding,
     Note,
@@ -49,6 +52,12 @@ def get_objects(date, child=None, user=None):
         _add_notes(min_date, max_date, events, child)
     if permitted("temperature"):
         _add_temperature_measurements(min_date, max_date, events, child)
+    if permitted("bathtime"):
+        _add_bathtimes(min_date, max_date, events, child)
+    if permitted("reflux"):
+        _add_reflux(min_date, max_date, events, child)
+    if permitted("food"):
+        _add_foods(min_date, max_date, events, child)
 
     explicit_type_ordering = {"start": 0, "end": 1}
     events.sort(
@@ -165,8 +174,10 @@ def _add_feedings(min_date, max_date, events, child=None):
             time_since_prev = timesince.timesince(prev_start, now=instance.start)
         prev_start = instance.start
         edit_link = reverse("core:feeding-update", args=[instance.id])
-        if instance.amount:
-            details.append(_("Amount") + ": " + str(instance.amount))
+        if instance.total_amount:
+            details.append(_("Amount") + ": " + instance.amount_display)
+        if instance.secondary_type:
+            details.append(instance.type_display)
 
         base_object = {
             "time": timezone.localtime(instance.start),
@@ -334,6 +345,92 @@ def _add_temperature_measurements(min_date, max_date, events, child):
                 },
                 "details": details,
                 "edit_link": reverse("core:temperature-update", args=[instance.id]),
+                "model_name": instance.model_name,
+                "tags": instance.tags.all(),
+            }
+        )
+
+
+def _add_bathtimes(min_date, max_date, events, child=None):
+    instances = BathTime.objects.filter(
+        Q(start__range=(min_date, max_date)) | Q(end__range=(min_date, max_date))
+    ).order_by("-start")
+    if child:
+        instances = instances.filter(child=child)
+    for instance in instances:
+        details = [instance.notes] if instance.notes else []
+        edit_link = reverse("core:bathtime-update", args=[instance.id])
+        if min_date <= instance.start <= max_date:
+            events.append(
+                {
+                    "time": timezone.localtime(instance.start),
+                    "event": _("%(child)s started a bath.")
+                    % {"child": instance.child.first_name},
+                    "details": details,
+                    "edit_link": edit_link,
+                    "model_name": instance.model_name,
+                    "type": "start",
+                    "tags": instance.tags.all(),
+                }
+            )
+        if min_date <= instance.end <= max_date:
+            end = {
+                "time": timezone.localtime(instance.end),
+                "event": _("%(child)s finished a bath.")
+                % {"child": instance.child.first_name},
+                "details": details,
+                "edit_link": edit_link,
+                "model_name": instance.model_name,
+                "type": "end",
+                "tags": instance.tags.all(),
+            }
+            if instance.duration and instance.duration > timedelta(seconds=0):
+                end["duration"] = duration_string(instance.duration)
+            events.append(end)
+
+
+def _add_reflux(min_date, max_date, events, child=None):
+    instances = Reflux.objects.filter(time__range=(min_date, max_date)).order_by(
+        "-time"
+    )
+    if child:
+        instances = instances.filter(child=child)
+    for instance in instances:
+        details = [instance.get_severity_display()]
+        if instance.notes:
+            details.append(instance.notes)
+        events.append(
+            {
+                "time": timezone.localtime(instance.time),
+                "event": _("%(child)s had a reflux episode.")
+                % {"child": instance.child.first_name},
+                "details": details,
+                "edit_link": reverse("core:reflux-update", args=[instance.id]),
+                "model_name": instance.model_name,
+                "tags": instance.tags.all(),
+            }
+        )
+
+
+def _add_foods(min_date, max_date, events, child=None):
+    instances = Food.objects.filter(time__range=(min_date, max_date)).order_by("-time")
+    if child:
+        instances = instances.filter(child=child)
+    for instance in instances:
+        details = []
+        if instance.amount is not None:
+            details.append(_("Amount") + ": " + str(instance.amount))
+        if instance.reaction:
+            details.append(instance.get_reaction_display())
+        if instance.notes:
+            details.append(instance.notes)
+        events.append(
+            {
+                "time": timezone.localtime(instance.time),
+                "event": _("%(child)s tried %(name)s.")
+                % {"child": instance.child.first_name, "name": instance.name},
+                "details": details,
+                "edit_link": reverse("core:food-update", args=[instance.id]),
                 "model_name": instance.model_name,
                 "tags": instance.tags.all(),
             }

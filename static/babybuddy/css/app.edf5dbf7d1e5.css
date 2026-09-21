@@ -12401,6 +12401,30 @@ textarea.form-control-lg {
   content: "\e810";
 }
 
+.icon-bathtime::before {
+  content: "\f118";
+}
+
+.icon-reflux::before {
+  content: "\f119";
+}
+
+.icon-food::before {
+  content: "\f1b1";
+}
+
+.card-bathtime {
+  --card-accent: #4fb8f0;
+}
+
+.card-reflux {
+  --card-accent: #ffa838;
+}
+
+.card-food {
+  --card-accent: #3ecf83;
+}
+
 .dash {
   display: flex;
   flex-direction: column;

@@ -31,6 +31,10 @@ def feeding_amounts(instances):
         feeding_idx = feeding_types.index(instance.type)
         totals_list[feeding_idx][date] += instance.amount or 0
         totals_list[total_idx - 1][date] += instance.amount or 0
+        if instance.secondary_type and instance.secondary_amount:
+            secondary_idx = feeding_types.index(instance.secondary_type)
+            totals_list[secondary_idx][date] += instance.secondary_amount
+            totals_list[total_idx - 1][date] += instance.secondary_amount
     zeros = [0 for a in totals_list[total_idx - 1].values()]
 
     # sum each feeding type for graph
