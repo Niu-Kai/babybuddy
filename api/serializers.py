@@ -260,6 +260,22 @@ class MedicationSerializer(CoreModelSerializer, TaggableSerializer):
         )
 
 
+class AppointmentSerializer(CoreModelSerializer, TaggableSerializer):
+    class Meta:
+        model = models.Appointment
+        fields = (
+            "created_by",
+            "id",
+            "child",
+            "title",
+            "start",
+            "end",
+            "location",
+            "notes",
+            "tags",
+        )
+
+
 class NoteSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Note

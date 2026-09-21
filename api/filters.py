@@ -83,6 +83,11 @@ class MedicationFilter(TimeFieldFilter, TagsFieldFilter):
         fields = sorted(TimeFieldFilter.Meta.fields + ["name", "dosage_unit"])
 
 
+class AppointmentFilter(StartEndFieldFilter, TagsFieldFilter):
+    class Meta(StartEndFieldFilter.Meta):
+        model = models.Appointment
+
+
 class NoteFilter(TimeFieldFilter, TagsFieldFilter):
     class Meta(TimeFieldFilter.Meta):
         model = models.Note

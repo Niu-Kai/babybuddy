@@ -25,6 +25,7 @@ CAREGIVER_VIEW_MODELS = (
     "weight",
     "note",
     "tummytime",
+    "appointment",
 )
 
 CAREGIVER_ADD_CHANGE_MODELS = (
@@ -37,6 +38,7 @@ CAREGIVER_ADD_CHANGE_MODELS = (
     "weight",
     "note",
     "tummytime",
+    "appointment",
 )
 
 

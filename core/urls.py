@@ -51,6 +51,28 @@ urlpatterns = [
         views.FeedingDelete.as_view(),
         name="feeding-delete",
     ),
+    path("appointments/", views.AppointmentList.as_view(), name="appointment-list"),
+    path(
+        "appointments/calendar/",
+        views.AppointmentCalendar.as_view(),
+        name="appointment-calendar",
+    ),
+    path("appointments/add/", views.AppointmentAdd.as_view(), name="appointment-add"),
+    path(
+        "appointments/<int:pk>/",
+        views.AppointmentUpdate.as_view(),
+        name="appointment-update",
+    ),
+    path(
+        "appointments/<int:pk>/delete/",
+        views.AppointmentDelete.as_view(),
+        name="appointment-delete",
+    ),
+    path(
+        "children/<str:slug>/appointments.ics",
+        views.AppointmentFeed.as_view(),
+        name="appointment-feed",
+    ),
     path("notes/", views.NoteList.as_view(), name="note-list"),
     path("notes/add/", views.NoteAdd.as_view(), name="note-add"),
     path("notes/<int:pk>/", views.NoteUpdate.as_view(), name="note-update"),

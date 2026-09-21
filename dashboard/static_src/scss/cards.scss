@@ -283,3 +283,8 @@ $dashboard-accents: (
         }
     }
 }
+
+// The appointment card reuses the calendar glyph.
+.icon-appointment::before {
+    content: "\e810";
+}

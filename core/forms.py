@@ -631,6 +631,24 @@ class PumpingForm(CoreModelForm, TaggableModelForm):
         }
 
 
+class AppointmentForm(CoreModelForm, TaggableModelForm):
+    fieldsets = [
+        {"fields": ["child", "title", "start", "end"], "layout": "required"},
+        {"fields": ["location"]},
+        {"fields": ["notes", "tags"], "layout": "advanced"},
+    ]
+
+    class Meta:
+        model = models.Appointment
+        fields = ["child", "title", "start", "end", "location", "notes", "tags"]
+        widgets = {
+            "child": ChildRadioSelect,
+            "start": DateTimeInput(),
+            "end": DateTimeInput(),
+            "notes": forms.Textarea(attrs={"rows": 5}),
+        }
+
+
 class NoteForm(CoreModelForm, TaggableModelForm):
     class Meta:
         model = models.Note

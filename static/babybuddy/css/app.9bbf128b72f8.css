@@ -12397,6 +12397,10 @@ textarea.form-control-lg {
   font-size: 0.75rem;
 }
 
+.icon-appointment::before {
+  content: "\e810";
+}
+
 .dash {
   display: flex;
   flex-direction: column;

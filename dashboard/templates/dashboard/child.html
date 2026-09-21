@@ -157,6 +157,9 @@
                                 {% endif %}
                             {% endif %}
                             {% if perms.core.view_note %}
+                                {% if "appointments_upcoming" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_appointments_upcoming object %}</div>
+                                {% endif %}
                                 {% if "notes_recent" not in hidden_cards %}
                                     <div class="dash-cell">{% card_notes_recent object %}</div>
                                 {% endif %}

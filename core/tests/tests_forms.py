@@ -1502,3 +1502,68 @@ class WeightTimeTestCase(FormsTestCaseBase):
         )
         ordered = list(models.Weight.objects.filter(child=self.child))
         self.assertEqual(ordered, [late, early, undated])
+
+
+class AppointmentTestCase(FormsTestCaseBase):
+    """Appointments: future entries, calendar, iCal feed, Google link (#408)."""
+
+    def _add(self, title="Check-up", days=3):
+        start = timezone.localtime() + timezone.timedelta(days=days)
+        params = {
+            "child": self.child.id,
+            "title": title,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=30)),
+            "location": "Clinic",
+        }
+        return self.c.post("/appointments/add/", params, follow=True)
+
+    def test_add_and_list(self):
+        page = self._add()
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(
+            page, "Appointment entry for {} added".format(str(self.child))
+        )
+        appointment = models.Appointment.objects.get(title="Check-up")
+        self.assertFalse(appointment.is_past)
+        self.assertIn("calendar.google.com", appointment.google_calendar_url)
+        self.assertIn("Check-up", appointment.google_calendar_url)
+        page = self.c.get("/appointments/")
+        self.assertContains(page, "Check-up")
+        self.assertContains(page, "appointments.ics?token=")
+
+    def test_end_before_start_rejected(self):
+        start = timezone.localtime() + timezone.timedelta(days=1)
+        params = {
+            "child": self.child.id,
+            "title": "Bad",
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start - timezone.timedelta(hours=1)),
+        }
+        page = self.c.post("/appointments/add/", params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "End time must come after start time")
+
+    def test_calendar_page(self):
+        self._add(days=1)
+        page = self.c.get("/appointments/calendar/")
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Check-up")
+        page = self.c.get("/appointments/calendar/?month=2030-02")
+        self.assertEqual(page.status_code, 200)
+        page = self.c.get("/appointments/calendar/?month=oops")
+        self.assertEqual(page.status_code, 200)
+
+    def test_ical_feed(self):
+        self._add()
+        token = self.user.settings.api_key().key
+        url = "/children/{}/appointments.ics".format(self.child.slug)
+        page = HttpClient().get(url + "?token=" + token)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page["Content-Type"], "text/calendar; charset=utf-8")
+        body = page.content.decode()
+        self.assertIn("BEGIN:VEVENT", body)
+        self.assertIn("SUMMARY:Check-up", body)
+        self.assertIn("LOCATION:Clinic", body)
+        page = HttpClient().get(url + "?token=nope")
+        self.assertEqual(page.status_code, 403)

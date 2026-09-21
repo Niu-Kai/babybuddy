@@ -1,0 +1,61 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n %}
+{% block title %}
+    {% trans "Calendar" %}
+{% endblock %}
+{% block breadcrumbs %}
+    <li class="breadcrumb-item">
+        <a href="{% url 'core:appointment-list' %}">{% trans "Appointments" %}</a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Calendar" %}</li>
+{% endblock %}
+{% block content %}
+    <h1 class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="?month={{ previous_month }}"
+           class="btn btn-sm btn-secondary"
+           aria-label="{% trans "Previous" %}"><i class="icon-angle-left" aria-hidden="true"></i></a>
+        <span>{{ month|date:"F Y" }}</span>
+        <a href="?month={{ next_month }}"
+           class="btn btn-sm btn-secondary"
+           aria-label="{% trans "Next" %}"><i class="icon-angle-right"
+   aria-hidden="true"></i></a>
+        {% if perms.core.add_appointment %}
+            <a href="{% url 'core:appointment-add' %}"
+               class="btn btn-sm btn-success">
+                <i class="icon-calendar" aria-hidden="true"></i> {% trans "Add Appointment" %}
+            </a>
+        {% endif %}
+    </h1>
+    <div class="table-responsive">
+        <table class="table table-bordered align-top calendar-month">
+            <thead>
+                <tr>
+                    {% for name in weekday_names %}<th class="text-center">{{ name }}</th>{% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for week in weeks %}
+                    <tr>
+                        {% for day, in_month, appointments in week %}
+                            <td class="{% if not in_month %}text-body-tertiary{% endif %}{% if day == today %} table-active{% endif %}"
+                                style="height: 6rem;
+                                       width: 14.28%">
+                                <div class="small fw-bold mb-1">{{ day.day }}</div>
+                                {% for appointment in appointments %}
+                                    <div class="small mb-1">
+                                        <a href="{% url 'core:appointment-update' appointment.id %}"
+                                           class="text-decoration-none">
+                                            <strong>{{ appointment.start|time }}</strong>
+                                            {{ appointment.title }}
+                                            {% if not unique_child %}<span class="text-body-secondary">({{ appointment.child.first_name }})</span>{% endif %}
+                                        </a>
+                                    </div>
+                                {% endfor %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

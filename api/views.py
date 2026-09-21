@@ -93,6 +93,14 @@ class MedicationViewSet(viewsets.ModelViewSet):
         return name
 
 
+class AppointmentViewSet(viewsets.ModelViewSet):
+    queryset = models.Appointment.objects.all()
+    serializer_class = serializers.AppointmentSerializer
+    filterset_class = filters.AppointmentFilter
+    ordering_fields = ("start", "end")
+    ordering = "start"
+
+
 class NoteViewSet(viewsets.ModelViewSet):
     queryset = models.Note.objects.all()
     serializer_class = serializers.NoteSerializer

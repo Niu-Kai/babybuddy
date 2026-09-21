@@ -1445,3 +1445,26 @@ class SchemaAPITestCase(APITestCase):
         self.assertIn("/api/feedings/", body)
         self.assertIn("name: child", body)
         self.assertIn("name: tags", body)
+
+
+class AppointmentAPITestCase(APITestCase):
+    fixtures = ["tests.json"]
+
+    def setUp(self):
+        self.client.force_authenticate(user=get_user_model().objects.first())
+
+    def test_post_and_get(self):
+        data = {
+            "child": 1,
+            "title": "Vaccination",
+            "start": "2030-01-05T10:00:00-05:00",
+            "end": "2030-01-05T10:30:00-05:00",
+            "location": "Clinic",
+        }
+        response = self.client.post(
+            reverse("api:appointment-list"), data, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        response = self.client.get(reverse("api:appointment-list"))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["results"][0]["title"], "Vaccination")

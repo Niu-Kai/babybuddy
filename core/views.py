@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
@@ -9,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.views.generic import View
 from django.views.generic.base import RedirectView, TemplateView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
@@ -342,6 +345,139 @@ class MedicationDelete(CoreDeleteView):
     model = models.Medication
     permission_required = ("core.delete_medication",)
     success_url = reverse_lazy("core:medication-list")
+
+
+class AppointmentList(
+    PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView
+):
+    model = models.Appointment
+    template_name = "core/appointment_list.html"
+    permission_required = ("core.view_appointment",)
+    filterset_class = filters.AppointmentFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Upcoming by default; `?past=1` shows everything, newest first.
+        if self.request.GET.get("past"):
+            return queryset.order_by("-start")
+        return queryset.filter(
+            start__gte=timezone.now() - timezone.timedelta(days=1)
+        ).order_by("start")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["show_past"] = bool(self.request.GET.get("past"))
+        context["children"] = models.Child.objects.all()
+        return context
+
+
+class AppointmentCalendar(PermissionRequiredMixin, TemplateView):
+    """A month grid of appointments (#408)."""
+
+    template_name = "core/appointment_calendar.html"
+    permission_required = ("core.view_appointment",)
+
+    def get_context_data(self, **kwargs):
+        import calendar
+
+        context = super().get_context_data(**kwargs)
+        today = timezone.localdate()
+        try:
+            year, month = (int(x) for x in self.request.GET.get("month").split("-"))
+            first = datetime.date(year, month, 1)
+        except (AttributeError, TypeError, ValueError):
+            first = today.replace(day=1)
+        weeks = calendar.Calendar(firstweekday=calendar.MONDAY).monthdatescalendar(
+            first.year, first.month
+        )
+        window_start = timezone.make_aware(
+            datetime.datetime.combine(weeks[0][0], datetime.time.min)
+        )
+        window_end = timezone.make_aware(
+            datetime.datetime.combine(
+                weeks[-1][-1] + datetime.timedelta(days=1), datetime.time.min
+            )
+        )
+        by_day = {}
+        for appointment in models.Appointment.objects.filter(
+            start__gte=window_start, start__lt=window_end
+        ).order_by("start"):
+            day = timezone.localtime(appointment.start).date()
+            by_day.setdefault(day, []).append(appointment)
+        context["weeks"] = [
+            [(day, day.month == first.month, by_day.get(day, [])) for day in week]
+            for week in weeks
+        ]
+        context["weekday_names"] = [
+            calendar.day_abbr[i]
+            for i in calendar.Calendar(calendar.MONDAY).iterweekdays()
+        ]
+        context["month"] = first
+        context["today"] = today
+        previous_month = (first - datetime.timedelta(days=1)).replace(day=1)
+        next_month = (first + datetime.timedelta(days=32)).replace(day=1)
+        context["previous_month"] = previous_month.strftime("%Y-%m")
+        context["next_month"] = next_month.strftime("%Y-%m")
+        return context
+
+
+class AppointmentAdd(CoreAddView):
+    model = models.Appointment
+    permission_required = ("core.add_appointment",)
+    form_class = forms.AppointmentForm
+    success_url = reverse_lazy("core:appointment-list")
+
+
+class AppointmentUpdate(CoreUpdateView):
+    model = models.Appointment
+    permission_required = ("core.change_appointment",)
+    form_class = forms.AppointmentForm
+    success_url = reverse_lazy("core:appointment-list")
+
+
+class AppointmentDelete(CoreDeleteView):
+    model = models.Appointment
+    permission_required = ("core.delete_appointment",)
+    success_url = reverse_lazy("core:appointment-list")
+
+
+class AppointmentFeed(View):
+    """
+    iCalendar feed of a child's appointments for calendar apps such as
+    Google Calendar ("From URL"). Authenticated by the user's API key in
+    `?token=`, since calendar apps cannot log in.
+    """
+
+    def get(self, request, slug):
+        from django.http import HttpResponse, HttpResponseForbidden
+        from rest_framework.authtoken.models import Token
+
+        token = Token.objects.filter(key=request.GET.get("token", "")).first()
+        user = token.user if token else None
+        if (
+            user is None
+            or not user.is_active
+            or user.settings.access_expired
+            or not user.has_perm("core.view_appointment")
+        ):
+            return HttpResponseForbidden("Invalid token.")
+        child = get_object_or_404(models.Child, slug=slug)
+        lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//Baby Buddy//Appointments//EN",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            f"X-WR-CALNAME:{child} - Baby Buddy",
+        ]
+        for appointment in models.Appointment.objects.filter(child=child):
+            lines.extend(appointment.ical_event())
+        lines.append("END:VCALENDAR")
+        response = HttpResponse(
+            "\r\n".join(lines) + "\r\n", content_type="text/calendar; charset=utf-8"
+        )
+        response["Content-Disposition"] = f'inline; filename="{child.slug}.ics"'
+        return response
 
 
 class NoteList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):

@@ -56,6 +56,7 @@ DASHBOARD_CARDS = [
     ("diaperchange_types", _("Diaper Changes")),
     ("breastfeeding", _("Breastfeeding")),
     ("notes_recent", _("Recent Notes")),
+    ("appointments_upcoming", _("Upcoming Appointments")),
 ]
 
 

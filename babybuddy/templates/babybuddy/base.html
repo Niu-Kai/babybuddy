@@ -87,6 +87,11 @@
         <script src="{% static "babybuddy/js/vendor.js" %}"></script>
         <script src="{% static "babybuddy/js/app.js" %}"></script>
         {% if user.is_authenticated %}<script>BabyBuddy.PullToRefresh.init()</script>{% endif %}
+        <script>
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("{% url 'babybuddy:service-worker' %}", { scope: "/" }).catch(function () {});
+            }
+        </script>
         {% block javascript %}{% endblock %}
     </body>
 </html>

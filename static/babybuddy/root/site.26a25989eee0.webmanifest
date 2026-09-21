@@ -13,11 +13,15 @@
       "type": "image/png"
     }
   ],
+  "id": "/",
+  "scope": "/",
+  "description": "Baby Buddy helps caregivers track sleep, feedings, diaper changes, tummy time and more.",
   "lang": "en-US",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "theme_color": "#37abe9",
-  "background_color": "#212529",
+  "background_color": "#0d1117",
   "shortcuts": [
     {
       "name": "Start a timer",

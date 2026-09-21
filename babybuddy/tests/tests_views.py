@@ -301,3 +301,12 @@ class PreferencesTestCase(TestCase):
         page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
         self.assertContains(page, "Corrected age")
         self.assertEqual(self.child.corrected_birth_date, self.child.due_date)
+
+
+class ServiceWorkerTestCase(TestCase):
+    def test_service_worker_served(self):
+        page = HttpClient().get("/sw.js")
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page["Content-Type"], "application/javascript")
+        self.assertEqual(page["Service-Worker-Allowed"], "/")
+        self.assertIn("addEventListener", page.content.decode())

@@ -1,0 +1,21 @@
+{% extends "cards/base.html" %}
+{% load datetime i18n %}
+{% block header %}
+    <a href="{% url "core:appointment-list" %}">{% trans "Upcoming Appointments" %}</a>
+{% endblock %}
+{% block title %}
+    {% if appointments %}
+        <div>{{ appointments.0.title }}</div>
+        <small>{{ appointments.0.start|datetime_short }}</small>
+    {% else %}
+        {% trans "None" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% for appointment in appointments|slice:"1:" %}
+        <div class="py-1 border-bottom">
+            <small class="text-muted">{{ appointment.start|datetime_short }}</small>
+            <div>{{ appointment.title }}</div>
+        </div>
+    {% endfor %}
+{% endblock %}

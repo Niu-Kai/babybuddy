@@ -9,7 +9,7 @@ from django.contrib.auth.views import LogoutView as LogoutViewBase
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.exceptions import BadRequest
 from django.forms import Form
-from django.http import HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden
 from django.middleware.csrf import REASON_BAD_ORIGIN
 from django.shortcuts import redirect, render
 from django.template import loader
@@ -298,6 +298,20 @@ class Welcome(LoginRequiredMixin, TemplateView):
     """
 
     template_name = "babybuddy/welcome.html"
+
+
+class ServiceWorker(View):
+    """Serve the service worker from the site root so it can scope to "/"."""
+
+    def get(self, request):
+        from django.template.loader import render_to_string
+
+        response = HttpResponse(
+            render_to_string("babybuddy/sw.js"), content_type="application/javascript"
+        )
+        response["Service-Worker-Allowed"] = "/"
+        response["Cache-Control"] = "no-cache"
+        return response
 
 
 class ExportData(StaffOnlyMixin, View):

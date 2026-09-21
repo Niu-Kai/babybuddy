@@ -925,6 +925,20 @@ def card_medication_last(context, child):
     }
 
 
+@register.inclusion_tag("cards/appointments_upcoming.html", takes_context=True)
+def card_appointments_upcoming(context, child):
+    """The next few appointments for the child (#408)."""
+    upcoming = models.Appointment.objects.filter(
+        child=child, start__gte=timezone.now() - timezone.timedelta(hours=12)
+    ).order_by("start")[:3]
+    return {
+        "type": "appointment",
+        "appointments": list(upcoming),
+        "empty": len(upcoming) == 0,
+        "hide_empty": _hide_empty(context),
+    }
+
+
 @register.inclusion_tag("cards/notes_recent.html", takes_context=True)
 def card_notes_recent(context, child):
     """

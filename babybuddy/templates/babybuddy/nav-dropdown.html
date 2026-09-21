@@ -139,6 +139,19 @@
                                     {% trans "Child" %}
                                 </a>
                             {% endif %}
+                            {% if perms.core.view_appointment %}
+                                <a class="dropdown-item{% if request.path == '/appointments/' %} active{% endif %}"
+                                   href="{% url 'core:appointment-list' %}">
+                                    <i class="icon-calendar" aria-hidden="true"></i>
+                                    {% trans "Appointments" %}
+                                </a>
+                            {% endif %}
+                            {% if perms.core.add_appointment %}
+                                <a class="dropdown-item ps-5{% if request.path == '/appointments/add/' %} active{% endif %}"
+                                   href="{% url 'core:appointment-add' %}"><i class="icon-add" aria-hidden="true"></i>
+                                    {% trans "Appointment" %}
+                                </a>
+                            {% endif %}
                             {% if perms.core.view_note %}
                                 <a class="dropdown-item{% if request.path == '/notes/' %} active{% endif %}"
                                    href="{% url 'core:note-list' %}">

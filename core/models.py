@@ -589,6 +589,97 @@ class Note(CreatedByMixin):
         return str(_("Note"))
 
 
+class Appointment(CreatedByMixin):
+    """
+    An upcoming (or past) appointment or event for a child, e.g. a check-up
+    or a vaccination (babybuddy/babybuddy#408).
+    """
+
+    model_name = "appointment"
+    child = models.ForeignKey(
+        "Child",
+        on_delete=models.CASCADE,
+        related_name="appointment",
+        verbose_name=_("Child"),
+    )
+    title = models.CharField(max_length=255, verbose_name=_("Title"))
+    start = models.DateTimeField(
+        blank=False, default=timezone.localtime, verbose_name=_("Start time")
+    )
+    end = models.DateTimeField(blank=True, null=True, verbose_name=_("End time"))
+    location = models.CharField(blank=True, max_length=255, verbose_name=_("Location"))
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
+    tags = TaggableManager(blank=True, through=Tagged)
+
+    objects = models.Manager()
+
+    class Meta:
+        default_permissions = ("view", "add", "change", "delete")
+        ordering = ["start"]
+        verbose_name = _("Appointment")
+        verbose_name_plural = _("Appointments")
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        if self.start and self.end and self.end < self.start:
+            raise ValidationError(
+                {"end": _("End time must come after start time.")},
+                code="end_before_start",
+            )
+
+    @property
+    def is_past(self):
+        return (self.end or self.start) < timezone.now()
+
+    def _utc_stamp(self, moment):
+        return moment.astimezone(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+    @property
+    def google_calendar_url(self):
+        """A link that opens Google Calendar with this event pre-filled."""
+        from urllib.parse import urlencode
+
+        end = self.end or self.start + datetime.timedelta(hours=1)
+        params = {
+            "action": "TEMPLATE",
+            "text": self.title,
+            "dates": f"{self._utc_stamp(self.start)}/{self._utc_stamp(end)}",
+            "details": self.notes or "",
+            "location": self.location,
+        }
+        return "https://calendar.google.com/calendar/render?" + urlencode(params)
+
+    def ical_event(self):
+        """This appointment as the lines of an iCalendar VEVENT."""
+
+        def escape(value):
+            return (
+                str(value or "")
+                .replace("\\", "\\\\")
+                .replace(";", "\\;")
+                .replace(",", "\\,")
+                .replace("\n", "\\n")
+            )
+
+        end = self.end or self.start + datetime.timedelta(hours=1)
+        lines = [
+            "BEGIN:VEVENT",
+            f"UID:babybuddy-appointment-{self.pk}@{self.child.slug}",
+            f"DTSTAMP:{self._utc_stamp(timezone.now())}",
+            f"DTSTART:{self._utc_stamp(self.start)}",
+            f"DTEND:{self._utc_stamp(end)}",
+            f"SUMMARY:{escape(self.title)} ({escape(self.child)})",
+        ]
+        if self.location:
+            lines.append(f"LOCATION:{escape(self.location)}")
+        if self.notes:
+            lines.append(f"DESCRIPTION:{escape(self.notes)}")
+        lines.append("END:VEVENT")
+        return lines
+
+
 class Pumping(CreatedByMixin):
     model_name = "pumping"
     child = models.ForeignKey(

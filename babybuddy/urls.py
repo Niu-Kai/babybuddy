@@ -46,6 +46,7 @@ app_patterns = [
     path("user/add-device/", views.UserAddDevice.as_view(), name="user-add-device"),
     path("settings/", include("dbsettings.urls")),
     path("export/", views.ExportData.as_view(), name="export"),
+    path("sw.js", views.ServiceWorker.as_view(), name="service-worker"),
 ]
 
 urlpatterns = [
