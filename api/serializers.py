@@ -208,6 +208,7 @@ class FeedingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Feeding
         fields = (
+            "last_breast",
             "created_by",
             "id",
             "child",

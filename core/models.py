@@ -16,10 +16,11 @@ from taggit.managers import TaggableManager as TaggitTaggableManager
 from taggit.models import GenericTaggedItemBase, TagBase
 
 from babybuddy.site_settings import (
-    DiaperChangeSettings,
     DashboardSettings,
-    NapSettings,
+    DiaperChangeSettings,
     FeedingSettings,
+    NapSettings,
+    WebhookSettings,
 )
 from core.utils import random_color, timezone_aware_duration
 
@@ -122,6 +123,14 @@ class Tag(TagBase):
         verbose_name=_("Last used"),
         default=timezone.now,
         blank=False,
+    )
+    dashboard = models.BooleanField(
+        default=False,
+        verbose_name=_("Show on dashboard"),
+        help_text=_(
+            "Show the time since this tag was last used on each child's dashboard, "
+            "e.g. for a medicine or a treatment."
+        ),
     )
 
     class Meta:
@@ -231,6 +240,7 @@ class BMI(CreatedByMixin):
 class Child(models.Model):
     model_name = "child"
     settings = DashboardSettings(_("Dashboard settings"))
+    webhooks = WebhookSettings(_("Webhook settings"))
     first_name = models.CharField(max_length=255, verbose_name=_("First name"))
     last_name = models.CharField(
         blank=True, max_length=255, verbose_name=_("Last name")
@@ -423,6 +433,17 @@ class Feeding(CreatedByMixin):
         verbose_name=_("Method"),
     )
     amount = models.FloatField(blank=True, null=True, verbose_name=_("Amount"))
+    last_breast = models.CharField(
+        blank=True,
+        choices=[("left", _("Left")), ("right", _("Right"))],
+        max_length=255,
+        null=True,
+        verbose_name=_("Ended on"),
+        help_text=_(
+            'For "both breasts": the side the feeding ended on, so the next one '
+            "can start on the other side."
+        ),
+    )
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
@@ -438,6 +459,25 @@ class Feeding(CreatedByMixin):
 
     def __str__(self):
         return str(_("Feeding"))
+
+    @property
+    def next_breast(self):
+        """Which breast to start the next feeding on, if that can be told."""
+        if self.method == "both breasts":
+            ended_on = self.last_breast
+        elif self.method in ("left breast", "right breast"):
+            ended_on = self.method.split(" ")[0]
+        else:
+            ended_on = None
+        if ended_on == "left":
+            return "right"
+        if ended_on == "right":
+            return "left"
+        return None
+
+    @property
+    def next_breast_display(self):
+        return {"left": _("Left"), "right": _("Right")}.get(self.next_breast, "")
 
     def save(self, *args, **kwargs):
         if self.start and self.end:

@@ -122,3 +122,7 @@ class CoreConfig(AppConfig):
             add_caregiver_group_permissions,
             dispatch_uid="core.add_caregiver_group_permissions",
         )
+
+        from core import webhooks
+
+        webhooks.connect()

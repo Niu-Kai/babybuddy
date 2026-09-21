@@ -489,3 +489,26 @@ class PumpingDurationTestCase(TestCase):
         self.assertEqual(
             result["pumpings"][0]["duration"], timezone.timedelta(minutes=30)
         )
+
+
+class TagsLastTestCase(TestCase):
+    """Time since a dashboard-flagged tag was last used (#830)."""
+
+    def test_card(self):
+        child = models.Child.objects.create(
+            first_name="Tag", last_name="Kid", birth_date=timezone.localdate()
+        )
+        context = {"request": MockUserRequest(get_user_model().objects.first())}
+        tag = models.Tag.objects.create(name="paracetamol", dashboard=True)
+        models.Tag.objects.create(name="untracked")
+        result = cards.card_tags_last(context, child)
+        self.assertEqual([item["tag"] for item in result["items"]], [tag])
+        self.assertIsNone(result["items"][0]["time"])
+
+        when = timezone.now() - timezone.timedelta(hours=3)
+        feeding = models.Feeding.objects.create(
+            child=child, start=when, end=when, type="formula", method="bottle"
+        )
+        feeding.tags.add(tag)
+        result = cards.card_tags_last(context, child)
+        self.assertEqual(result["items"][0]["time"], when)

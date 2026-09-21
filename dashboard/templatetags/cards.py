@@ -956,3 +956,36 @@ def card_notes_recent(context, child):
         "empty": empty,
         "hide_empty": _hide_empty(context),
     }
+
+
+@register.inclusion_tag("cards/tags_last.html", takes_context=True)
+def card_tags_last(context, child):
+    """
+    Time since each dashboard-flagged tag was last used on the child's
+    entries (babybuddy/babybuddy#830).
+    """
+    items = []
+    for tag in models.Tag.objects.filter(dashboard=True):
+        latest = None
+        latest_model = None
+        for tagged in models.Tagged.objects.filter(tag=tag).select_related(
+            "content_type"
+        ):
+            entry = tagged.content_object
+            if entry is None or getattr(entry, "child_id", None) != child.id:
+                continue
+            moment = getattr(entry, "start", None) or getattr(entry, "time", None)
+            if moment is None and getattr(entry, "date", None):
+                moment = timezone.make_aware(
+                    timezone.datetime.combine(entry.date, timezone.datetime.min.time())
+                )
+            if moment and (latest is None or moment > latest):
+                latest = moment
+                latest_model = entry._meta.verbose_name
+        items.append({"tag": tag, "time": latest, "model": latest_model})
+    return {
+        "type": "tag",
+        "items": items,
+        "empty": len(items) == 0,
+        "hide_empty": _hide_empty(context),
+    }

@@ -1,0 +1,38 @@
+{% extends "cards/base.html" %}
+{% load duration i18n %}
+{% block header %}
+    <a href="{% url "core:tag-list" %}">{% trans "Time Since Tag" %}</a>
+{% endblock %}
+{% block title %}
+    {% if items %}
+        {% with first=items.0 %}
+            {% if first.time %}
+                <div>
+                    {% blocktrans trimmed with time_ago=first.time|deltasince|duration_string:'m' %}
+                        {{ time_ago }} ago
+                    {% endblocktrans %}
+                </div>
+            {% else %}
+                <div>{% trans "Never" %}</div>
+            {% endif %}
+            <small>{% include "core/render_tag.html" with tag=first.tag %} {{ first.model }}</small>
+        {% endwith %}
+    {% else %}
+        {% trans "None" %}
+    {% endif %}
+{% endblock %}
+{% block content %}
+    {% for item in items|slice:"1:" %}
+        <div class="py-1 border-bottom">
+            {% include "core/render_tag.html" with tag=item.tag %}
+            {% if item.time %}
+                {% blocktrans trimmed with time_ago=item.time|deltasince|duration_string:'m' %}
+                    {{ time_ago }} ago
+                {% endblocktrans %}
+                <small class="text-muted">{{ item.model }}</small>
+            {% else %}
+                {% trans "Never" %}
+            {% endif %}
+        </div>
+    {% endfor %}
+{% endblock %}

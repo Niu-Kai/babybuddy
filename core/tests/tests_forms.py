@@ -1567,3 +1567,40 @@ class AppointmentTestCase(FormsTestCaseBase):
         self.assertIn("LOCATION:Clinic", body)
         page = HttpClient().get(url + "?token=nope")
         self.assertEqual(page.status_code, 403)
+
+
+class LastBreastTestCase(FormsTestCaseBase):
+    """ "Ended on" for both-breast feedings and the next-side hint (#1012)."""
+
+    def test_both_breasts_records_side(self):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=20)),
+            "type": "breast milk",
+            "method": "both breasts",
+            "last_breast": "left",
+        }
+        page = self.c.post("/feedings/add/", params, follow=True)
+        self.assertContains(page, "Feeding entry for {} added".format(str(self.child)))
+        feeding = models.Feeding.objects.filter(child=self.child).first()
+        self.assertEqual(feeding.last_breast, "left")
+        self.assertEqual(feeding.next_breast, "right")
+        page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
+        self.assertContains(page, "Start next on")
+
+    def test_side_cleared_for_other_methods(self):
+        start = timezone.localtime() - timezone.timedelta(hours=1)
+        params = {
+            "child": self.child.id,
+            "start": self.localtime_string(start),
+            "end": self.localtime_string(start + timezone.timedelta(minutes=20)),
+            "type": "breast milk",
+            "method": "left breast",
+            "last_breast": "left",
+        }
+        self.c.post("/feedings/add/", params, follow=True)
+        feeding = models.Feeding.objects.filter(child=self.child).first()
+        self.assertIsNone(feeding.last_breast)
+        self.assertEqual(feeding.next_breast, "right")

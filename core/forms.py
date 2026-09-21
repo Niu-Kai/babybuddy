@@ -482,7 +482,7 @@ class DiaperChangeForm(CoreModelForm, TaggableModelForm):
 class FeedingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {"fields": ["child", "start", "end", "type", "method"], "layout": "required"},
-        {"fields": ["amount"]},
+        {"fields": ["amount", "last_breast"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
@@ -499,17 +499,31 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
         cleaned_data = super().clean()
         if cleaned_data.get("start") and not cleaned_data.get("end"):
             cleaned_data["end"] = cleaned_data["start"]
+        # "Ended on" only means something for both breasts (#1012).
+        if cleaned_data.get("method") != "both breasts":
+            cleaned_data["last_breast"] = None
         return cleaned_data
 
     class Meta:
         model = models.Feeding
-        fields = ["child", "start", "end", "type", "method", "amount", "notes", "tags"]
+        fields = [
+            "child",
+            "start",
+            "end",
+            "type",
+            "method",
+            "amount",
+            "last_breast",
+            "notes",
+            "tags",
+        ]
         widgets = {
             "child": ChildRadioSelect,
             "start": DateTimeInput(),
             "end": DateTimeInput(),
             "type": PillRadioSelect(),
             "method": PillRadioSelect(),
+            "last_breast": PillRadioSelect(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 
@@ -686,12 +700,13 @@ class TagAdminForm(CoreModelForm):
         {
             "fields": ["name", "color"],
             "layout": "required",
-        }
+        },
+        {"fields": ["dashboard"]},
     ]
 
     class Meta:
         model = models.Tag
-        fields = ["name", "color"]
+        fields = ["name", "color", "dashboard"]
         readonly_fields = ["slug"]
         widgets = {
             "color": widgets.TextInput(

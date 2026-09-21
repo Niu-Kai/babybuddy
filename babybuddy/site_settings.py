@@ -69,6 +69,28 @@ class DiaperChangeSettings(dbsettings.Group):
     )
 
 
+class WebhookSettings(dbsettings.Group):
+    url = dbsettings.StringValue(
+        required=False,
+        default="",
+        description=_("Webhook URL"),
+        help_text=_(
+            "Baby Buddy sends a JSON POST here whenever an entry is added, "
+            "changed or deleted, e.g. a Home Assistant webhook trigger URL. "
+            "Leave empty to disable."
+        ),
+    )
+    secret = dbsettings.StringValue(
+        required=False,
+        default="",
+        description=_("Webhook secret"),
+        help_text=_(
+            "Optional. Requests then carry an X-BabyBuddy-Signature header: the "
+            "HMAC-SHA256 of the body with this secret."
+        ),
+    )
+
+
 class FeedingDiffEndValue(dbsettings.BooleanValue):
     field = BooleanField
 

@@ -116,6 +116,9 @@
                                 {% endif %}
                             {% endif %}
                             {% if perms.core.view_timer %}
+                                {% if "tags_last" not in hidden_cards %}
+                                    <div class="dash-cell">{% card_tags_last object %}</div>
+                                {% endif %}
                                 {% if "timer_list" not in hidden_cards %}
                                     <div class="dash-cell">{% card_timer_list object %}</div>
                                 {% endif %}

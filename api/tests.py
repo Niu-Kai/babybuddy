@@ -336,6 +336,7 @@ class FeedingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "duration": "00:15:00",
                 "type": "formula",
                 "method": "bottle",
+                "last_breast": None,
                 "amount": 2.5,
                 "notes": "forgot vitamins :(",
                 "tags": [],
