@@ -1,0 +1,28 @@
+<div class="appointment-choice"
+     data-appointment-choice
+     data-choice-kind="{{ widget.choice_kind }}">
+    <div class="appointment-choice-control">
+        {% include "django/forms/widgets/input.html" %}
+        <button type="button"
+                class="btn btn-outline-secondary appointment-choice-toggle"
+                data-choice-toggle
+                hidden
+                aria-label="{{ widget.choice_label }}"
+                aria-expanded="false"
+                aria-controls="{{ widget.attrs.id }}_choices"
+                aria-haspopup="listbox"><span aria-hidden="true">▾</span></button>
+    </div>
+    <div class="appointment-choice-options"
+         id="{{ widget.attrs.id }}_choices"
+         role="listbox"
+         aria-label="{{ widget.choice_label }}"
+         hidden>
+        {% for value, label in widget.choices %}
+            <div class="appointment-choice-option"
+                 id="{{ widget.attrs.id }}_choice_{{ forloop.counter0 }}"
+                 role="option"
+                 aria-selected="false"
+                 data-choice-value="{{ value }}">{{ label }}</div>
+        {% endfor %}
+    </div>
+</div>

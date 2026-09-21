@@ -1,0 +1,6 @@
+{% include "django/forms/widgets/text.html" %}
+{% if widget.locations %}
+    <datalist id="{{ widget.attrs.list }}">
+        {% for location in widget.locations %}<option value="{{ location }}"></option>{% endfor %}
+    </datalist>
+{% endif %}

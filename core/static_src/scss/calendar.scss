@@ -1,0 +1,35 @@
+.calendar-toolbar .calendar-add { margin-left: auto; }
+.calendar-range-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.calendar-range-bar h2 { margin: 0; font-size: 1.4rem; }
+.calendar-range-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; }
+.calendar-month-view, .calendar-mini-month, .calendar-day { background: var(--dash-surface); border: 1px solid var(--bs-border-color); border-radius: .8rem; overflow: hidden; min-width: 0; }
+.calendar-grid {
+    width: 100%; table-layout: fixed;
+    th { text-align: center; padding: .65rem .25rem; font-weight: 500; font-size: .8rem; color: var(--bs-secondary-color); background: var(--bs-tertiary-bg); }
+    td { vertical-align: top; padding: .5rem; height: 8rem; border-top: 1px solid var(--bs-border-color); border-right: 1px solid var(--bs-border-color); }
+    td:last-child { border-right: 0; }
+}
+.calendar-date { display: inline-flex; align-items: center; gap: .3rem; padding: .15rem .4rem; margin-bottom: .3rem; border-radius: .35rem; color: var(--bs-body-color); text-decoration: none; font-size: .9rem; }
+.calendar-date:hover { background: var(--bs-tertiary-bg); }
+.calendar-today .calendar-date, .calendar-day.calendar-today > h3 { background: var(--bs-primary-bg-subtle); }
+.calendar-appointment { border-left: 3px solid var(--bs-primary); border-radius: .3rem; background: var(--bs-tertiary-bg); padding: .5rem .65rem; margin: .4rem 0; overflow-wrap: anywhere; }
+.calendar-appointment-time { font-size: .75rem; color: var(--bs-secondary-color); }
+.calendar-appointment-title { font-size: .9rem; font-weight: 500; }
+.calendar-appointment-child { font-size: .75rem; margin-top: .2rem; color: var(--bs-secondary-color); }
+.calendar-year { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1.25rem; }
+.calendar-mini-month h3 { display: flex; justify-content: space-between; padding: 1rem; font-size: 1rem; margin: 0; }
+.calendar-mini-month h3 a { text-decoration: none; }
+.calendar-mini-month h3 span { font-size: .8rem; }
+.calendar-grid-compact {
+    td { text-align: center; padding: .2rem; height: 2.5rem; border: 0; }
+    .calendar-date { justify-content: center; position: relative; min-width: 1.7rem; margin-bottom: .1rem; }
+    .calendar-date.has-appointments { font-weight: 700; padding-bottom: .5rem; }
+}
+.calendar-dot { position: absolute; width: .25rem; height: .25rem; background: var(--bs-primary); border-radius: 50%; bottom: .15rem; left: calc(50% - .125rem); }
+.calendar-agenda { display: grid; gap: 1rem; }
+.calendar-week { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); align-items: start; }
+.calendar-day { padding: .75rem; }
+.calendar-day > h3 { font-size: 1rem; border-radius: .35rem; padding: .5rem; margin: 0 0 .75rem; }
+.calendar-day > h3 a { text-decoration: none; color: var(--bs-body-color); }
+.calendar-empty { padding: .5rem; font-size: .85rem; }
+@media (max-width: 900px) { .calendar-month-view .calendar-grid { min-width: 42rem; } }

@@ -64,7 +64,7 @@ def pumping_amounts(objects):
     # into the future (issues #706 and #860).
     layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(dates)
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Pumping Amount")
+    layout_args["yaxis"]["title"] = _("Pumping amount (mL)")
 
     total_labels = [
         {"x": x, "y": total * 1.1, "text": str(round(total, 2)), "showarrow": False}

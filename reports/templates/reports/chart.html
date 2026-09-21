@@ -1,0 +1,8 @@
+{% load i18n %}
+{% if html %}
+    {{ html|safe }}
+{% else %}
+    <div class="report-empty-state">
+        <div class="container-fluid">{% trans "There is not enough data to generate this report." %}</div>
+    </div>
+{% endif %}

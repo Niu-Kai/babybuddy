@@ -1,0 +1,24 @@
+{% load i18n %}
+<form method="get"
+      class="timeline-toolbar report-period-toolbar"
+      data-timeline-filters
+      data-today="{{ today|date:'Y-m-d' }}">
+    <input type="hidden" name="scope" value="{{ child_scope }}">
+    <div class="timeline-filter-field">
+        {{ report_period.period.label_tag }}{{ report_period.period }}{{ report_period.period.errors }}
+    </div>
+    {% include "core/period_picker.html" with period_filter=report_period %}
+    <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+    <a class="btn btn-outline-secondary"
+       href="?scope={{ child_scope|urlencode }}">{% trans "Clear filters" %}</a>
+</form>
+{% if report_period.errors %}
+    <p class="alert alert-warning">{% trans "Check the filters above to view your report." %}</p>
+{% elif report_range_start %}
+    <div class="timeline-range-bar">
+        <strong>{{ report_range_start|date:"M j, Y" }}{% if report_range_end != report_range_start %} – {{ report_range_end|date:"M j, Y" }}{% endif %}</strong>
+        {% if side_by_side %}
+            <span class="text-body-secondary">{% trans "Same period for every child" %}</span>
+        {% endif %}
+    </div>
+{% endif %}

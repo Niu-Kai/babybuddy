@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
 {% load duration i18n %}
 {% block header %}
-    <a href="{% url "core:tag-list" %}">{% trans "Time Since Tag" %}</a>
+    <a href="{% url "core:tag-list" %}?scope={{ child.slug|urlencode }}">{% trans "Time Since Tag" %}</a>
 {% endblock %}
 {% block title %}
     {% if items %}

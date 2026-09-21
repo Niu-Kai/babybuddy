@@ -9,5 +9,6 @@
 {% endblock %}
 {% block content %}
     <h1>{% trans "Site Settings" %}</h1>
+    {% url "dashboard:dashboard" as cancel_url %}
     {% include "babybuddy/form.html" %}
 {% endblock %}

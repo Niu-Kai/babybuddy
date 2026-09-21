@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
-{% load duration i18n %}
+{% load duration i18n presentation %}
 {% block header %}
-    <a href="{% url "core:pumping-list" %}">{% trans "Last Pumping" %}</a>
+    <a href="{% url "core:pumping-list" %}?scope={{ child.slug|urlencode }}">{% trans "Last Pumping" %}</a>
 {% endblock %}
 {% block title %}
     {% if pumping %}
@@ -17,7 +17,7 @@
 {% endblock %}
 {% block content %}
     {% if pumping %}
-        {% trans "Amount" %}: {{ pumping.amount }}
+        {% trans "Amount" %}: {% measurement pumping 'amount' %}
         {% if pumping.side %}({{ pumping.get_side_display }}){% endif %}
     {% endif %}
 {% endblock %}

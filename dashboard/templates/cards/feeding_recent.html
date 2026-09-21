@@ -1,11 +1,11 @@
 {% extends "cards/base.html" %}
-{% load duration i18n %}
+{% load duration i18n presentation %}
 {% block header %}
-    <a href="{% url "core:feeding-list" %}">{% trans "Recent Feedings" %}</a>
+    <a href="{% url "core:feeding-list" %}?scope={{ child.slug|urlencode }}">{% trans "Recent Feedings" %}</a>
 {% endblock %}
 {% block title %}
     {% if feedings|length > 0 %}
-        <div id="feeding-days-carousel"
+        <div id="feeding-days-carousel-{{ child.pk }}"
              class="carousel slide"
              data-bs-interval="false">
             <div class="carousel-inner">
@@ -17,7 +17,7 @@
                         {% endcomment %}
                         <div class="last-feeding-method text-center">
                             {% if feeding.total %}
-                                {{ feeding.total|floatformat }}
+                                {% volume_total feeding.total totals_unit_known %}
                             {% elif feeding.count > 0 %}
                                 {{ feeding.count }}
                             {% else %}
@@ -39,14 +39,14 @@
             </div>
             {% if feedings|length > 1 %}
                 <a class="carousel-control-prev"
-                   href="#feeding-days-carousel"
+                   href="#feeding-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">{% trans "Previous" %}</span>
                 </a>
                 <a class="carousel-control-next"
-                   href="#feeding-days-carousel"
+                   href="#feeding-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>

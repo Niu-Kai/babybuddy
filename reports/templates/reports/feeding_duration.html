@@ -8,3 +8,6 @@
     {% include "reports/breadcrumb_common_chunk.html" with target_url="reports:report-feeding-duration-child" %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Average Feeding Durations" %}</li>
 {% endblock %}
+{% block report_heading %}
+    {% trans "Average Feeding Durations" %}
+{% endblock %}

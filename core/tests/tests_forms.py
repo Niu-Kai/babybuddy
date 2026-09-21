@@ -186,44 +186,17 @@ class InitialValuesTestCase(FormsTestCaseBase):
 
 
 class BMIFormsTestCase(FormsTestCaseBase):
-    @classmethod
-    def setUpClass(cls):
-        super(BMIFormsTestCase, cls).setUpClass()
-        cls.bmi = models.BMI.objects.create(
-            child=cls.child,
-            bmi=30,
-            date=timezone.localdate() - timezone.timedelta(days=2),
+    def test_manual_bmi_routes_are_read_only(self):
+        entry = models.BMI.objects.create(
+            child=self.child, bmi=30, date=timezone.localdate()
         )
-
-    def test_add(self):
-        params = {
-            "child": self.child.id,
-            "bmi": 35,
-            "date": self.localdate_string(),
-        }
-
-        page = self.c.post("/bmi/add/", params, follow=True)
-        self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "Bmi entry for {} added".format(str(self.child)))
-
-    def test_edit(self):
-        params = {
-            "child": self.bmi.child.id,
-            "bmi": self.bmi.bmi + 1,
-            "date": self.bmi.date,
-        }
-        page = self.c.post("/bmi/{}/".format(self.bmi.id), params, follow=True)
-        self.assertEqual(page.status_code, 200)
-        self.bmi.refresh_from_db()
-        self.assertEqual(self.bmi.bmi, params["bmi"])
-        self.assertContains(
-            page, "Bmi entry for {} updated".format(str(self.bmi.child))
-        )
-
-    def test_delete(self):
-        page = self.c.post("/bmi/{}/delete/".format(self.bmi.id), follow=True)
-        self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "Bmi entry deleted")
+        for path in ("/bmi/add/", f"/bmi/{entry.pk}/", f"/bmi/{entry.pk}/delete/"):
+            self.assertEqual(
+                self.c.post(path, {"child": self.child.pk, "bmi": 35}).status_code, 405
+            )
+            self.assertRedirects(self.c.get(path), "/bmi/")
+        entry.refresh_from_db()
+        self.assertEqual(entry.bmi, 30)
 
 
 class ChildFormsTestCase(FormsTestCaseBase):
@@ -1390,10 +1363,11 @@ class SmallIssuesTestCase(FormsTestCaseBase):
         finally:
             set_setting_value("core.models", "DiaperChange", "default_amount", 0)
 
-    def test_birth_time_accepts_seconds(self):
+    def test_birth_time_uses_minute_picker(self):
         page = self.c.get("/children/{}/edit/".format(self.child.slug))
         self.assertContains(page, 'name="birth_time"')
-        self.assertRegex(page.content.decode(), r'name="birth_time"[^>]*step="1"')
+        self.assertContains(page, 'data-choice-kind="time"')
+        self.assertNotRegex(page.content.decode(), r'name="birth_time"[^>]*step="1"')
 
     def test_child_slug_editable(self):
         params = {
@@ -1701,6 +1675,12 @@ class NewActivityTypesTestCase(FormsTestCaseBase):
         page = self.c.get("/food/")
         self.assertContains(page, "Banana")
         self.assertContains(page, "Liked it")
+        self.user.settings.dashboard_hidden_cards = [
+            key
+            for key in self.user.settings.dashboard_hidden_cards
+            if key != "food_recent"
+        ]
+        self.user.settings.save(update_fields=["dashboard_hidden_cards"])
         page = self.c.get("/children/{}/dashboard/".format(self.child.slug))
         self.assertContains(page, "Recent Foods")
         self.assertContains(page, "Banana")

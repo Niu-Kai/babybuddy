@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
 {% load duration i18n %}
 {% block header %}
-    <a href="{% url "core:sleep-list" %}">{% trans "Today's Naps" %}</a>
+    <a href="{% url "core:sleep-list" %}?scope={{ child.slug|urlencode }}">{% trans "Today's Naps" %}</a>
 {% endblock %}
 {% block title %}
     {% if count %}

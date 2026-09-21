@@ -19,10 +19,14 @@ def weight_change(
     :param birthday: a datetime of the child's birthday
     :returns: a tuple of the graph's html and javascript.
     """
-    actual_weights = actual_weights.order_by("-date")
-
-    weighing_dates: list[datetime] = list(actual_weights.values_list("date", flat=True))
-    measured_weights = list(actual_weights.values_list("weight", flat=True))
+    measurements = list(actual_weights.order_by("-date").values_list("date", "weight"))
+    weighing_dates = [row[0] for row in measurements]
+    measured_weights = [row[1] for row in measurements]
+    percentile_weights = (
+        list(percentile_weights.order_by("age_in_days"))
+        if percentile_weights is not None
+        else []
+    )
 
     actual_weights_trace = go.Scatter(
         name=_("Weight"),
@@ -33,13 +37,7 @@ def weight_change(
     )
 
     if percentile_weights:
-        percentile_weights = percentile_weights.order_by("age_in_days")
-        dates = list(
-            map(
-                lambda timedelta: birthday + timedelta,
-                percentile_weights.values_list("age_in_days", flat=True),
-            )
-        )
+        dates = [birthday + row.age_in_days for row in percentile_weights]
 
         # reduce percentile data xrange to end 1 day after last weigh in for formatting purposes
         # https://github.com/babybuddy/babybuddy/pull/708#discussion_r1332335789
@@ -50,31 +48,31 @@ def weight_change(
         percentile_weight_3_trace = go.Scatter(
             name=_("P3"),
             x=dates,
-            y=list(percentile_weights.values_list("p3_weight", flat=True))[:end_index],
+            y=[row.p3_weight for row in percentile_weights][:end_index],
             line={"color": "red"},
         )
         percentile_weight_15_trace = go.Scatter(
             name=_("P15"),
             x=dates,
-            y=list(percentile_weights.values_list("p15_weight", flat=True))[:end_index],
+            y=[row.p15_weight for row in percentile_weights][:end_index],
             line={"color": "orange"},
         )
         percentile_weight_50_trace = go.Scatter(
             name=_("P50"),
             x=dates,
-            y=list(percentile_weights.values_list("p50_weight", flat=True))[:end_index],
+            y=[row.p50_weight for row in percentile_weights][:end_index],
             line={"color": "green"},
         )
         percentile_weight_85_trace = go.Scatter(
             name=_("P85"),
             x=dates,
-            y=list(percentile_weights.values_list("p85_weight", flat=True))[:end_index],
+            y=[row.p85_weight for row in percentile_weights][:end_index],
             line={"color": "orange"},
         )
         percentile_weight_97_trace = go.Scatter(
             name=_("P97"),
             x=dates,
-            y=list(percentile_weights.values_list("p97_weight", flat=True))[:end_index],
+            y=[row.p97_weight for row in percentile_weights][:end_index],
             line={"color": "red"},
         )
 
@@ -86,7 +84,7 @@ def weight_change(
     layout_args["title"] = "<b>" + _("Weight") + "</b>"
     layout_args["xaxis"]["title"] = _("Date")
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Weight")
+    layout_args["yaxis"]["title"] = _("Weight (kg)")
     if percentile_weights:
         # zoom in on the relevant dates
         layout_args["xaxis"]["range"] = [

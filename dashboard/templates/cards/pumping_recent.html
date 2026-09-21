@@ -1,11 +1,11 @@
 {% extends "cards/base.html" %}
-{% load duration i18n %}
+{% load duration i18n presentation %}
 {% block header %}
-    <a href="{% url "core:pumping-list" %}">{% trans "Recent Pumpings" %}</a>
+    <a href="{% url "core:pumping-list" %}?scope={{ child.slug|urlencode }}">{% trans "Recent Pumpings" %}</a>
 {% endblock %}
 {% block title %}
     {% if pumpings|length > 0 %}
-        <div id="pumping-days-carousel"
+        <div id="pumping-days-carousel-{{ child.pk }}"
              class="carousel slide"
              data-bs-interval="false">
             <div class="carousel-inner">
@@ -13,7 +13,7 @@
                     <div class="carousel-item{% if forloop.counter == 1 %} active{% endif %}">
                         <div class="last-feeding-method text-center">
                             {% if pumping.total %}
-                                {{ pumping.total|floatformat }}
+                                {% volume_total pumping.total totals_unit_known %}
                             {% else %}
                                 {% trans "None" %}
                             {% endif %}
@@ -40,14 +40,14 @@
             </div>
             {% if pumpings|length > 1 %}
                 <a class="carousel-control-prev"
-                   href="#pumping-days-carousel"
+                   href="#pumping-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">{% trans "Previous" %}</span>
                 </a>
                 <a class="carousel-control-next"
-                   href="#pumping-days-carousel"
+                   href="#pumping-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>

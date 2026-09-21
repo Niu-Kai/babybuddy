@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
 {% load datetime i18n %}
 {% block header %}
-    <a href="{% url "core:appointment-list" %}">{% trans "Upcoming Appointments" %}</a>
+    <a href="{% url "core:appointment-list" %}?scope={{ child.slug|urlencode }}">{% trans "Upcoming Appointments" %}</a>
 {% endblock %}
 {% block title %}
     {% if appointments %}

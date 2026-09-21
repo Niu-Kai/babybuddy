@@ -41,6 +41,9 @@ def diaperchange_intervals(changes):
                 intervals_wet.append(interval)
         last_change = change
 
+    if not intervals:
+        return None, None
+
     trace_solid = go.Scatter(
         name=_("Solid"),
         line=dict(shape="spline"),

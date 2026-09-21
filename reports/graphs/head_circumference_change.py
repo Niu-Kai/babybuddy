@@ -22,10 +22,16 @@ def head_circumference_change(
     :param birthday: a date of the child's birthday (needed with percentiles).
     :returns: a tuple of the graph's html and javascript.
     """
-    objects = objects.order_by("-date")
-
-    measure_dates = list(objects.values_list("date", flat=True))
-    measures = list(objects.values_list("head_circumference", flat=True))
+    measurements = list(
+        objects.order_by("-date").values_list("date", "head_circumference")
+    )
+    measure_dates = [row[0] for row in measurements]
+    measures = [row[1] for row in measurements]
+    percentiles = (
+        list(percentiles.order_by("age_in_days"))
+        if percentiles is not None and birthday
+        else []
+    )
 
     trace = go.Scatter(
         name=_("Head Circumference"),
@@ -41,13 +47,10 @@ def head_circumference_change(
     layout_args["title"] = "<b>" + _("Head Circumference") + "</b>"
     layout_args["xaxis"]["title"] = _("Date")
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Head Circumference")
+    layout_args["yaxis"]["title"] = _("Head circumference (cm)")
 
     if percentiles and birthday:
-        percentiles = percentiles.order_by("age_in_days")
-        dates = [
-            birthday + age for age in percentiles.values_list("age_in_days", flat=True)
-        ]
+        dates = [birthday + row.age_in_days for row in percentiles]
         # Stop the percentile curves one day after the last measurement.
         last_date = min(max(dates), max(measure_dates))
         end_index = dates.index(last_date) + 1
@@ -65,7 +68,7 @@ def head_circumference_change(
                 go.Scatter(
                     name=name,
                     x=dates,
-                    y=list(percentiles.values_list(field, flat=True))[:end_index],
+                    y=[getattr(row, field) for row in percentiles][:end_index],
                     line={"color": color},
                 )
             )

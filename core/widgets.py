@@ -117,3 +117,46 @@ class PillRadioSelect(RadioSelect):
         attrs = super().build_attrs(base_attrs, extra_attrs)
         attrs["class"] += " btn-check d-none"
         return attrs
+
+
+class SavedLocationInput(widgets.TextInput):
+    template_name = "core/widget_saved_location.html"
+
+    def __init__(self, attrs=None, locations=()):
+        super().__init__(attrs)
+        self.locations = tuple(locations)
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        widget = context["widget"]
+        if self.locations:
+            widget["attrs"]["list"] = widget["attrs"].get("id", name) + "_suggestions"
+        widget["locations"] = self.locations
+        return context
+
+
+class AppointmentChoicesMixin:
+    template_name = "core/widget_appointment_choices.html"
+
+    def __init__(self, *args, choices=(), choice_label="", choice_kind="", **kwargs):
+        super().__init__(*args, **kwargs)
+        self.choices = tuple(choices)
+        self.choice_label = choice_label
+        self.choice_kind = choice_kind
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["widget"].update(
+            choices=self.choices,
+            choice_label=self.choice_label,
+            choice_kind=self.choice_kind,
+        )
+        return context
+
+
+class AppointmentTimeInput(AppointmentChoicesMixin, widgets.TimeInput):
+    pass
+
+
+class AppointmentDurationInput(AppointmentChoicesMixin, widgets.TextInput):
+    pass

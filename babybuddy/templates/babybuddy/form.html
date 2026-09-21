@@ -1,9 +1,10 @@
 {% load i18n widget_tweaks %}
 {# Load any form-javascript files #}
 {{ form.media.js }}
-<div class="container-fluid pb-5">
+<div class="entry-form container-fluid pb-5">
     <form role="form" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if form.errors %}<div class="alert alert-danger" role="alert">{% trans "Please check the highlighted fields." %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden.errors }}{% endfor %}</div>{% endif %}
         {% if form.fieldsets %}
             {% for fieldset in form.hydrated_fielsets %}
                 {% with "forms/layouts/"|add:fieldset.layout|add:".html" as template %}
@@ -25,6 +26,11 @@
                 </div>
             </div>
         {% endif %}
-        <button type="submit" class="submit-primary btn btn-primary btn-lg">{% trans "Submit" %}</button>
+        <div class="form-actions">
+            <button type="submit" class="submit-primary btn btn-primary btn-lg">{% trans "Save" %}</button>
+            {% if cancel_url %}
+                <a class="btn btn-outline-secondary btn-lg" href="{{ cancel_url }}">{% trans "Cancel" %}</a>
+            {% endif %}
+        </div>
     </form>
 </div>

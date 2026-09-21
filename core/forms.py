@@ -13,7 +13,14 @@ from taggit.forms import TagField, TagWidgetMixin
 from babybuddy.widgets import DateInput, DateTimeInput, TimeInput
 from core import fields, models
 from core.models import Timer
-from core.widgets import TagsEditor, ChildRadioSelect, PillRadioSelect
+from core.widgets import (
+    TagsEditor,
+    ChildRadioSelect,
+    PillRadioSelect,
+    SavedLocationInput,
+    AppointmentTimeInput,
+    AppointmentDurationInput,
+)
 
 
 def set_initial_values(kwargs, form_type):
@@ -106,6 +113,8 @@ def set_initial_values(kwargs, form_type):
 
 
 class CoreModelForm(forms.ModelForm):
+    hide_field_help = True
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", getattr(self, "user", None))
         # Set `timer_id` so the Timer can be consumed only after a successful save.
@@ -117,6 +126,12 @@ class CoreModelForm(forms.ModelForm):
         self.hide_single_child()
         self.add_copy_time_hint()
         self.add_timer_field()
+        from core.units import setup_unit_field
+
+        setup_unit_field(self)
+        from core.entry_timing import setup_entry_timing
+
+        setup_entry_timing(self)
 
     def hide_single_child(self):
         """
@@ -230,6 +245,12 @@ class CoreModelForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        from core.units import clean_unit_fields
+
+        clean_unit_fields(self, cleaned_data)
+        from core.entry_timing import clean_entry_timing
+
+        clean_entry_timing(self, cleaned_data)
         if self.timer_id is not None:
             try:
                 timer = models.Timer.objects.get(pk=self.timer_id)
@@ -396,6 +417,8 @@ class BottleFeedingForm(CoreModelForm, TaggableModelForm):
 
 
 class ChildForm(forms.ModelForm):
+    hide_field_help = True
+
     slug = forms.SlugField(
         allow_unicode=True,
         label=_("Slug"),
@@ -419,12 +442,31 @@ class ChildForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        from core.entry_timing import time_widget, TIME_FORMATS
+
+        self.fields["birth_time"].widget = time_widget(user)
+        self.fields["birth_time"].input_formats = TIME_FORMATS + ["%H:%M:%S"]
         if self.instance.pk:
             self.initial["slug"] = self.instance.slug
         else:
-            # New children always get a derived slug (babybuddy/babybuddy#923).
             del self.fields["slug"]
+            now = timezone.localtime().replace(second=0, microsecond=0)
+            self.initial.setdefault("birth_date", now.date())
+            self.initial.setdefault("birth_time", now.time())
+
+    def clean_birth_time(self):
+        value = self.cleaned_data.get("birth_time")
+        old = self.instance.birth_time
+        if (
+            self.instance.pk
+            and value
+            and old
+            and value == old.replace(second=0, microsecond=0)
+        ):
+            return old
+        return value
 
     def clean_slug(self):
         slug = self.cleaned_data.get("slug", "")
@@ -575,7 +617,7 @@ class HeightForm(CoreModelForm, TaggableModelForm):
         model = models.Height
         fields = ["child", "height", "date", "notes", "tags"]
         help_texts = {
-            "height": _("The WHO percentile report expects centimetres."),
+            "height": _("The WHO percentile report expects centimeters."),
         }
         widgets = {
             "child": ChildRadioSelect,
@@ -660,9 +702,201 @@ class PumpingForm(CoreModelForm, TaggableModelForm):
         }
 
 
+class AppointmentTimingForm(forms.Form):
+    reference_start = forms.DateTimeField(required=False, widget=forms.HiddenInput())
+    appointment_date = forms.DateField(label=_("Date"), widget=DateInput())
+    start_time = forms.TimeField(
+        label=_("Start time"),
+        input_formats=["%H:%M", "%I:%M %p"],
+        widget=forms.TimeInput(format="%I:%M %p", attrs={"placeholder": "1:30 PM"}),
+        help_text=_("Choose a time or type one, such as 1:30 PM or 13:30."),
+    )
+    duration_minutes = fields.FloatField(
+        label=_("Duration (minutes)"),
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={"min": 0, "step": "any"}),
+        help_text=_(
+            "Choose a duration or type the number of minutes. Leave blank if unknown."
+        ),
+    )
+
+    def clean(self):
+        import datetime
+
+        data = super().clean()
+        if self.errors:
+            return data
+        try:
+            start = fields.DateTimeField().clean(
+                datetime.datetime.combine(data["appointment_date"], data["start_time"])
+            )
+            reference = data.get("reference_start")
+            if reference:
+                reference = timezone.localtime(reference)
+                if (
+                    reference.date() == data["appointment_date"]
+                    and reference.time().replace(second=0, microsecond=0)
+                    == data["start_time"]
+                ):
+                    start = reference
+            duration = data.get("duration_minutes")
+            end = (
+                None
+                if duration is None
+                else timezone.localtime(
+                    start.astimezone(datetime.timezone.utc)
+                    + datetime.timedelta(minutes=duration)
+                )
+            )
+            data.update(start=start, end=end)
+        except (OverflowError, ValueError, forms.ValidationError):
+            self.add_error(
+                "duration_minutes", _("Choose a valid date, time, and duration.")
+            )
+        return data
+
+
 class AppointmentForm(CoreModelForm, TaggableModelForm):
+    appointment_date = AppointmentTimingForm.base_fields["appointment_date"]
+    start_time = AppointmentTimingForm.base_fields["start_time"]
+    duration_minutes = AppointmentTimingForm.base_fields["duration_minutes"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        import datetime
+
+        schedule_fields = ("appointment_date", "start_time", "duration_minutes")
+        self.legacy_times = (
+            self.is_bound
+            and self.add_prefix("start") in self.data
+            and not any(self.add_prefix(name) in self.data for name in schedule_fields)
+        )
+        self.fields["start"].required = self.legacy_times
+        if self.legacy_times:
+            for name in schedule_fields:
+                self.fields[name].required = False
+        initial_start = self.initial.get("start") or (
+            self.instance.start
+            if self.instance.pk
+            else timezone.now().replace(second=0, microsecond=0)
+        )
+        initial_start = timezone.localtime(initial_start)
+        self.entry_original_start = initial_start if self.instance.pk else None
+        initial_end = self.initial.get("end")
+        self.initial.setdefault("appointment_date", initial_start.date().isoformat())
+        clock_format = (
+            "%H:%M" if self.user and self.user.settings.use_24_hour_time else "%I:%M %p"
+        )
+        time_choices = [
+            datetime.time(hour, minute).strftime(clock_format)
+            for hour in range(24)
+            for minute in (0, 15, 30, 45)
+        ]
+        self.fields["start_time"].widget = AppointmentTimeInput(
+            format=clock_format,
+            attrs={
+                "placeholder": "13:30" if clock_format == "%H:%M" else "1:30 PM",
+                "autocomplete": "off",
+            },
+            choices=[(value, value) for value in time_choices],
+            choice_label=_("Choose a start time"),
+            choice_kind="time",
+        )
+        self.fields["duration_minutes"].widget = AppointmentDurationInput(
+            attrs={"inputmode": "decimal", "autocomplete": "off", "placeholder": "30"},
+            choices=[
+                ("15", _("15 minutes")),
+                ("30", _("30 minutes")),
+                ("45", _("45 minutes")),
+                ("60", _("1 hour (60 minutes)")),
+                ("90", _("1.5 hours (90 minutes)")),
+                ("120", _("2 hours (120 minutes)")),
+                ("", _("No end time")),
+            ],
+            choice_label=_("Choose a duration"),
+            choice_kind="duration",
+        )
+        self.initial.setdefault(
+            "start_time",
+            (
+                initial_start.strftime(clock_format)
+                if self.instance.pk or self.initial.get("start")
+                else ""
+            ),
+        )
+        if initial_end is not None:
+            minutes = (
+                initial_end.astimezone(datetime.timezone.utc)
+                - initial_start.astimezone(datetime.timezone.utc)
+            ).total_seconds() / 60
+        else:
+            minutes = None if self.instance.pk else 30
+        self.initial.setdefault("duration_minutes", minutes)
+        locations = []
+        if self.user and self.user.has_perm("core.view_appointment"):
+            recent = (
+                models.Appointment.objects.exclude(location="")
+                .order_by("-start", "-pk")
+                .values_list("location", flat=True)[:200]
+            )
+            seen = set()
+            for location in recent:
+                location = location.strip()
+                if location and location.casefold() not in seen:
+                    seen.add(location.casefold())
+                    locations.append(location)
+                if len(locations) == 50:
+                    break
+        field = self.fields["location"]
+        field.widget = SavedLocationInput(attrs=field.widget.attrs, locations=locations)
+        field.help_text = _(
+            "Type a location or choose one used in a previous appointment."
+        )
+
+    def clean(self):
+        data = super().clean()
+        if not self.legacy_times:
+            names = ("appointment_date", "start_time", "duration_minutes")
+            if not any(name in self.errors for name in names):
+                schedule = AppointmentTimingForm(
+                    {name: data.get(name) for name in names}
+                )
+                if schedule.is_valid():
+                    data["start"] = schedule.cleaned_data["start"]
+                    data["end"] = schedule.cleaned_data["end"]
+                    # Keep an existing timestamp's precision (and DST fold) when
+                    # only unrelated fields or the duration were edited.
+                    if self.instance.pk:
+                        original = timezone.localtime(self.instance.start)
+                        if (
+                            original.date() == data["appointment_date"]
+                            and original.time().replace(second=0, microsecond=0)
+                            == data["start_time"]
+                        ):
+                            import datetime
+
+                            duration = data["duration_minutes"]
+                            data["start"] = original
+                            data["end"] = (
+                                None
+                                if duration is None
+                                else timezone.localtime(
+                                    original.astimezone(datetime.timezone.utc)
+                                    + datetime.timedelta(minutes=duration)
+                                )
+                            )
+                else:
+                    for name, errors in schedule.errors.items():
+                        self.add_error(name, errors)
+        return data
+
     fieldsets = [
-        {"fields": ["child", "title", "start", "end"], "layout": "required"},
+        {"fields": ["child", "title"], "layout": "required"},
+        {
+            "fields": ["appointment_date", "start_time", "duration_minutes"],
+            "layout": "appointment_time",
+        },
         {"fields": ["location"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
@@ -672,8 +906,8 @@ class AppointmentForm(CoreModelForm, TaggableModelForm):
         fields = ["child", "title", "start", "end", "location", "notes", "tags"]
         widgets = {
             "child": ChildRadioSelect,
-            "start": DateTimeInput(),
-            "end": DateTimeInput(),
+            "start": forms.HiddenInput(),
+            "end": forms.HiddenInput(),
             "notes": forms.Textarea(attrs={"rows": 5}),
         }
 
@@ -865,3 +1099,110 @@ class FoodForm(CoreModelForm, TaggableModelForm):
             "time": DateTimeInput(),
             "reaction": PillRadioSelect(),
         }
+
+
+class TimelineFilterForm(forms.Form):
+    period = forms.ChoiceField(
+        required=False,
+        label=_("Period"),
+        choices=[
+            ("all", _("All dates")),
+            ("day", _("Day")),
+            ("week", _("Week")),
+            ("month", _("Month")),
+            ("year", _("Year")),
+        ],
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    date = forms.DateField(
+        required=False,
+        label=_("Date in period"),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+    )
+    activity = forms.ChoiceField(
+        required=False,
+        label=_("Activity"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    def __init__(self, *args, user, **kwargs):
+        if args:
+            data = args[0].copy()
+            # Existing day-filter links continue to select that day.
+            if not data.get("period"):
+                data["period"] = "day" if data.get("date") else "all"
+            if data["period"] != "all" and not data.get("date"):
+                data["date"] = timezone.localdate().isoformat()
+            args = (data, *args[1:])
+        super().__init__(*args, **kwargs)
+        activities = (
+            ("feeding", _("Feeding")),
+            ("sleep", _("Sleep")),
+            ("diaperchange", _("Diaper changes")),
+            ("pumping", _("Pumping")),
+            ("medication", _("Medication")),
+            ("tummytime", _("Tummy time")),
+            ("bathtime", _("Bath time")),
+            ("reflux", _("Reflux")),
+            ("food", _("Food")),
+            ("note", _("Notes")),
+            ("temperature", _("Temperature")),
+        )
+        self.fields["activity"].choices = [("", _("All activities"))] + [
+            (name, label)
+            for name, label in activities
+            if user.has_perm("core.view_" + name)
+        ]
+
+    def clean(self):
+        import calendar
+        import datetime
+
+        cleaned = super().clean()
+        period = cleaned.get("period", "all")
+        anchor = cleaned.get("date")
+        cleaned["range_start"] = cleaned["range_end"] = None
+        if period == "all" or not anchor:
+            return cleaned
+        try:
+            start = end = anchor
+            if period == "week":
+                # Weeks run Sunday through Saturday, shown explicitly in the UI.
+                start = anchor - datetime.timedelta(days=(anchor.weekday() + 1) % 7)
+                end = start + datetime.timedelta(days=6)
+            elif period == "month":
+                start = anchor.replace(day=1)
+                end = anchor.replace(
+                    day=calendar.monthrange(anchor.year, anchor.month)[1]
+                )
+            elif period == "year":
+                start = anchor.replace(month=1, day=1)
+                end = anchor.replace(month=12, day=31)
+            cleaned["range_start"], cleaned["range_end"] = start, end
+        except (OverflowError, ValueError):
+            self.add_error(
+                "date", _("Choose a date within a complete calendar period.")
+            )
+        return cleaned
+
+
+class CalendarFilterForm(TimelineFilterForm):
+    def __init__(self, data=None, *, user, **kwargs):
+        data = (data or {}).copy()
+        if not data.get("period"):
+            data["period"] = "month"
+        if not data.get("date") and data.get("month"):
+            data["date"] = data["month"] + "-01"
+        super().__init__(data, user=user, **kwargs)
+        self.fields.pop("activity")
+        self.fields["period"].choices = [
+            (value, label)
+            for value, label in self.fields["period"].choices
+            if value != "all"
+        ]
+
+
+class RecordPeriodFilterForm(TimelineFilterForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields.pop("activity")

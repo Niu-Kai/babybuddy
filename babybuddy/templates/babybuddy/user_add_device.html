@@ -9,7 +9,7 @@
 {% endblock %}
 {% block content %}
     <h1>{% trans "Add a device" %}</h1>
-    <div class="container-fluid">
+    <div class="entry-form settings-form">
         <legend>{% trans "Authentication Methods" %}</legend>
         <fieldset>
             <div class="form-group row">
@@ -20,7 +20,7 @@
                         <samp>{{ user.settings.api_key }}</samp>
                         <button type="submit"
                                 name="api_key_regenerate"
-                                class="btn btn-danger btn-xs">{% trans "Regenerate" %}</button>
+                                class="btn btn-danger btn-sm">{% trans "Regenerate" %}</button>
                     </form>
                 </div>
             </div>

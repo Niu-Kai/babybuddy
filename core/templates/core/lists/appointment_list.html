@@ -1,0 +1,76 @@
+{% load datetime i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="when">{% trans "When" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="title">{% trans "Title" %}</th>
+                <th data-column="location">{% trans "Location" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appointment in object_list %}
+                <tr>
+                    <th data-column="when" scope="row">
+                        {{ appointment.start|datetime_short }}
+                        {% if appointment.end %}- {{ appointment.end|time }}{% endif %}
+                    </th>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' appointment.child.slug %}">{{ appointment.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="title">
+                        {{ appointment.title }}
+                        {% if appointment.notes %}
+                            <div class="small text-body-secondary">{{ appointment.notes|truncatechars:80 }}</div>
+                        {% endif %}
+                    </td>
+                    <td data-column="location">{{ appointment.location }}</td>
+                    <td data-column="recorded-by">{{ appointment.created_by_display|default:"—" }}</td>
+                    <td data-column="tags">{% include "core/render_tag_list.html" with tags=appointment.tags.all %}</td>
+                    <td data-column="actions">
+                        <div class="btn-group btn-group-sm"
+                             role="group"
+                             aria-label="{% trans "Actions" %}">
+                            {% if perms.core.change_appointment %}
+                                <a href="{% url 'core:appointment-update' appointment.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.core.delete_appointment %}
+                                <details class="record-more">
+                                    <summary aria-label="{% trans 'More entry actions' %}"
+                                             title="{% trans 'More entry actions' %}">•••</summary>
+                                    <div class="record-more-menu">
+                                        <a href="{% url 'core:appointment-delete' appointment.id %}"
+                                           class="btn btn-sm btn-outline-danger record-delete"
+                                           aria-label="{% trans 'Delete entry' %}"
+                                           title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                    </div>
+                                </details>
+                            {% endif %}
+                            <a href="{{ appointment.google_calendar_url }}"
+                               class="btn btn-secondary"
+                               target="_blank"
+                               rel="noopener"
+                               title="{% trans "Add to Google Calendar" %}">
+                                <i class="icon-calendar" aria-hidden="true"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No appointments found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

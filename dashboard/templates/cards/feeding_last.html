@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
-{% load duration i18n %}
+{% load duration i18n presentation %}
 {% block header %}
-    <a href="{% url "core:feeding-list" %}">{% trans "Last Feeding" %}</a>
+    <a href="{% url "core:feeding-list" %}?scope={{ child.slug|urlencode }}">{% trans "Last Feeding" %}</a>
 {% endblock %}
 {% block title %}
     {% if feeding %}
@@ -20,7 +20,7 @@
 {% block content %}
     {% if feeding %}
         {{ feeding.type_display }}, {{ feeding.get_method_display }}
-        {% if feeding.total_amount %}({{ feeding.amount_display }}){% endif %}
+        {% if feeding.total_amount %}({% feeding_amount feeding %}){% endif %}
         {% if feeding.next_breast_display %}
             <div>{% trans "Start next on" %}: <strong>{{ feeding.next_breast_display }}</strong></div>
         {% endif %}

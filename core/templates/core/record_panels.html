@@ -1,0 +1,16 @@
+{% load i18n presentation %}
+{% if record_panels %}
+    <div class="comparison-grid">
+        {% for panel in record_panels %}<section class="record-panel"><header class="record-panel-heading"><div><h2>{% if panel.child %}{{ panel.child }}{% else %}{% trans "Unassigned timers" %}{% endif %}</h2><span class="text-body-secondary">{{ panel.page.paginator.count }} {% trans "entries" %}</span></div>{% if record_add_permission %}<a class="btn btn-sm btn-primary"
+   href="{% entry_add_url record_model_name panel.child %}">{% trans "Add entry" %}</a>{% endif %}</header>
+        {% include list_template with object_list=panel.page.object_list unique_child=True %}
+    {% if panel.page.has_other_pages %}<nav class="panel-pagination"
+     aria-label="{{ panel.child }} {% trans 'pages' %}">{% if panel.page.has_previous %}<a class="btn btn-sm btn-outline-secondary"
+   href="{% query_url panel.page_key panel.page.previous_page_number %}">{% trans "Previous" %}</a>{% endif %}<span>{{ panel.page.number }} / {{ panel.page.paginator.num_pages }}</span>{% if panel.page.has_next %}<a class="btn btn-sm btn-outline-secondary"
+   href="{% query_url panel.page_key panel.page.next_page_number %}">{% trans "Next" %}</a>{% endif %}</nav>{% endif %}</section>{% endfor %}</div>
+{% else %}
+<section class="record-panel">
+    {% include list_template %}
+</section>
+{% include "babybuddy/paginator.html" %}
+{% endif %}

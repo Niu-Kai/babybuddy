@@ -1,0 +1,10 @@
+{% load i18n %}
+<article class="calendar-appointment">
+    <div class="calendar-appointment-time">{% if entry.continues %}{% trans "Continues" %}{% else %}{{ entry.appointment.start|time }}{% endif %}{% if entry.appointment.end and not compact %} – {% if entry.multi_day %}{{ entry.appointment.end|date:"M j" }} {% endif %}{{ entry.appointment.end|time }}{% endif %}</div>
+    <div class="calendar-appointment-title">{% if perms.core.change_appointment %}<a href="{% url 'core:appointment-update' entry.appointment.pk %}">{{ entry.appointment.title }}</a>{% else %}{{ entry.appointment.title }}{% endif %}</div>
+    {% if not unique_child %}<div class="calendar-appointment-child">{{ entry.appointment.child }}</div>{% endif %}
+    {% if not compact %}
+        {% if entry.appointment.location %}<div class="small text-body-secondary">{{ entry.appointment.location }}</div>{% endif %}
+        {% if entry.appointment.notes %}<p class="small mb-0">{{ entry.appointment.notes|linebreaksbr }}</p>{% endif %}
+    {% endif %}
+</article>

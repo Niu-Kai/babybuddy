@@ -96,7 +96,7 @@ class PermissionCodenameTestCase(TestCase):
             Permission.objects.values_list("content_type__app_label", "codename")
         )
         existing = {f"{app}.{codename}" for app, codename in existing}
-        pattern = re.compile(r"core\.[a-z][a-z0-9_]*")
+        pattern = re.compile(r"[\"'](core\.[a-z][a-z0-9_]*)[\"']")
         missing = set()
         for module in (core_views, reports_views):
             source = inspect.getsource(module)

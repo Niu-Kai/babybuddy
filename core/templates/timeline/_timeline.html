@@ -1,33 +1,20 @@
 {% load i18n %}
-<h3 class="text-center">
-    {% if date_previous %}
-        <a class="btn btn-sm btn-default"
-           href="?date={{ date_previous|date:"Y-m-d" }}"
-           aria-label="{% trans "Previous" %}">
-            <i class="icon-2x icon-angle-circled-left" aria-hidden="true"></i>
-            <span class="visually-hidden">{% trans "Previous" %}</span>
-        </a>
-    {% endif %}
-    {{ date|date }}
-    {% if date_next %}
-        <a class="btn btn-sm btn-default"
-           href="?date={{ date_next|date:"Y-m-d" }}"
-           aria-label="{% trans "Next" %}">
-            <i class="icon-2x icon-angle-circled-right" aria-hidden="true"></i>
-            <span class="visually-hidden">{% trans "Next" %}</span>
-        </a>
-    {% endif %}
-</h3>
 {% if timeline_objects %}
-    <ul class="timeline m-auto">
+    <ul class="timeline">
         {% for object in timeline_objects %}
-            <li {% cycle "" ' class="timeline-inverted"' %}>
+            {% ifchanged object.time.date %}
+                <li class="timeline-day">
+                    <h3><time datetime="{{ object.time|date:'Y-m-d' }}">{{ object.time|date:"DATE_FORMAT" }}</time></h3>
+                </li>
+            {% endifchanged %}
+            <li class="timeline-event">
                 <div class="timeline-badge {% if object.type == "start" %}bg-success{% elif object.type == "end" %}bg-danger{% else %}bg-info{% endif %}">
-                    <i class="icon-{{ object.model_name }}"></i>
+                    <i class="icon-{{ object.model_name }}" aria-hidden="true"></i>
                 </div>
-                <div class="card text-end">
+                <div class="card">
                     <div class="card-body">
-                        {{ object.event }}
+                        <time class="timeline-time" datetime="{{ object.time|date:'c' }}">{{ object.time|time }}</time>
+                        <div class="timeline-event-title">{{ object.event }}</div>
                         {% for detail in object.details %}
                             <div>
                                 <small>{{ detail }}</small>
@@ -38,9 +25,6 @@
                         {% endif %}
                     </div>
                     <div class="card-footer text-body-secondary">
-                        {% blocktrans trimmed with since=object.time|timesince time=object.time|time %}
-                            {{ since }} ago ({{ time }})
-                        {% endblocktrans %}
                         {% if object.duration %}
                             <div>
                                 <small>
@@ -54,7 +38,7 @@
                             <div>
                                 <small>
                                     {% blocktrans trimmed with since=object.time_since_prev %}
-                                        {{ since }} since previous
+                                        {{ since }} since previous feeding
                                     {% endblocktrans %}
                                 </small>
                             </div>
@@ -69,25 +53,12 @@
             </li>
         {% endfor %}
     </ul>
-    <h3 class="text-center">
-        {% if date_previous %}
-            <a class="btn btn-sm btn-default"
-               href="?date={{ date_previous|date:"Y-m-d" }}"
-               aria-label="{% trans "Previous" %}">
-                <i class="icon-2x icon-angle-circled-left" aria-hidden="true"></i>
-                <span class="visually-hidden">{% trans "Previous" %}</span>
-            </a>
-        {% endif %}
-        {{ date|date }}
-        {% if date_next %}
-            <a class="btn btn-sm btn-default"
-               href="?date={{ date_next|date:"Y-m-d" }}"
-               aria-label="{% trans "Next" %}">
-                <i class="icon-2x icon-angle-circled-right" aria-hidden="true"></i>
-                <span class="visually-hidden">{% trans "Next" %}</span>
-            </a>
-        {% endif %}
-    </h3>
 {% else %}
-    <div class="text-center">{% trans "No events" %}</div>
+    <div class="timeline-empty">
+        {% if date %}
+            {% trans "No events match this period and activity." %}
+        {% else %}
+            {% trans "No events match these filters yet." %}
+        {% endif %}
+    </div>
 {% endif %}

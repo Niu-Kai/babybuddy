@@ -6,6 +6,11 @@ from . import views
 app_name = "dashboard"
 
 urlpatterns = [
+    path(
+        "dashboard/customize/",
+        views.DashboardCustomize.as_view(),
+        name="dashboard-customize",
+    ),
     path("dashboard/", views.Dashboard.as_view(), name="dashboard"),
     path(
         "children/<str:slug>/dashboard/",

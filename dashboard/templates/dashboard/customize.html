@@ -1,0 +1,23 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n %}
+{% block title %}
+    {% trans "Edit dashboard" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Edit dashboard" %}</h1>
+    <form method="post" class="dashboard-customize">
+        {% csrf_token %}{{ form.non_field_errors }}
+        {% for field in form %}
+            <fieldset><legend>{{ field.label }}</legend>{{ field.errors }}<div class="dashboard-panel-choices">{% for checkbox in field %}<label>{{ checkbox.tag }} {{ checkbox.choice_label }}</label>{% endfor %}</div></fieldset>
+        {% endfor %}
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">{% trans "Save dashboard" %}</button>
+            <a class="btn btn-outline-secondary"
+               href="{% url 'dashboard:dashboard' %}">{% trans "Cancel" %}</a>
+            <button class="btn btn-outline-secondary"
+                    type="submit"
+                    name="action"
+                    value="reset">{% trans "Reset to essentials" %}</button>
+        </div>
+    </form>
+{% endblock %}

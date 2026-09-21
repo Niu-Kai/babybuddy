@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import re
 import time
 
 
@@ -34,6 +35,8 @@ def default_graph_layout_options():
     :returns: a dict of default options.
     """
     return {
+        "height": 480,
+        "autosize": True,
         "paper_bgcolor": "rgb(52, 58, 64)",
         "plot_bgcolor": "rgb(52, 58, 64)",
         "font": {
@@ -102,6 +105,8 @@ def split_graph_output(output):
     :param output: a string of html and javascript comprising the graph.
     :returns: a tuple of the graph's html and javascript.
     """
-    html, js = output.split("<script")
-    js = "<script" + js
-    return html, js
+    # Keep the complete wrapper here; its closing tag must not travel with
+    # the scripts to the bottom of the page and swallow subsequent panels.
+    scripts = re.findall(r"<script\b[^>]*>.*?</script>", output, flags=re.DOTALL)
+    html = re.sub(r"<script\b[^>]*>.*?</script>", "", output, flags=re.DOTALL)
+    return html, "\n".join(scripts)

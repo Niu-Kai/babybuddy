@@ -1,0 +1,14 @@
+{% load i18n presentation %}
+{% if timeline_page.has_other_pages %}
+    <nav class="panel-pagination" aria-label="{% trans 'Timeline pages' %}">
+        {% if timeline_page.has_previous %}
+            <a class="btn btn-outline-secondary"
+               href="{% query_url timeline_page_key timeline_page.previous_page_number %}">{% trans "Newer events" %}</a>
+        {% endif %}
+        <span class="text-body-secondary">{% blocktrans with current=timeline_page.number total=timeline_page.paginator.num_pages %}Page {{ current }} of {{ total }}{% endblocktrans %}</span>
+        {% if timeline_page.has_next %}
+            <a class="btn btn-outline-secondary"
+               href="{% query_url timeline_page_key timeline_page.next_page_number %}">{% trans "Older events" %}</a>
+        {% endif %}
+    </nav>
+{% endif %}

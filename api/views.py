@@ -12,8 +12,10 @@ from babybuddy import models as babybuddy_models
 from . import serializers, filters
 
 
-class BMIViewSet(viewsets.ModelViewSet):
-    queryset = models.BMI.objects.all()
+class BMIViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = models.BMI.objects.filter(
+        source_weight__isnull=False, source_height__isnull=False
+    )
     serializer_class = serializers.BMISerializer
     filterset_fields = ("child", "date")
     ordering_fields = ("child", "date")

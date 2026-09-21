@@ -8,17 +8,6 @@
     {% include "reports/breadcrumb_common_chunk.html" with target_url="reports:report-activity-pattern-child" %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Daily Activity" %}</li>
 {% endblock %}
-{% block toolbar %}
-    <div class="btn-group btn-group-sm mb-3"
-         role="group"
-         aria-label="{% trans "Period" %}">
-        <a class="btn btn-outline-secondary{% if days == 7 %} active{% endif %}"
-           href="?days=7">{% trans "1 week" %}</a>
-        <a class="btn btn-outline-secondary{% if days == 14 %} active{% endif %}"
-           href="?days=14">{% trans "2 weeks" %}</a>
-        <a class="btn btn-outline-secondary{% if days == 30 %} active{% endif %}"
-           href="?days=30">{% trans "1 month" %}</a>
-        <a class="btn btn-outline-secondary{% if days == 60 %} active{% endif %}"
-           href="?days=60">{% trans "2 months" %}</a>
-    </div>
+{% block report_heading %}
+    {% trans "Daily Activity" %}
 {% endblock %}

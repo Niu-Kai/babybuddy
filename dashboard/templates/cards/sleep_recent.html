@@ -1,11 +1,11 @@
 {% extends "cards/base.html" %}
 {% load duration i18n %}
 {% block header %}
-    <a href="{% url "core:sleep-list" %}">{% trans "Recent Sleep" %}</a>
+    <a href="{% url "core:sleep-list" %}?scope={{ child.slug|urlencode }}">{% trans "Recent Sleep" %}</a>
 {% endblock %}
 {% block title %}
     {% if sleeps|length > 0 %}
-        <div id="sleep-days-carousel"
+        <div id="sleep-days-carousel-{{ child.pk }}"
              class="carousel slide"
              data-bs-interval="false">
             <div class="carousel-inner">
@@ -33,14 +33,14 @@
             </div>
             {% if sleeps|length > 1 %}
                 <a class="carousel-control-prev"
-                   href="#sleep-days-carousel"
+                   href="#sleep-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="prev">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                     <span class="visually-hidden">{% trans "Previous" %}</span>
                 </a>
                 <a class="carousel-control-next"
-                   href="#sleep-days-carousel"
+                   href="#sleep-days-carousel-{{ child.pk }}"
                    role="button"
                    data-bs-slide="next">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>

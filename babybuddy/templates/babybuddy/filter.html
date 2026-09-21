@@ -1,33 +1,69 @@
 {% load i18n widget_tweaks %}
-<form id="filter_form"
-      role="form"
-      action=""
-      method="get"
-      class="collapse{% if request.GET.filtered %} show{% endif %}">
-    <div class="form-group form-row">
-        {% for field in filter.form %}
-            <label for="id_{{ field.name }}"
-                   class="col-xs-2 col-sm-auto col-form-label col-form-label-sm">{{ field.label }}</label>
-            <div class="col-xs-10 col-sm-auto">
-                {% if "choice" or "boolean" in field|field_type %}
-                    {{ field|add_class:"form-select form-select-sm" }}
-                {% else %}
-                    {{ field|add_class:"form-control form-control-sm" }}
-                {% endif %}
-            </div>
-        {% endfor %}
-        <div class="col-xs-12 col-sm-auto mt-3 mt-sm-0">
-            <button type="submit" class="btn btn-sm btn-primary me-2">{% trans "Filter" %}</button>
-            <a href="{{ request.path }}" class="btn btn-sm btn-error">{% trans "Reset" %}</a>
+{% if record_period %}
+    <form method="get"
+          class="timeline-toolbar record-period-toolbar"
+          data-timeline-filters
+          data-today="{{ today|date:'Y-m-d' }}">
+        <input type="hidden" name="scope" value="{{ child_scope }}">
+        {% if request.GET.past %}<input type="hidden" name="past" value="{{ request.GET.past }}">{% endif %}
+        <div class="timeline-filter-field">
+            {{ record_period.period.label_tag }}{{ record_period.period }}{{ record_period.period.errors }}
         </div>
-    </div>
-    <input type="hidden" name="filtered" value="1" />
-</form>
-<p>
-    <a class="btn btn btn-sm"
-       data-bs-toggle="collapse"
-       href="#filter_form"
-       role="button"
-       aria-expanded="false"
-       aria-controls="filter_form">{% trans "Filters" %}</a>
-</p>
+        {% include "core/period_picker.html" with period_filter=record_period %}
+        {% if unit_choices %}
+            <div class="timeline-filter-field">
+                <label for="display-unit">{% trans "Display units" %}</label>
+                <select id="display-unit" name="unit" class="form-select">
+                    {% for value,label in unit_choices %}
+                        <option value="{{ value }}"
+                                {% if display_unit == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-outline-primary" type="submit">{% trans "Convert display" %}</button>
+        {% endif %}
+        <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+        {% if filter.form.fields %}
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#filter_form"
+                    aria-expanded="{% if extra_filters_active %}true{% else %}false{% endif %}"
+                    aria-controls="filter_form">{% trans "More filters" %}</button>
+        {% endif %}
+        <a class="btn btn-outline-secondary"
+           href="?scope={{ child_scope|urlencode }}">{% trans "Clear filters" %}</a>
+        <details class="record-columns"
+                 data-record-columns
+                 hidden
+                 data-storage-key="babybuddy:columns:{{ request.user.pk }}:{{ record_model_name }}"
+                 data-notes-label="{% trans 'Notes' %}">
+            <summary class="btn btn-outline-secondary">{% trans "Columns" %}</summary>
+            <div class="record-columns-menu">
+                <div data-column-options></div>
+                <button class="btn btn-sm btn-link"
+                        type="button"
+                        data-columns-reset>{% trans "Show all columns" %}</button>
+            </div>
+        </details>
+        <span class="text-body-secondary">{{ record_count }} {% trans "entries" %}</span>
+        <div id="filter_form"
+             class="collapse record-extra-filters{% if extra_filters_active %} show{% endif %}">
+            {% for field in filter.form %}
+                <label>{{ field.label }}{% if "choice" in field|field_type %}{{ field|add_class:'form-select' }}{% else %}{{ field|add_class:'form-control' }}{% endif %}{{ field.errors }}</label>
+            {% endfor %}
+        </div>
+    </form>
+    {% if record_period.errors %}
+        <p class="alert alert-warning">{% trans "Check the filters above to view your entries." %}</p>
+    {% elif record_range_start %}
+        <div class="timeline-range-bar">
+            <strong>{{ record_range_start|date:"M j, Y" }}{% if record_range_end != record_range_start %} – {{ record_range_end|date:"M j, Y" }}{% endif %}</strong>
+            {% if side_by_side %}
+                <span class="text-body-secondary">{% trans "Same period for every child" %}</span>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    {% include "babybuddy/legacy_filter.html" %}
+{% endif %}

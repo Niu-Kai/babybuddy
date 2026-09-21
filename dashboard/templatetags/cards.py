@@ -47,6 +47,9 @@ def _day_end(moment):
 
 
 def _hide_empty(context):
+    # Retain matching card positions when comparing children.
+    if context.get("side_by_side"):
+        return False
     return context["request"].user.settings.dashboard_hide_empty
 
 
@@ -84,6 +87,8 @@ def card_diaperchange_last(context, child):
     empty = not instance
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "diaperchange",
         "change": instance,
         "empty": empty,
@@ -138,6 +143,8 @@ def card_diaperchange_types(context, child, date=None):
             stats[key]["empty_pct"] = info["empty"] / total * 100
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "diaperchange",
         "stats": stats,
         "total": week_total,
@@ -203,6 +210,8 @@ def card_breastfeeding(context, child, date=None):
         }
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "feeding",
         "stats": stats,
         "total": len(instances),
@@ -246,6 +255,11 @@ def card_feeding_recent(context, child, end_date=None):
         result["count"] += 1
 
     return {
+        "child": child,
+        "request": context["request"],
+        "totals_unit_known": not instances.filter(entry_unit="")
+        .exclude(amount__isnull=True)
+        .exists(),
         "feedings": results,
         "type": "feeding",
         "empty": len(instances) == 0,
@@ -269,6 +283,8 @@ def card_feeding_last(context, child):
     empty = not instance
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "feeding",
         "feeding": instance,
         "feeding_diff_base": feeding_time_diff_base(context, instance),
@@ -294,6 +310,8 @@ def card_feeding_last_method(context, child):
 
     # Results are reversed for carousel forward/back behavior.
     return {
+        "child": child,
+        "request": context["request"],
         "type": "feeding",
         "feedings": list(reversed(instances)),
         "empty": empty,
@@ -317,6 +335,8 @@ def card_pumping_last(context, child):
     empty = not instance
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "pumping",
         "pumping": instance,
         "empty": empty,
@@ -357,6 +377,11 @@ def card_pumping_recent(context, child, end_date=None):
         result["duration"] += instance.duration or timezone.timedelta()
 
     return {
+        "child": child,
+        "request": context["request"],
+        "totals_unit_known": not instances.filter(entry_unit="")
+        .exclude(amount__isnull=True)
+        .exists(),
         "pumpings": results,
         "type": "pumping",
         "empty": len(instances) == 0,
@@ -380,6 +405,8 @@ def card_sleep_last(context, child):
     empty = not instance
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "sleep",
         "sleep": instance,
         "empty": empty,
@@ -447,6 +474,8 @@ def card_sleep_recent(context, child, end_date=None):
                 result["count"] += 1
 
     return {
+        "child": child,
+        "request": context["request"],
         "sleeps": results,
         "type": "sleep",
         "empty": len(instances) == 0,
@@ -475,6 +504,8 @@ def card_sleep_naps_day(context, child, date=None):
     empty = len(instances) == 0
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "sleep",
         "total": instances.aggregate(Sum("duration"))["duration__sum"],
         "count": len(instances),
@@ -597,6 +628,7 @@ def card_statistics(context, child):
     empty = len(stats) == 0
 
     return {
+        "request": context["request"],
         "child": child,
         "stats": stats,
         "empty": empty,
@@ -821,7 +853,12 @@ def _bmi_statistics(child):
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    return _weekly_change(models.BMI.objects.filter(child=child), "bmi")
+    return _weekly_change(
+        models.BMI.objects.filter(
+            child=child, source_weight__isnull=False, source_height__isnull=False
+        ),
+        "bmi",
+    )
 
 
 @register.inclusion_tag("cards/timer_list.html", takes_context=True)
@@ -841,6 +878,8 @@ def card_timer_list(context, child=None):
     empty = len(instances) == 0
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "timer",
         "instances": list(instances),
         "empty": empty,
@@ -864,6 +903,8 @@ def card_tummytime_last(context, child):
     empty = not instance
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "tummytime",
         "tummytime": instance,
         "empty": empty,
@@ -893,6 +934,8 @@ def card_tummytime_day(context, child, date=None):
         stats["total"] += timezone.timedelta(seconds=instance.duration.seconds)
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "tummytime",
         "stats": stats,
         "instances": instances,
@@ -918,6 +961,8 @@ def card_medication_last(context, child):
     )
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "medication",
         "medication": instance,
         "empty": not instance,
@@ -932,6 +977,8 @@ def card_appointments_upcoming(context, child):
         child=child, start__gte=timezone.now() - timezone.timedelta(hours=12)
     ).order_by("start")[:3]
     return {
+        "child": child,
+        "request": context["request"],
         "type": "appointment",
         "appointments": list(upcoming),
         "empty": len(upcoming) == 0,
@@ -951,6 +998,8 @@ def card_notes_recent(context, child):
     empty = len(recent) == 0
 
     return {
+        "child": child,
+        "request": context["request"],
         "type": "note",
         "notes": list(recent),
         "empty": empty,
@@ -984,6 +1033,8 @@ def card_tags_last(context, child):
                 latest_model = entry._meta.verbose_name
         items.append({"tag": tag, "time": latest, "model": latest_model})
     return {
+        "child": child,
+        "request": context["request"],
         "type": "tag",
         "items": items,
         "empty": len(items) == 0,
@@ -1001,6 +1052,8 @@ def card_bathtime_last(context, child):
         .first()
     )
     return {
+        "child": child,
+        "request": context["request"],
         "type": "bathtime",
         "bathtime": instance,
         "empty": not instance,
@@ -1018,6 +1071,8 @@ def card_reflux_last(context, child):
         .first()
     )
     return {
+        "child": child,
+        "request": context["request"],
         "type": "reflux",
         "reflux": instance,
         "empty": not instance,
@@ -1030,8 +1085,67 @@ def card_food_recent(context, child):
     """The last few foods tried."""
     instances = models.Food.objects.filter(child=child).order_by("-time")[:4]
     return {
+        "child": child,
+        "request": context["request"],
         "type": "food",
         "foods": list(instances),
         "empty": len(instances) == 0,
         "hide_empty": _hide_empty(context),
+    }
+
+
+@register.inclusion_tag("dashboard/latest_measurements.html", takes_context=True)
+def dashboard_latest_measurements(context, child):
+    from django.urls import reverse
+    from urllib.parse import urlencode
+
+    measurements = []
+    definitions = (
+        (models.Weight, "weight", _("Weight"), "weight"),
+        (models.Height, "height", _("Height"), "height"),
+        (
+            models.HeadCircumference,
+            "head_circumference",
+            _("Head circumference"),
+            "head-circumference",
+        ),
+        (models.BMI, "bmi", _("BMI"), "bmi"),
+        (models.Temperature, "temperature", _("Temperature"), "temperature"),
+    )
+    hidden = (
+        context.get(
+            "hidden_cards", context["request"].user.settings.dashboard_hidden_cards
+        )
+        or []
+    )
+    for model, field, label, route in definitions:
+        if "measurement_" + field in hidden:
+            continue
+        if not _can_view(context, model._meta.model_name):
+            continue
+        query = model.objects.filter(child=child)
+        if model is models.Temperature:
+            query = query.order_by("-time", "-pk")
+        if model is models.BMI:
+            from core.bmi import current_bmi
+
+            entry = current_bmi(child)
+        else:
+            entry = query.first()
+        measurements.append(
+            {
+                "entry": entry,
+                "field": field,
+                "label": label,
+                "date": getattr(entry, "date", None) or getattr(entry, "time", None),
+                "has_time": model is models.Temperature,
+                "url": reverse("core:" + route + "-list")
+                + "?"
+                + urlencode({"scope": child.slug}),
+            }
+        )
+    return {
+        "measurements": measurements,
+        "request": context["request"],
+        "measurement_child": child,
     }

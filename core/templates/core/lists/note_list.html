@@ -1,0 +1,68 @@
+{% load datetime i18n imagekit widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="time">{% trans "Time" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="image">{% trans "Image" %}</th>
+                <th data-column="note">{% trans "Note" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for note in object_list %}
+                <tr>
+                    <th data-column="time" scope="row">{{ note.time|datetime_short }}</th>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' note.child.slug %}">{{ note.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="image">
+                        {% if note.image %}
+                            {% thumbnail '40x40' note.image as thumb %}
+                                <a href="{{ note.image.url }}" target="_blank">
+                                    <img src="{{ thumb.url }}" class="img-fluid" />
+                                </a>
+                            {% endif %}
+                            </td>
+                            <td data-column="note">{{ note.note }}</td>
+                            <td data-column="recorded-by">{{ note.created_by_display|default:"—" }}</td>
+                            <td data-column="tags">{% include "core/render_tag_list.html" with tags=note.tags.all %}</td>
+                            <td data-column="actions">
+                                <div class="btn-group btn-group-sm"
+                                     role="group"
+                                     aria-label="{% trans "Actions" %}">
+                                    {% if perms.core.change_note %}
+                                        <a href="{% url 'core:note-update' note.id %}"
+                                           class="btn btn-sm btn-outline-primary"
+                                           aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                                    {% endif %}
+                                    {% if perms.core.delete_note %}
+                                        <details class="record-more">
+                                            <summary aria-label="{% trans 'More entry actions' %}"
+                                                     title="{% trans 'More entry actions' %}">•••</summary>
+                                            <div class="record-more-menu">
+                                                <a href="{% url 'core:note-delete' note.id %}"
+                                                   class="btn btn-sm btn-outline-danger record-delete"
+                                                   aria-label="{% trans 'Delete entry' %}"
+                                                   title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No notes found." %}</th>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>

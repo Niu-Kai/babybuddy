@@ -11,7 +11,7 @@
         {% trans "Appointments" %}
         {% if perms.core.add_appointment %}
             <a href="{% url 'core:appointment-add' %}"
-               class="btn btn-sm btn-success">
+               class="btn btn-sm btn-primary">
                 <i class="icon-calendar" aria-hidden="true"></i> {% trans "Add Appointment" %}
             </a>
         {% endif %}
@@ -28,83 +28,13 @@
         {% endif %}
     </h1>
     {% include "babybuddy/filter.html" %}
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>{% trans "Actions" %}</th>
-                    <th>{% trans "When" %}</th>
-                    {% if not unique_child %}
-                        <th>{% trans "Child" %}</th>
-                    {% endif %}
-                    <th>{% trans "Title" %}</th>
-                    <th>{% trans "Location" %}</th>
-                    <th>{% trans "By" %}</th>
-                    <th>{% trans "Tags" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for appointment in object_list %}
-                    <tr>
-                        <td>
-                            <div class="btn-group btn-group-sm"
-                                 role="group"
-                                 aria-label="{% trans "Actions" %}">
-                                {% if perms.core.change_appointment %}
-                                    <a href="{% url 'core:appointment-update' appointment.id %}"
-                                       class="btn btn-primary">
-                                        <i class="icon-update" aria-hidden="true"></i>
-                                    </a>
-                                {% endif %}
-                                {% if perms.core.delete_appointment %}
-                                    <a href="{% url 'core:appointment-delete' appointment.id %}"
-                                       class="btn btn-danger">
-                                        <i class="icon-delete" aria-hidden="true"></i>
-                                    </a>
-                                {% endif %}
-                                <a href="{{ appointment.google_calendar_url }}"
-                                   class="btn btn-secondary"
-                                   target="_blank"
-                                   rel="noopener"
-                                   title="{% trans "Add to Google Calendar" %}">
-                                    <i class="icon-calendar" aria-hidden="true"></i>
-                                </a>
-                            </div>
-                        </td>
-                        <th scope="row">
-                            {{ appointment.start|datetime_short }}
-                            {% if appointment.end %}- {{ appointment.end|time }}{% endif %}
-                        </th>
-                        {% if not unique_child %}
-                            <td>
-                                <a href="{% url 'core:child' appointment.child.slug %}">{{ appointment.child }}</a>
-                            </td>
-                        {% endif %}
-                        <td>
-                            {{ appointment.title }}
-                            {% if appointment.notes %}
-                                <div class="small text-body-secondary">{{ appointment.notes|truncatechars:80 }}</div>
-                            {% endif %}
-                        </td>
-                        <td>{{ appointment.location }}</td>
-                        <td>{{ appointment.created_by_display }}</td>
-                        <td>{% include "core/render_tag_list.html" with tags=appointment.tags.all %}</td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No appointments found." %}</th>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% include "babybuddy/paginator.html" %}
+    {% include "core/record_panels.html" with list_template="core/lists/appointment_list.html" %}
     <div class="card mt-4">
         <div class="card-body">
             <h2 class="h5">{% trans "Subscribe from a calendar app" %}</h2>
             <p class="text-body-secondary small mb-2">
                 {% blocktrans trimmed %}
-                    Add a feed URL below in Google Calendar (Other calendars → From URL),
+                    Add a feed URL below in Google Calendar (Other calendars â†’ From URL),
                     Apple Calendar or Outlook to see appointments there. The URL contains
                     your API key: treat it like a password.
                 {% endblocktrans %}

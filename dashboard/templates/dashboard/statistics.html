@@ -4,10 +4,6 @@
     {% trans "Statistics" %} - {{ object }}
 {% endblock %}
 {% block breadcrumbs %}
-    <li class="breadcrumb-item">
-        <a href="{% url 'core:child-list' %}">{% trans "Children" %}</a>
-    </li>
-    <li class="breadcrumb-item fw-bold">{% child_quick_switch object 'dashboard:dashboard-statistics' %}</li>
     <li class="breadcrumb-item active" aria-current="page">{% trans "Statistics" %}</li>
 {% endblock %}
 {% block content %}
@@ -22,38 +18,40 @@
             <i class="icon-graph" aria-hidden="true"></i> {% trans "Reports" %}
         </a>
     </h1>
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>{% trans "Statistic" %}</th>
-                    <th>{% trans "Value" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stat in stats %}
+    <div class="record-panel">
+        <div class="table-responsive">
+            <table class="table record-table table-hover align-middle">
+                <thead>
                     <tr>
-                        <th scope="row">{{ stat.title }}</th>
-                        <td>
-                            {% if stat.stat %}
-                                {% if stat.type == "duration" %}
-                                    {{ stat.stat|duration_string:'m' }}
-                                {% elif stat.type == "float" %}
-                                    {{ stat.stat|floatformat }}
+                        <th>{% trans "Statistic" %}</th>
+                        <th>{% trans "Value" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in stats %}
+                        <tr>
+                            <th scope="row">{{ stat.title }}</th>
+                            <td>
+                                {% if stat.stat != None %}
+                                    {% if stat.type == "duration" %}
+                                        {{ stat.stat|duration_string:'m' }}
+                                    {% elif stat.type == "float" %}
+                                        {{ stat.stat|floatformat }}
+                                    {% else %}
+                                        {{ stat.stat }}
+                                    {% endif %}
                                 {% else %}
-                                    {{ stat.stat }}
+                                    <em>{% trans "Not enough data" %}</em>
                                 {% endif %}
-                            {% else %}
-                                <em>{% trans "Not enough data" %}</em>
-                            {% endif %}
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr>
-                        <th colspan="2">{% trans "No data yet" %}</th>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <th colspan="2">{% trans "No data yet" %}</th>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 {% endblock %}

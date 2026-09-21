@@ -50,7 +50,10 @@ class ViewsTestCase(TestCase):
         Child.objects.create(
             first_name="Second", last_name="Child", birth_date="2000-01-01"
         )
+        # Directly visiting a child's dashboard now remembers that child.
         page = self.c.get("/dashboard/")
+        self.assertRedirects(page, "/children/{}/dashboard/".format(child.slug))
+        page = self.c.get("/dashboard/", {"scope": "all"})
         self.assertEqual(page.status_code, 200)
 
 
@@ -114,6 +117,8 @@ class DashboardCardPermissionsTestCase(TestCase):
                     content_type__app_label="core", codename__in=codenames
                 )
             )
+        user.settings.dashboard_hidden_cards = []
+        user.settings.save(update_fields=["dashboard_hidden_cards"])
         self.c.login(username=username, password="password")
         return user
 

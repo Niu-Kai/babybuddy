@@ -1,0 +1,28 @@
+{% load i18n %}
+<div class="table-responsive">
+    <table class="calendar-grid {% if compact %}calendar-grid-compact{% endif %}">
+        <caption class="visually-hidden">{{ month.date|date:"F Y" }}</caption>
+        <thead><tr>{% for name in weekday_names %}<th scope="col">{{ name }}</th>{% endfor %}</tr></thead>
+        <tbody>
+            {% for week in month.weeks %}
+                <tr>
+                    {% for day in week %}
+                        <td class="{% if day.date == today %}calendar-today{% endif %}">
+                            {% if day %}
+                                <a class="calendar-date {% if day.entries %}has-appointments{% endif %}"
+                                   href="{{ day.url }}"
+                                   aria-label="{{ day.date|date:'DATE_FORMAT' }}: {{ day.entries|length }} {% trans 'appointments' %}"
+                                   {% if day.date == today %}aria-current="date"{% endif %}>{{ day.date.day }}{% if compact and day.entries %}<span class="calendar-dot" aria-hidden="true"></span>{% endif %}</a>
+                                {% if not compact %}
+                                    {% for entry in day.entries %}
+                                        {% include "core/calendar_appointment.html" with entry=entry compact=True %}
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

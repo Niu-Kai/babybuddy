@@ -1,0 +1,44 @@
+{% load cards %}
+{% if panel == "feeding_last" %}
+    {% card_feeding_last object %}
+{% elif panel == "diaperchange_last" %}
+    {% card_diaperchange_last object %}
+{% elif panel == "sleep_last" %}
+    {% card_sleep_last object %}
+{% elif panel == "pumping_last" %}
+    {% card_pumping_last object %}
+{% elif panel == "medication_last" %}
+    {% card_medication_last object %}
+{% elif panel == "sleep_naps_day" %}
+    {% card_sleep_naps_day object %}
+{% elif panel == "tummytime_day" %}
+    {% card_tummytime_day object %}
+{% elif panel == "timer_list" %}
+    {% card_timer_list object %}
+{% elif panel == "feeding_recent" %}
+    {% card_feeding_recent object %}
+{% elif panel == "feeding_last_method" %}
+    {% card_feeding_last_method object %}
+{% elif panel == "sleep_recent" %}
+    {% card_sleep_recent object %}
+{% elif panel == "pumping_recent" %}
+    {% card_pumping_recent object %}
+{% elif panel == "statistics" %}
+    {% card_statistics object %}
+{% elif panel == "diaperchange_types" %}
+    {% card_diaperchange_types object %}
+{% elif panel == "breastfeeding" %}
+    {% card_breastfeeding object %}
+{% elif panel == "notes_recent" %}
+    {% card_notes_recent object %}
+{% elif panel == "appointments_upcoming" %}
+    {% card_appointments_upcoming object %}
+{% elif panel == "tags_last" %}
+    {% card_tags_last object %}
+{% elif panel == "bathtime_last" %}
+    {% card_bathtime_last object %}
+{% elif panel == "reflux_last" %}
+    {% card_reflux_last object %}
+{% elif panel == "food_recent" %}
+    {% card_food_recent object %}
+{% endif %}

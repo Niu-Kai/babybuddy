@@ -1,61 +1,70 @@
 {% extends "babybuddy/page.html" %}
-{% load i18n %}
+{% load i18n presentation %}
 {% block title %}
     {% trans "Calendar" %}
 {% endblock %}
-{% block breadcrumbs %}
-    <li class="breadcrumb-item">
-        <a href="{% url 'core:appointment-list' %}">{% trans "Appointments" %}</a>
-    </li>
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Calendar" %}</li>
-{% endblock %}
 {% block content %}
-    <h1 class="d-flex align-items-center gap-2 flex-wrap">
-        <a href="?month={{ previous_month }}"
-           class="btn btn-sm btn-secondary"
-           aria-label="{% trans "Previous" %}"><i class="icon-angle-left" aria-hidden="true"></i></a>
-        <span>{{ month|date:"F Y" }}</span>
-        <a href="?month={{ next_month }}"
-           class="btn btn-sm btn-secondary"
-           aria-label="{% trans "Next" %}"><i class="icon-angle-right"
-   aria-hidden="true"></i></a>
+    <h1>{% trans "Calendar" %}</h1>
+    <form method="get"
+          class="timeline-toolbar calendar-toolbar"
+          data-timeline-filters
+          data-today="{{ today|date:'Y-m-d' }}">
+        <input type="hidden" name="scope" value="{{ child_scope }}">
+        <div class="timeline-filter-field">
+            {{ calendar_filter.period.label_tag }}{{ calendar_filter.period }}{{ calendar_filter.period.errors }}
+        </div>
+        {% include "core/period_picker.html" with period_filter=calendar_filter %}
+        <button type="submit" class="btn btn-primary">{% trans "Apply filters" %}</button>
+        <a class="btn btn-outline-secondary"
+           href="?scope={{ child_scope|urlencode }}">{% trans "Clear filters" %}</a>
         {% if perms.core.add_appointment %}
-            <a href="{% url 'core:appointment-add' %}"
-               class="btn btn-sm btn-success">
-                <i class="icon-calendar" aria-hidden="true"></i> {% trans "Add Appointment" %}
-            </a>
+            <a class="btn btn-primary calendar-add"
+               href="{% entry_add_url 'appointment' selected_child %}">{% trans "Add Appointment" %}</a>
         {% endif %}
-    </h1>
-    <div class="table-responsive">
-        <table class="table table-bordered align-top calendar-month">
-            <thead>
-                <tr>
-                    {% for name in weekday_names %}<th class="text-center">{{ name }}</th>{% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for week in weeks %}
-                    <tr>
-                        {% for day, in_month, appointments in week %}
-                            <td class="{% if not in_month %}text-body-tertiary{% endif %}{% if day == today %} table-active{% endif %}"
-                                style="height: 6rem;
-                                       width: 14.28%">
-                                <div class="small fw-bold mb-1">{{ day.day }}</div>
-                                {% for appointment in appointments %}
-                                    <div class="small mb-1">
-                                        <a href="{% url 'core:appointment-update' appointment.id %}"
-                                           class="text-decoration-none">
-                                            <strong>{{ appointment.start|time }}</strong>
-                                            {{ appointment.title }}
-                                            {% if not unique_child %}<span class="text-body-secondary">({{ appointment.child.first_name }})</span>{% endif %}
-                                        </a>
-                                    </div>
-                                {% endfor %}
-                            </td>
-                        {% endfor %}
-                    </tr>
+    </form>
+    {% if calendar_filter.errors %}
+        <p class="alert alert-warning">{% trans "Check the filters above to view your calendar." %}</p>
+    {% else %}
+        <div class="calendar-range-bar">
+            <h2>{% if period == "month" %}{{ range_start|date:"F Y" }}{% elif period == "year" %}{{ range_start|date:"Y" }}{% elif period == "day" %}{{ range_start|date:"DATE_FORMAT" }}{% else %}{{ range_start|date:"M j, Y" }} – {{ range_end|date:"M j, Y" }}{% endif %}</h2>
+            <div class="calendar-range-actions">
+                {% if previous_period_url %}
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{{ previous_period_url }}">{% trans "Previous period" %}</a>
+                {% endif %}
+                {% if next_period_url %}
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{{ next_period_url }}">{% trans "Next period" %}</a>
+                {% endif %}
+                <span class="text-body-secondary">{% blocktrans count count=appointment_count %}{{ count }} appointment{% plural %}{{ count }} appointments{% endblocktrans %}</span>
+            </div>
+        </div>
+        {% if period == "year" %}
+            <div class="calendar-year">
+                {% for month in calendar_months %}
+                    <section class="calendar-mini-month">
+                        <h3><a href="{{ month.url }}">{{ month.date|date:"F" }}</a><span class="text-body-secondary">{{ month.count }}</span></h3>
+                        {% include "core/calendar_month_grid.html" with month=month compact=True %}
+                    </section>
                 {% endfor %}
-            </tbody>
-        </table>
-    </div>
+            </div>
+        {% elif period == "month" %}
+            <div class="calendar-month-view">
+                {% include "core/calendar_month_grid.html" with month=calendar_month compact=False %}
+            </div>
+        {% else %}
+            <div class="calendar-agenda {% if period == 'week' %}calendar-week{% endif %}">
+                {% for day in calendar_days %}
+                    <section class="calendar-day {% if day.date == today %}calendar-today{% endif %}">
+                        <h3><a href="{{ day.url }}">{{ day.date|date:"D, M j" }}</a></h3>
+                        {% for entry in day.entries %}
+                            {% include "core/calendar_appointment.html" with entry=entry compact=False %}
+                        {% empty %}
+                            <p class="calendar-empty text-body-secondary">{% trans "No appointments" %}</p>
+                        {% endfor %}
+                    </section>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endif %}
 {% endblock %}

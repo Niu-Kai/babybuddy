@@ -11,6 +11,7 @@ from django.utils import timezone
 from faker import Faker
 
 from core import models
+from core.units import convert
 
 
 class Command(BaseCommand):
@@ -94,10 +95,6 @@ class Command(BaseCommand):
         self._add_head_circumference_entry()
         last_head_circumference_entry_time = self.time
 
-        self.bmi = round(uniform(8.0, 12.0), 2)
-        self._add_bmi_entry()
-        last_bmi_entry_time = self.time
-
         self._add_note_entry()
         last_note_entry_time = self.time
 
@@ -135,9 +132,6 @@ class Command(BaseCommand):
             if (self.time - last_head_circumference_entry_time).days > 6:
                 self._add_head_circumference_entry()
                 last_head_circumference_entry_time = self.time
-            if (self.time - last_bmi_entry_time).days > 6:
-                self._add_bmi_entry()
-                last_bmi_entry_time = self.time
 
     @transaction.atomic
     def _add_pumping_entry(self):
@@ -156,7 +150,12 @@ class Command(BaseCommand):
 
         if end < self.time_now:
             models.Pumping.objects.create(
-                child=self.child, amount=self.amount, start=start, end=end, notes=notes
+                child=self.child,
+                amount=self.amount,
+                entry_unit="mL",
+                start=start,
+                end=end,
+                notes=notes,
             ).save()
 
     @transaction.atomic
@@ -213,9 +212,10 @@ class Command(BaseCommand):
                 child=self.child,
                 start=start,
                 end=end,
-                type=choice(models.Feeding._meta.get_field("type").choices)[0],
+                type=choice(["breast milk", "formula", "fortified breast milk"]),
                 method=method,
-                amount=amount,
+                amount=convert(amount, "fl oz", "mL"),
+                entry_unit="fl oz",
                 notes=notes,
             )
             instance.save()
@@ -271,7 +271,11 @@ class Command(BaseCommand):
             notes = " ".join(self.faker.sentences(randint(1, 5)))
 
         instance = models.Temperature.objects.create(
-            child=self.child, temperature=self.temperature, time=self.time, notes=notes
+            child=self.child,
+            temperature=convert(self.temperature, "F", "C"),
+            entry_unit="F",
+            time=self.time,
+            notes=notes,
         )
         instance.save()
         self._add_tags(instance)
@@ -346,7 +350,8 @@ class Command(BaseCommand):
 
         instance = models.Weight.objects.create(
             child=self.child,
-            weight=round(self.weight, 2),
+            weight=convert(round(self.weight, 2), "lb", "kg"),
+            entry_unit="lb",
             date=self.time.date(),
             notes=notes,
         )
@@ -368,6 +373,7 @@ class Command(BaseCommand):
         instance = models.Height.objects.create(
             child=self.child,
             height=round(self.height, 2),
+            entry_unit="cm",
             date=self.time.date(),
             notes=notes,
         )
@@ -388,27 +394,10 @@ class Command(BaseCommand):
 
         instance = models.HeadCircumference.objects.create(
             child=self.child,
-            head_circumference=round(self.head_circumference, 2),
+            head_circumference=convert(round(self.head_circumference, 2), "in", "cm"),
+            entry_unit="in",
             date=self.time.date(),
             notes=notes,
-        )
-        instance.save()
-        self._add_tags(instance)
-
-    @transaction.atomic
-    def _add_bmi_entry(self):
-        """
-        Add a BMI entry. This assumes a weekly interval.
-        :returns:
-        """
-        self.bmi += uniform(0.1, 0.3)
-
-        notes = ""
-        if choice([True, False, False, False]):
-            notes = " ".join(self.faker.sentences(randint(1, 5)))
-
-        instance = models.BMI.objects.create(
-            child=self.child, bmi=round(self.bmi, 2), date=self.time.date(), notes=notes
         )
         instance.save()
         self._add_tags(instance)

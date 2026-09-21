@@ -1,0 +1,80 @@
+{% load presentation %}
+{% load datetime duration misc i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="previous-feeding"
+                    title="{% trans 'Time between the starts of consecutive feedings for this child' %}">{% trans "Previous feeding" %}</th>
+                <th data-column="start">{% trans "Start" %}</th>
+                <th data-column="end">{% trans "End" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="method">{% trans "Method" %}</th>
+                <th data-column="type">{% trans "Type" %}</th>
+                {% comment %}Abbreviation of "Amount"{% endcomment %}
+                <th data-column="amount">{% trans "Amount" %}</th>
+                <th data-column="duration">{% trans "Duration" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for feeding in object_list %}
+                {% with prev_feeding=object_list|next:forloop.counter0 %}
+                    <tr>
+                        <td data-column="previous-feeding">{% if feeding.previous_feeding_start %}{{ feeding.previous_feeding_start|timesince:feeding.start }} {% trans "earlier" %}{% else %}<span class="text-body-secondary">{% trans "First recorded feeding" %}</span>{% endif %}</td><th data-column="start" scope="row">{{ feeding.start|datetime_short }}</th>
+                        <td data-column="end">{% if feeding.duration %}{{ feeding.end|datetime_short }}{% endif %}</td>
+                        {% if not unique_child %}
+                            <td data-column="child">
+                                <a href="{% url 'core:child' feeding.child.slug %}">{{ feeding.child }}</a>
+                            </td>
+                        {% endif %}
+                        <td data-column="method">{{ feeding.get_method_display }}</td>
+                        <td data-column="type">{{ feeding.type_display }}</td>
+                        <td data-column="amount">{% feeding_amount feeding %}</td>
+                        <td data-column="duration">{{ feeding.duration|duration_string }}</td>
+                        <td data-column="recorded-by">{{ feeding.created_by_display|default:"—" }}</td>
+                        <td data-column="tags">{% include "core/render_tag_list.html" with tags=feeding.tags.all %}</td>
+                        <td data-column="actions">
+                            <div class="btn-group btn-group-sm"
+                                 role="group"
+                                 aria-label="{% trans "Actions" %}">
+                                {% if perms.core.change_feeding %}
+                                    <a href="{% url 'core:feeding-update' feeding.id %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                                {% endif %}
+                                {% if perms.core.delete_feeding %}
+                                    <details class="record-more">
+                                        <summary aria-label="{% trans 'More entry actions' %}"
+                                                 title="{% trans 'More entry actions' %}">•••</summary>
+                                        <div class="record-more-menu">
+                                            <a href="{% url 'core:feeding-delete' feeding.id %}"
+                                               class="btn btn-sm btn-outline-danger record-delete"
+                                               aria-label="{% trans 'Delete entry' %}"
+                                               title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                        </div>
+                                    </details>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% if feeding.notes %}
+                        <tr class="{{ row_class }} row-details" data-column="notes">
+                            <td colspan="10">
+                                <i class="icon-note me-2" aria-hidden="true"></i>{{ feeding.notes }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endwith %}
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}11{% else %}10{% endif %}">{% trans "No feedings found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

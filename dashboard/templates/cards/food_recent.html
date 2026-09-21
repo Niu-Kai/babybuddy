@@ -1,7 +1,7 @@
 {% extends "cards/base.html" %}
 {% load datetime i18n %}
 {% block header %}
-    <a href="{% url "core:food-list" %}">{% trans "Recent Foods" %}</a>
+    <a href="{% url "core:food-list" %}?scope={{ child.slug|urlencode }}">{% trans "Recent Foods" %}</a>
 {% endblock %}
 {% block title %}
     {% if foods %}

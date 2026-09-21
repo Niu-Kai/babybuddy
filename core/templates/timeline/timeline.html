@@ -1,13 +1,66 @@
 {% extends "babybuddy/page.html" %}
-{% load cards i18n static %}
+{% load i18n presentation %}
 {% block title %}
     {% trans "Timeline" %}
 {% endblock %}
 {% block breadcrumbs %}
-    <li class="breadcrumb-item fw-bold">{% trans "Timeline" %}</li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Timeline" %}</li>
 {% endblock %}
 {% block content %}
-    <div class="row">
-        <div class="col">{% include "timeline/_timeline.html" %}</div>
-    </div>
+    <h1>{% trans "Timeline" %}</h1>
+    <form method="get"
+          class="timeline-toolbar"
+          data-timeline-filters
+          data-today="{{ today|date:'Y-m-d' }}">
+        <input type="hidden" name="scope" value="{{ child_scope }}">
+        <div class="timeline-filter-field">
+            {{ timeline_filter.period.label_tag }}
+            {{ timeline_filter.period }}
+            {{ timeline_filter.period.errors }}
+        </div>
+        {% include "core/period_picker.html" with period_filter=timeline_filter %}
+        <div class="timeline-filter-field">
+            {{ timeline_filter.activity.label_tag }}
+            {{ timeline_filter.activity }}
+            {{ timeline_filter.activity.errors }}
+        </div>
+        <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+        <a class="btn btn-outline-secondary"
+           href="?scope={{ child_scope|urlencode }}">{% trans "Clear filters" %}</a>
+    </form>
+    {% if range_start and not timeline_filter.errors %}
+        <div class="timeline-range-bar">
+            <strong>{% if period == "day" %}{{ range_start|date:"DATE_FORMAT" }}{% elif period == "month" %}{{ range_start|date:"F Y" }}{% elif period == "year" %}{{ range_start|date:"Y" }}{% else %}{% trans "Week" %}{% endif %}</strong>
+            {% if period != "day" %}<span class="text-body-secondary">{{ range_start|date:"M j, Y" }} – {{ range_end|date:"M j, Y" }}</span>{% endif %}
+            {% if previous_period_url %}
+                <a class="btn btn-sm btn-outline-secondary"
+                   href="{{ previous_period_url }}">{% trans "Previous period" %}</a>
+            {% endif %}
+            {% if next_period_url %}
+                <a class="btn btn-sm btn-outline-secondary" href="{{ next_period_url }}">{% trans "Next period" %}</a>
+            {% endif %}
+            {% if side_by_side %}
+                <span class="text-body-secondary">{% trans "Same period for every child" %}</span>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if timeline_filter.errors %}
+        <p class="alert alert-warning">{% trans "Check the filters above to view your timeline." %}</p>
+    {% elif timeline_panels %}
+        <div class="comparison-grid">
+            {% for panel in timeline_panels %}
+                <section class="record-panel timeline-panel">
+                    <header class="record-panel-heading"><h2>{{ panel.child }}</h2><span class="text-body-secondary">{{ panel.timeline_page.paginator.count }} {% trans "events" %}</span></header>
+                    {% include "timeline/_timeline.html" with timeline_objects=panel.timeline_objects %}
+                    {% include "timeline/pagination.html" with timeline_page=panel.timeline_page timeline_page_key=panel.timeline_page_key %}
+                </section>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="timeline-history">
+            <p class="text-body-secondary">{% if not range_start %}{% trans "All dates" %} · {% endif %}{{ timeline_page.paginator.count }} {% trans "events" %}</p>
+            {% include "timeline/_timeline.html" %}
+            {% include "timeline/pagination.html" %}
+        </div>
+    {% endif %}
 {% endblock %}

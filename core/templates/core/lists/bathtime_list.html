@@ -1,0 +1,68 @@
+{% load datetime duration i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="start">{% trans "Start" %}</th>
+                <th data-column="end">{% trans "End" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="duration">{% trans "Duration" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bathtime in object_list %}
+                <tr>
+                    <th data-column="start" scope="row">{{ bathtime.start|datetime_short }}</th>
+                    <td data-column="end">{{ bathtime.end|datetime_short }}</td>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' bathtime.child.slug %}">{{ bathtime.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="duration">{{ bathtime.duration|duration_string }}</td>
+                    <td data-column="recorded-by">{{ bathtime.created_by_display|default:"—" }}</td>
+                    <td data-column="tags">{% include "core/render_tag_list.html" with tags=bathtime.tags.all %}</td>
+                    <td data-column="actions">
+                        <div class="btn-group btn-group-sm"
+                             role="group"
+                             aria-label="{% trans "Actions" %}">
+                            {% if perms.core.change_bathtime %}
+                                <a href="{% url 'core:bathtime-update' bathtime.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.core.delete_bathtime %}
+                                <details class="record-more">
+                                    <summary aria-label="{% trans 'More entry actions' %}"
+                                             title="{% trans 'More entry actions' %}">•••</summary>
+                                    <div class="record-more-menu">
+                                        <a href="{% url 'core:bathtime-delete' bathtime.id %}"
+                                           class="btn btn-sm btn-outline-danger record-delete"
+                                           aria-label="{% trans 'Delete entry' %}"
+                                           title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                    </div>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if bathtime.notes %}
+                    <tr class="row-details" data-column="notes">
+                        <td colspan="6">
+                            <i class="icon-note me-2" aria-hidden="true"></i>{{ bathtime.notes }}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <th colspan="6">{% trans "No entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

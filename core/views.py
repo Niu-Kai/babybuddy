@@ -33,9 +33,16 @@ def _prepare_timeline_context_data(context, date, child=None, user=None):
 
 
 class CoreFormMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["cancel_url"] = str(
+            getattr(self, "success_url", "") or reverse("dashboard:dashboard")
+        )
+        return context
+
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        if issubclass(self.get_form_class(), forms.CoreModelForm):
+        if issubclass(self.get_form_class(), (forms.CoreModelForm, forms.ChildForm)):
             kwargs["user"] = self.request.user
         return kwargs
 
@@ -71,6 +78,11 @@ class CoreAddView(
         """
         kwargs = super(CoreAddView, self).get_form_kwargs()
         if issubclass(self.get_form_class(), forms.CoreModelForm):
+            from core.presentation import presentation
+
+            selected = presentation(self.request)["selected_child"]
+            if selected:
+                kwargs["child"] = selected.slug
             for parameter in ["child", "timer"]:
                 if parameter in self.request.GET:
                     kwargs[parameter] = self.request.GET[parameter]
@@ -102,25 +114,29 @@ class BMIList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterVi
     permission_required = ("core.view_bmi",)
     filterset_class = filters.BMIFilter
 
-
-class BMIAdd(CoreAddView):
-    model = models.BMI
-    permission_required = ("core.add_bmi",)
-    form_class = forms.BMIForm
-    success_url = reverse_lazy("core:bmi-list")
-
-
-class BMIUpdate(CoreUpdateView):
-    model = models.BMI
-    permission_required = ("core.change_bmi",)
-    form_class = forms.BMIForm
-    success_url = reverse_lazy("core:bmi-list")
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(source_weight__isnull=False, source_height__isnull=False)
+        )
 
 
-class BMIDelete(CoreDeleteView):
-    model = models.BMI
-    permission_required = ("core.delete_bmi",)
-    success_url = reverse_lazy("core:bmi-list")
+class BMIAdd(PermissionRequiredMixin, RedirectView):
+    permission_required = ("core.view_bmi",)
+    pattern_name = "core:bmi-list"
+    http_method_names = ["get", "head", "options"]
+
+    def get_redirect_url(self, *args, **kwargs):
+        return reverse("core:bmi-list")
+
+
+class BMIUpdate(BMIAdd):
+    pass
+
+
+class BMIDelete(BMIAdd):
+    pass
 
 
 class ChildList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -142,11 +158,13 @@ class ChildDetail(PermissionRequiredMixin, DetailView):
     model = models.Child
     permission_required = ("core.view_child",)
 
+    template_name = "timeline/timeline.html"
+
     def get_context_data(self, **kwargs):
-        context = super(ChildDetail, self).get_context_data(**kwargs)
-        date = self.request.GET.get("date", str(timezone.localdate()))
-        _prepare_timeline_context_data(context, date, self.object, self.request.user)
-        return context
+        context = super().get_context_data(**kwargs)
+        view = Timeline()
+        view.setup(self.request)
+        return view.get_context_data(**context)
 
 
 class ChildUpdate(CoreUpdateView):
@@ -372,53 +390,195 @@ class AppointmentList(
 
 
 class AppointmentCalendar(PermissionRequiredMixin, TemplateView):
-    """A month grid of appointments (#408)."""
+    """Appointments in local day, week, month, and year views."""
 
     template_name = "core/appointment_calendar.html"
     permission_required = ("core.view_appointment",)
 
     def get_context_data(self, **kwargs):
         import calendar
+        from collections import defaultdict
+        from django.db.models import Q
+        from django.utils.formats import date_format
+        from urllib.parse import urlencode
+        from core.presentation import presentation
 
         context = super().get_context_data(**kwargs)
-        today = timezone.localdate()
-        try:
-            year, month = (int(x) for x in self.request.GET.get("month").split("-"))
-            first = datetime.date(year, month, 1)
-        except (AttributeError, TypeError, ValueError):
-            first = today.replace(day=1)
-        weeks = calendar.Calendar(firstweekday=calendar.MONDAY).monthdatescalendar(
-            first.year, first.month
+        scope = presentation(self.request)
+        form = forms.CalendarFilterForm(self.request.GET, user=self.request.user)
+        context.update(
+            calendar_filter=form,
+            today=timezone.localdate(),
+            unique_child=bool(scope["selected_child"]),
         )
-        window_start = timezone.make_aware(
-            datetime.datetime.combine(weeks[0][0], datetime.time.min)
-        )
-        window_end = timezone.make_aware(
-            datetime.datetime.combine(
-                weeks[-1][-1] + datetime.timedelta(days=1), datetime.time.min
+        if not form.is_valid():
+            return context
+        first, last = form.cleaned_data["range_start"], form.cleaned_data["range_end"]
+        period = form.cleaned_data["period"]
+        context.update(period=period, range_start=first, range_end=last)
+
+        def link(mode, anchor):
+            return "?" + urlencode(
+                {
+                    "period": mode,
+                    "date": anchor.isoformat(),
+                    "scope": scope["child_scope"],
+                }
             )
+
+        for key, boundary, offset in (
+            ("previous_period_url", first, -1),
+            ("next_period_url", last, 1),
+        ):
+            try:
+                context[key] = link(period, boundary + datetime.timedelta(days=offset))
+            except OverflowError:
+                pass
+
+        start = timezone.make_aware(datetime.datetime.combine(first, datetime.time.min))
+        end = timezone.make_aware(datetime.datetime.combine(last, datetime.time.max))
+        # Clamp only dates whose UTC conversion exceeds Python's date limits.
+        try:
+            start = start.astimezone(datetime.timezone.utc)
+        except OverflowError:
+            start = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+        try:
+            end = end.astimezone(datetime.timezone.utc)
+        except OverflowError:
+            end = datetime.datetime.max.replace(tzinfo=datetime.timezone.utc)
+        appointments = (
+            models.Appointment.objects.filter(start__lte=end)
+            .filter(Q(start__gte=start) | Q(end__gt=start))
+            .select_related("child")
+            .order_by("start", "pk")
         )
-        by_day = {}
-        for appointment in models.Appointment.objects.filter(
-            start__gte=window_start, start__lt=window_end
-        ).order_by("start"):
-            day = timezone.localtime(appointment.start).date()
-            by_day.setdefault(day, []).append(appointment)
-        context["weeks"] = [
-            [(day, day.month == first.month, by_day.get(day, [])) for day in week]
-            for week in weeks
-        ]
+        if scope["selected_child"]:
+            appointments = appointments.filter(child=scope["selected_child"])
+        appointments = list(appointments)
+        context["appointment_count"] = len(appointments)
+        by_day = defaultdict(list)
+        for appointment in appointments:
+            starts = timezone.localtime(appointment.start)
+            ends = timezone.localtime(appointment.end) if appointment.end else starts
+            # An appointment ending at midnight belongs to the preceding day.
+            final_day = (
+                (ends - datetime.timedelta(microseconds=1)).date()
+                if ends > starts
+                else starts.date()
+            )
+            day = max(first, starts.date())
+            final_day = min(last, final_day)
+            while day <= final_day:
+                by_day[day].append(
+                    {
+                        "appointment": appointment,
+                        "continues": starts.date() < day,
+                        "multi_day": starts.date() != ends.date(),
+                    }
+                )
+                if day == final_day:
+                    break
+                day += datetime.timedelta(days=1)
+
+        def day_context(day, in_month=True):
+            return {
+                "date": day,
+                "in_month": in_month,
+                "entries": by_day.get(day, []),
+                "url": link("day", day),
+            }
+
+        def month_context(month_start):
+            weeks = []
+            # Out-of-month cells are blank, including at Python's year limits.
+            for week in calendar.Calendar(calendar.SUNDAY).monthdayscalendar(
+                month_start.year, month_start.month
+            ):
+                weeks.append(
+                    [
+                        day_context(month_start.replace(day=day)) if day else None
+                        for day in week
+                    ]
+                )
+            ids = {
+                entry["appointment"].pk
+                for day, entries in by_day.items()
+                if day.month == month_start.month and day.year == month_start.year
+                for entry in entries
+            }
+            return {
+                "date": month_start,
+                "weeks": weeks,
+                "url": link("month", month_start),
+                "count": len(ids),
+            }
+
         context["weekday_names"] = [
-            calendar.day_abbr[i]
-            for i in calendar.Calendar(calendar.MONDAY).iterweekdays()
+            date_format(datetime.date(2026, 1, 4) + datetime.timedelta(days=i), "D")
+            for i in range(7)
         ]
-        context["month"] = first
-        context["today"] = today
-        previous_month = (first - datetime.timedelta(days=1)).replace(day=1)
-        next_month = (first + datetime.timedelta(days=32)).replace(day=1)
-        context["previous_month"] = previous_month.strftime("%Y-%m")
-        context["next_month"] = next_month.strftime("%Y-%m")
+        if period == "year":
+            context["calendar_months"] = [
+                month_context(first.replace(month=month)) for month in range(1, 13)
+            ]
+        elif period == "month":
+            context["calendar_month"] = month_context(first)
+        else:
+            context["calendar_days"] = [
+                day_context(first + datetime.timedelta(days=i))
+                for i in range((last - first).days + 1)
+            ]
         return context
+
+
+class AppointmentEndPreview(PermissionRequiredMixin, View):
+    def has_permission(self):
+        return self.request.user.has_perm(
+            "core.add_appointment"
+        ) or self.request.user.has_perm("core.change_appointment")
+
+    def get(self, request):
+        from django.http import JsonResponse
+        from django.utils.formats import date_format, time_format
+        from babybuddy import preferences
+
+        form = forms.AppointmentTimingForm(request.GET)
+        if not form.is_valid():
+            return JsonResponse(
+                {"display": _("Enter a valid date, time, and duration.")}, status=400
+            )
+        end = form.cleaned_data["end"]
+        if end is None:
+            return JsonResponse({"end": None, "display": _("No end time set")})
+        return JsonResponse(
+            {
+                "end": end.isoformat(),
+                "display": date_format(end, "DATE_FORMAT")
+                + " · "
+                + time_format(end, preferences.get_time_format() or "TIME_FORMAT"),
+            }
+        )
+
+
+class EntryEndPreview(AppointmentEndPreview):
+    def has_permission(self):
+        name = self.kwargs["model_name"]
+        return name in {"feeding", "pumping", "sleep", "tummytime", "bathtime"} and (
+            self.request.user.has_perm(f"core.add_{name}")
+            or self.request.user.has_perm(f"core.change_{name}")
+        )
+
+    def get(self, request, model_name):
+        if model_name != "feeding" and not request.GET.get("duration_minutes"):
+            from django.http import JsonResponse
+
+            return JsonResponse({"display": "—"})
+        # An unknown feeding duration is stored as an instant.
+        if model_name == "feeding" and not request.GET.get("duration_minutes"):
+            data = request.GET.copy()
+            data["duration_minutes"] = "0"
+            request.GET = data
+        return super().get(request)
 
 
 class AppointmentAdd(CoreAddView):
@@ -584,21 +744,58 @@ class TagAdminDetail(PermissionRequiredMixin, DetailView):
     model = models.Tag
     permission_required = ("core.view_tag",)
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.annotate(
-            Count("feeding"),
-            Count("diaperchange"),
-            Count("pumping"),
-            Count("sleep"),
-            Count("tummytime"),
-            Count("bmi"),
-            Count("headcircumference"),
-            Count("height"),
-            Count("temperature"),
-            Count("weight"),
-        )
-        return qs
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sections = []
+        for title, definitions in (
+            (
+                _("Measurements"),
+                (
+                    (models.Weight, "weight", _("Weight")),
+                    (models.Height, "height", _("Height")),
+                    (
+                        models.HeadCircumference,
+                        "head-circumference",
+                        _("Head circumference"),
+                    ),
+                    (models.Temperature, "temperature", _("Temperature")),
+                ),
+            ),
+            (
+                _("Activities"),
+                (
+                    (models.Feeding, "feeding", _("Feedings")),
+                    (models.DiaperChange, "diaperchange", _("Diaper changes")),
+                    (models.Sleep, "sleep", _("Sleep")),
+                    (models.Pumping, "pumping", _("Pumping")),
+                    (models.TummyTime, "tummytime", _("Tummy time")),
+                    (models.BathTime, "bathtime", _("Bath time")),
+                    (models.Reflux, "reflux", _("Reflux")),
+                    (models.Food, "food", _("Foods")),
+                    (models.Medication, "medication", _("Medication")),
+                    (models.Note, "note", _("Notes")),
+                    (models.Appointment, "appointment", _("Appointments")),
+                ),
+            ),
+        ):
+            entries = []
+            for model, route, label in definitions:
+                if self.request.user.has_perm(
+                    f"{model._meta.app_label}.view_{model._meta.model_name}"
+                ):
+                    entries.append(
+                        {
+                            "label": label,
+                            "count": model.objects.filter(tags=self.object).count(),
+                            "url": reverse("core:" + route + "-list")
+                            + "?scope=all&tag="
+                            + str(self.object.pk),
+                        }
+                    )
+            if entries:
+                sections.append({"title": title, "entries": entries})
+        context["tag_sections"] = sections
+        return context
 
 
 class TagAdminAdd(CoreAddView):
@@ -659,19 +856,78 @@ class TemperatureDelete(CoreDeleteView):
 class Timeline(LoginRequiredMixin, TemplateView):
     template_name = "timeline/timeline.html"
 
-    # Show the overall timeline or a child timeline if one Child instance.
-    def get(self, request, *args, **kwargs):
-        children = models.Child.objects.count()
-        if children == 1:
-            return HttpResponseRedirect(
-                reverse("core:child", args={models.Child.objects.first().slug})
-            )
-        return super(Timeline, self).get(request, *args, **kwargs)
-
     def get_context_data(self, **kwargs):
-        context = super(Timeline, self).get_context_data(**kwargs)
-        date = self.request.GET.get("date", str(timezone.localdate()))
-        _prepare_timeline_context_data(context, date, user=self.request.user)
+        from django.core.paginator import Paginator
+        from core.presentation import presentation
+
+        context = super().get_context_data(**kwargs)
+        scope = presentation(self.request)
+        form = forms.TimelineFilterForm(self.request.GET, user=self.request.user)
+        context["timeline_filter"] = form
+        valid = form.is_valid()
+        start = form.cleaned_data.get("range_start") if valid else None
+        end = form.cleaned_data.get("range_end") if valid else None
+        activity = form.cleaned_data.get("activity", "") if valid else ""
+        period = form.cleaned_data.get("period", "all") if valid else "all"
+        day = (
+            timezone.make_aware(datetime.datetime.combine(start, datetime.time.min))
+            if start
+            else None
+        )
+        end_day = (
+            timezone.make_aware(datetime.datetime.combine(end, datetime.time.min))
+            if end
+            else None
+        )
+        context.update(
+            date=day,
+            range_start=start,
+            range_end=end,
+            period=period,
+            today=timezone.localdate(),
+        )
+        if start and end:
+            for direction in (-1, 1):
+                try:
+                    anchor = (
+                        (start - datetime.timedelta(days=1))
+                        if direction < 0
+                        else (end + datetime.timedelta(days=1))
+                    )
+                except OverflowError:
+                    continue
+                params = self.request.GET.copy()
+                for key in list(params):
+                    if key == "page" or key.startswith("page_child_"):
+                        params.pop(key)
+                params["date"] = anchor.isoformat()
+                params["period"] = period
+                context[
+                    "previous_period_url" if direction < 0 else "next_period_url"
+                ] = ("?" + params.urlencode())
+
+        def entries(child, page_key):
+            events = (
+                timeline.get_objects(
+                    day, child, self.request.user, activity, end_date=end_day
+                )
+                if valid
+                else []
+            )
+            page = Paginator(events, 50).get_page(self.request.GET.get(page_key))
+            return {
+                "timeline_objects": page.object_list,
+                "timeline_page": page,
+                "timeline_page_key": page_key,
+            }
+
+        if scope["side_by_side"]:
+            context["timeline_panels"] = [
+                {"child": child, **entries(child, "page_child_" + str(child.pk))}
+                for child in scope["scope_children"]
+            ]
+        else:
+            context.update(entries(scope["selected_child"], "page"))
         return context
 
 
@@ -695,6 +951,11 @@ class TimerAdd(PermissionRequiredMixin, CreateView):
     def get_form_kwargs(self):
         kwargs = super(TimerAdd, self).get_form_kwargs()
         kwargs.update({"user": self.request.user})
+        from core.presentation import presentation
+
+        selected = presentation(self.request)["selected_child"]
+        if selected:
+            kwargs["child"] = selected.slug
         return kwargs
 
     def get_success_url(self):
@@ -710,6 +971,11 @@ class TimerUpdate(CoreUpdateView):
     def get_form_kwargs(self):
         kwargs = super(TimerUpdate, self).get_form_kwargs()
         kwargs.update({"user": self.request.user})
+        from core.presentation import presentation
+
+        selected = presentation(self.request)["selected_child"]
+        if selected:
+            kwargs["child"] = selected.slug
         return kwargs
 
     def get_success_url(self):

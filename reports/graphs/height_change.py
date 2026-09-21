@@ -19,12 +19,14 @@ def height_change(
     :param birthday: a datetime of the child's birthday
     :returns: a tuple of the graph's html and javascript.
     """
-    actual_heights = actual_heights.order_by("-date")
-
-    measuring_dates: list[datetime] = list(
-        actual_heights.values_list("date", flat=True)
+    measurements = list(actual_heights.order_by("-date").values_list("date", "height"))
+    measuring_dates = [row[0] for row in measurements]
+    measured_heights = [row[1] for row in measurements]
+    percentile_heights = (
+        list(percentile_heights.order_by("age_in_days"))
+        if percentile_heights is not None
+        else []
     )
-    measured_heights = list(actual_heights.values_list("height", flat=True))
 
     actual_heights_trace = go.Scatter(
         name=_("Height"),
@@ -35,13 +37,7 @@ def height_change(
     )
 
     if percentile_heights:
-        percentile_heights = percentile_heights.order_by("age_in_days")
-        dates = list(
-            map(
-                lambda timedelta: birthday + timedelta,
-                percentile_heights.values_list("age_in_days", flat=True),
-            )
-        )
+        dates = [birthday + row.age_in_days for row in percentile_heights]
 
         # reduce percentile data xrange to end 1 day after last height measurement in for formatting purposes
         # https://github.com/babybuddy/babybuddy/pull/708#discussion_r1332335789
@@ -52,31 +48,31 @@ def height_change(
         percentile_height_3_trace = go.Scatter(
             name=_("P3"),
             x=dates,
-            y=list(percentile_heights.values_list("p3_height", flat=True))[:end_index],
+            y=[row.p3_height for row in percentile_heights][:end_index],
             line={"color": "red"},
         )
         percentile_height_15_trace = go.Scatter(
             name=_("P15"),
             x=dates,
-            y=list(percentile_heights.values_list("p15_height", flat=True))[:end_index],
+            y=[row.p15_height for row in percentile_heights][:end_index],
             line={"color": "orange"},
         )
         percentile_height_50_trace = go.Scatter(
             name=_("P50"),
             x=dates,
-            y=list(percentile_heights.values_list("p50_height", flat=True))[:end_index],
+            y=[row.p50_height for row in percentile_heights][:end_index],
             line={"color": "green"},
         )
         percentile_height_85_trace = go.Scatter(
             name=_("P85"),
             x=dates,
-            y=list(percentile_heights.values_list("p85_height", flat=True))[:end_index],
+            y=[row.p85_height for row in percentile_heights][:end_index],
             line={"color": "orange"},
         )
         percentile_height_97_trace = go.Scatter(
             name=_("P97"),
             x=dates,
-            y=list(percentile_heights.values_list("p97_height", flat=True))[:end_index],
+            y=[row.p97_height for row in percentile_heights][:end_index],
             line={"color": "red"},
         )
 
@@ -88,7 +84,7 @@ def height_change(
     layout_args["title"] = "<b>" + _("Height") + "</b>"
     layout_args["xaxis"]["title"] = _("Date")
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Height")
+    layout_args["yaxis"]["title"] = _("Height (cm)")
     if percentile_heights:
         # zoom in on the relevant dates
         layout_args["xaxis"]["range"] = [

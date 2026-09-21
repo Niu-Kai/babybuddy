@@ -1,0 +1,83 @@
+{% load datetime i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="date">{% trans "Date" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="medication-name">{% trans "Medication Name" %}</th>
+                <th data-column="dosage">{% trans "Dosage" %}</th>
+                <th data-column="next-dose-interval">{% trans "Next Dose Interval" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for medication in object_list %}
+                <tr>
+                    <th data-column="date" scope="row">{{ medication.time|datetime_short }}</th>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' medication.child.slug %}">{{ medication.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="medication-name">{{ medication.name }}</td>
+                    <td data-column="dosage">{{ medication.dosage }} {{ medication.get_dosage_unit_display }}</td>
+                    <td data-column="next-dose-interval">
+                        {% if medication.next_dose_interval %}
+                            {{ medication.next_dose_interval }}
+                        {% else %}
+                            <span class="text-muted">{% trans "No interval set" %}</span>
+                        {% endif %}
+                    </td>
+                    <td data-column="recorded-by">{{ medication.created_by_display|default:"—" }}</td>
+                    <td data-column="tags">{% include "core/render_tag_list.html" with tags=medication.tags.all %}</td>
+                    <td data-column="actions">
+                        <div class="btn-group btn-group-sm"
+                             role="group"
+                             aria-label="{% trans "Actions" %}">
+                            {% if perms.core.add_medication %}
+                                <a href="{% url 'core:medication-add' %}?repeat={{ medication.id }}"
+                                   class="btn btn-success"
+                                   title="{% trans "Give again" %}">
+                                    <i class="icon-refresh" aria-hidden="true"></i>
+                                </a>
+                            {% endif %}
+                            {% if perms.core.change_medication %}
+                                <a href="{% url 'core:medication-update' medication.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.core.delete_medication %}
+                                <details class="record-more">
+                                    <summary aria-label="{% trans 'More entry actions' %}"
+                                             title="{% trans 'More entry actions' %}">•••</summary>
+                                    <div class="record-more-menu">
+                                        <a href="{% url 'core:medication-delete' medication.id %}"
+                                           class="btn btn-sm btn-outline-danger record-delete"
+                                           aria-label="{% trans 'Delete entry' %}"
+                                           title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                    </div>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if medication.notes %}
+                    <tr class="{{ row_class }} row-details" data-column="notes">
+                        <td colspan="8">
+                            <i class="icon-note me-2" aria-hidden="true"></i>{{ medication.notes }}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No medication entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

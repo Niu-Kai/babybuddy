@@ -8,9 +8,9 @@
      role="group"
      aria-label="{% trans "WHO percentiles" %}">
     <a class="btn btn-outline-secondary{% if target_url == plain %} active{% endif %}"
-       href="{% url plain object.slug %}">{% trans "Measurements only" %}</a>
+       href="{% url plain object.slug %}?scope={{ child_scope|urlencode }}&amp;period={{ report_period.period.value|urlencode }}&amp;date={{ report_period.date.value|default_if_none:""|urlencode }}&amp;from={{ request.GET.from|urlencode }}&amp;to={{ request.GET.to|urlencode }}">{% trans "Measurements only" %}</a>
     <a class="btn btn-outline-secondary{% if target_url == boy %} active{% endif %}"
-       href="{% url boy object.slug %}">{% trans "WHO percentiles: boys" %}</a>
+       href="{% url boy object.slug %}?scope={{ child_scope|urlencode }}&amp;period={{ report_period.period.value|urlencode }}&amp;date={{ report_period.date.value|default_if_none:""|urlencode }}&amp;from={{ request.GET.from|urlencode }}&amp;to={{ request.GET.to|urlencode }}">{% trans "WHO percentiles: boys" %}</a>
     <a class="btn btn-outline-secondary{% if target_url == girl %} active{% endif %}"
-       href="{% url girl object.slug %}">{% trans "WHO percentiles: girls" %}</a>
+       href="{% url girl object.slug %}?scope={{ child_scope|urlencode }}&amp;period={{ report_period.period.value|urlencode }}&amp;date={{ report_period.date.value|default_if_none:""|urlencode }}&amp;from={{ request.GET.from|urlencode }}&amp;to={{ request.GET.to|urlencode }}">{% trans "WHO percentiles: girls" %}</a>
 </div>

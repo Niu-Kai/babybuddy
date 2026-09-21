@@ -327,7 +327,6 @@ class TemplateTagsTestCase(TestCase):
                 "stat": 1.0,
                 "type": "float",
             },
-            {"title": "BMI change per week", "stat": 1.0, "type": "float"},
         ]
 
         self.assertEqual(data["stats"], stats)

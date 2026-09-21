@@ -64,6 +64,28 @@ DASHBOARD_CARDS = [
 ]
 
 
+DASHBOARD_CARDS += [
+    ("measurement_weight", _("Latest weight")),
+    ("measurement_height", _("Latest height")),
+    ("measurement_head_circumference", _("Latest head circumference")),
+    ("measurement_bmi", _("Calculated BMI")),
+    ("measurement_temperature", _("Latest temperature")),
+]
+DEFAULT_DASHBOARD_CARDS = {
+    "feeding_last",
+    "diaperchange_last",
+    "sleep_last",
+    "timer_list",
+    "appointments_upcoming",
+    "measurement_weight",
+    "measurement_height",
+}
+
+
+def default_hidden_dashboard_cards():
+    return [key for key, label in DASHBOARD_CARDS if key not in DEFAULT_DASHBOARD_CARDS]
+
+
 class Settings(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     dashboard_refresh_rate = models.DurationField(
@@ -159,6 +181,30 @@ class Settings(models.Model):
         max_length=255,
         verbose_name=_("Language"),
     )
+    liquid_unit = models.CharField(
+        max_length=10,
+        default="mL",
+        choices=[("mL", "mL"), ("fl oz", _("fl oz (US)"))],
+        verbose_name=_("Liquid"),
+    )
+    length_unit = models.CharField(
+        max_length=10,
+        default="cm",
+        choices=[("cm", "cm"), ("in", "in")],
+        verbose_name=_("Length"),
+    )
+    weight_unit = models.CharField(
+        max_length=10,
+        default="kg",
+        choices=[("kg", "kg"), ("lb", "lbs"), ("oz", "oz")],
+        verbose_name=_("Weight"),
+    )
+    temperature_unit = models.CharField(
+        max_length=10,
+        default="C",
+        choices=[("C", "°C"), ("F", "°F")],
+        verbose_name=_("Temperature"),
+    )
     theme = models.CharField(
         choices=[
             ("auto", _("Match device")),
@@ -207,7 +253,7 @@ class Settings(models.Model):
     )
     dashboard_hidden_cards = models.JSONField(
         blank=True,
-        default=list,
+        default=default_hidden_dashboard_cards,
         verbose_name=_("Hidden dashboard cards"),
     )
     access_expires = models.DateTimeField(

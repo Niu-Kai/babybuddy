@@ -11,3 +11,6 @@
 {% block toolbar %}
     {% include "reports/percentile_switch.html" with plain="reports:report-weight-change-child" boy="reports:report-weight-change-child-boy" girl="reports:report-weight-change-child-girl" %}
 {% endblock %}
+{% block report_heading %}
+    {% trans "Weight" %}
+{% endblock %}

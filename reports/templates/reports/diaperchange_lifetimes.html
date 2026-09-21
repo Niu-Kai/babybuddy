@@ -8,3 +8,6 @@
     {% include "reports/breadcrumb_common_chunk.html" with target_url="reports:report-diaperchange-lifetimes-child" %}
     <li class="breadcrumb-item active" aria-current="page">{% trans "Diaper Lifetimes" %}</li>
 {% endblock %}
+{% block report_heading %}
+    {% trans "Diaper Lifetimes" %}
+{% endblock %}

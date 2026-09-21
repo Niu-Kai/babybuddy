@@ -9,7 +9,101 @@ from core import models
 from . import graphs
 
 
-class BMIChangeChildReport(PermissionRequiredMixin, DetailView):
+def report_period(request):
+    from core.forms import RecordPeriodFilterForm
+
+    if not hasattr(request, "_report_period"):
+        request._report_period = RecordPeriodFilterForm(request.GET, user=request.user)
+        request._report_period.is_valid()
+    return request._report_period
+
+
+def report_entries(model, request, **filters):
+    from datetime import date
+    from django.db.models import DateTimeField, DateField
+
+    queryset = model.objects.filter(**filters)
+    fields = {field.name: field for field in model._meta.fields}
+    name = next(
+        (
+            key
+            for key in ("start", "time", "date")
+            if key in fields and isinstance(fields[key], (DateField, DateTimeField))
+        ),
+        None,
+    )
+    period = report_period(request)
+    if not period.is_valid():
+        return queryset.none()
+    if name:
+        lookup = name + ("__date" if isinstance(fields[name], DateTimeField) else "")
+        first, last = period.cleaned_data.get("range_start"), period.cleaned_data.get(
+            "range_end"
+        )
+        if first:
+            queryset = queryset.filter(
+                **{lookup + "__gte": first, lookup + "__lte": last}
+            )
+        elif "period" not in request.GET:
+            # Existing bookmarked ranges remain valid until a period is chosen.
+            for parameter, operation in (("from", "gte"), ("to", "lte")):
+                try:
+                    value = date.fromisoformat(request.GET.get(parameter, ""))
+                except ValueError:
+                    continue
+                queryset = queryset.filter(**{lookup + "__" + operation: value})
+    return queryset
+
+
+class ReportPresentationMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        period = report_period(self.request)
+        context.update(
+            report_period=period,
+            report_range_start=period.cleaned_data.get("range_start"),
+            report_range_end=period.cleaned_data.get("range_end"),
+            today=timezone.localdate(),
+        )
+        return context
+
+    def render_to_response(self, context, **response_kwargs):
+        from core.presentation import presentation
+
+        scope = presentation(self.request)
+        if (
+            not scope["selected_child"]
+            and self.template_name != "reports/report_list.html"
+        ):
+            panels = []
+            for child in scope["scope_children"]:
+                if context.get("object") and child.pk == context["object"].pk:
+                    panels.append(context.copy())
+                    continue
+                view = type(self)()
+                view.setup(self.request, **{**self.kwargs, "slug": child.slug})
+                view.object = child
+                panel = view.get_context_data(object=child)
+                panels.append(panel)
+            context["report_panels"] = panels
+        return super().render_to_response(context, **response_kwargs)
+
+
+class ReportsHome(ReportPresentationMixin, PermissionRequiredMixin, DetailView):
+    model = models.Child
+    permission_required = ("core.view_child",)
+    template_name = "reports/report_list.html"
+
+    def get_object(self, queryset=None):
+        from core.presentation import presentation
+
+        scope = presentation(self.request)
+        return scope["selected_child"] or models.Child.objects.first()
+
+
+class BMIChangeChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of BMI change over time.
     """
@@ -24,13 +118,19 @@ class BMIChangeChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(BMIChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        objects = models.BMI.objects.filter(child=child)
+        objects = report_entries(
+            models.BMI,
+            self.request,
+            child=child,
+            source_weight__isnull=False,
+            source_height__isnull=False,
+        )
         if objects:
             context["html"], context["js"] = graphs.bmi_change(objects)
         return context
 
 
-class ChildReportList(PermissionRequiredMixin, DetailView):
+class ChildReportList(ReportPresentationMixin, PermissionRequiredMixin, DetailView):
     """
     Listing of available reports for a child.
     """
@@ -40,7 +140,7 @@ class ChildReportList(PermissionRequiredMixin, DetailView):
     template_name = "reports/report_list.html"
 
 
-class DiaperChangeAmounts(PermissionRequiredMixin, DetailView):
+class DiaperChangeAmounts(ReportPresentationMixin, PermissionRequiredMixin, DetailView):
     """
     Graph of diaper "amounts" - measurements of urine output.
     """
@@ -55,13 +155,17 @@ class DiaperChangeAmounts(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(DiaperChangeAmounts, self).get_context_data(**kwargs)
         child = context["object"]
-        changes = models.DiaperChange.objects.filter(child=child, amount__gt=0)
+        changes = report_entries(
+            models.DiaperChange, self.request, child=child, amount__gt=0
+        )
         if changes and changes.count() > 0:
             context["html"], context["js"] = graphs.diaperchange_amounts(changes)
         return context
 
 
-class DiaperChangeLifetimesChildReport(PermissionRequiredMixin, DetailView):
+class DiaperChangeLifetimesChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of diaper "lifetimes" - time between diaper changes.
     """
@@ -78,13 +182,15 @@ class DiaperChangeLifetimesChildReport(PermissionRequiredMixin, DetailView):
             **kwargs
         )
         child = context["object"]
-        changes = models.DiaperChange.objects.filter(child=child)
+        changes = report_entries(models.DiaperChange, self.request, child=child)
         if changes and changes.count() > 1:
             context["html"], context["js"] = graphs.diaperchange_lifetimes(changes)
         return context
 
 
-class DiaperChangeTypesChildReport(PermissionRequiredMixin, DetailView):
+class DiaperChangeTypesChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of diaper changes by day and type.
     """
@@ -99,13 +205,15 @@ class DiaperChangeTypesChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(DiaperChangeTypesChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        changes = models.DiaperChange.objects.filter(child=child)
+        changes = report_entries(models.DiaperChange, self.request, child=child)
         if changes:
             context["html"], context["js"] = graphs.diaperchange_types(changes)
         return context
 
 
-class DiaperChangeIntervalsChildReport(PermissionRequiredMixin, DetailView):
+class DiaperChangeIntervalsChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of diaper change intervals.
     """
@@ -122,13 +230,15 @@ class DiaperChangeIntervalsChildReport(PermissionRequiredMixin, DetailView):
             **kwargs
         )
         child = context["object"]
-        changes = models.DiaperChange.objects.filter(child=child)
+        changes = report_entries(models.DiaperChange, self.request, child=child)
         if changes:
             context["html"], context["js"] = graphs.diaperchange_intervals(changes)
         return context
 
 
-class FeedingAmountsChildReport(PermissionRequiredMixin, DetailView):
+class FeedingAmountsChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of daily feeding amounts over time.
     """
@@ -148,13 +258,15 @@ class FeedingAmountsChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(FeedingAmountsChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Feeding.objects.filter(child=child)
+        instances = report_entries(models.Feeding, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.feeding_amounts(instances)
         return context
 
 
-class FeedingDurationChildReport(PermissionRequiredMixin, DetailView):
+class FeedingDurationChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of feeding durations over time.
     """
@@ -174,13 +286,15 @@ class FeedingDurationChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(FeedingDurationChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Feeding.objects.filter(child=child)
+        instances = report_entries(models.Feeding, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.feeding_duration(instances)
         return context
 
 
-class FeedingIntervalsChildReport(PermissionRequiredMixin, DetailView):
+class FeedingIntervalsChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of diaper change intervals.
     """
@@ -195,13 +309,15 @@ class FeedingIntervalsChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(FeedingIntervalsChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Feeding.objects.filter(child=child)
+        instances = report_entries(models.Feeding, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.feeding_intervals(instances)
         return context
 
 
-class FeedingPatternChildReport(PermissionRequiredMixin, DetailView):
+class FeedingPatternChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of feeding pattern.
     """
@@ -221,13 +337,17 @@ class FeedingPatternChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(FeedingPatternChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Feeding.objects.filter(child=child).order_by("start")
+        instances = report_entries(models.Feeding, self.request, child=child).order_by(
+            "start"
+        )
         if instances:
             context["html"], context["js"] = graphs.feeding_pattern(instances)
         return context
 
 
-class HeadCircumferenceChangeChildReport(PermissionRequiredMixin, DetailView):
+class HeadCircumferenceChangeChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of head circumference change over time, optionally against the WHO
     percentiles for boys or girls.
@@ -250,7 +370,7 @@ class HeadCircumferenceChangeChildReport(PermissionRequiredMixin, DetailView):
             **kwargs
         )
         child = context["object"]
-        objects = models.HeadCircumference.objects.filter(child=child)
+        objects = report_entries(models.HeadCircumference, self.request, child=child)
         percentiles = models.HeadCircumferencePercentile.objects.filter(sex=self.sex)
         context["target_url"] = self.target_url
         if objects:
@@ -276,7 +396,9 @@ class HeadCircumferenceChangeChildGirlReport(HeadCircumferenceChangeChildReport)
         )
 
 
-class HeightChangeChildReport(PermissionRequiredMixin, DetailView):
+class HeightChangeChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of height change over time.
     """
@@ -297,7 +419,7 @@ class HeightChangeChildReport(PermissionRequiredMixin, DetailView):
         context = super(HeightChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
         birthday = child.corrected_birth_date
-        actual_heights = models.Height.objects.filter(child=child)
+        actual_heights = report_entries(models.Height, self.request, child=child)
         percentile_heights = models.HeightPercentile.objects.filter(sex=self.sex)
         context["target_url"] = self.target_url
         if actual_heights:
@@ -321,7 +443,7 @@ class HeightChangeChildGirlReport(HeightChangeChildReport):
         )
 
 
-class PumpingAmounts(PermissionRequiredMixin, DetailView):
+class PumpingAmounts(ReportPresentationMixin, PermissionRequiredMixin, DetailView):
     """
     Graph of pumping milk amounts collected.
     """
@@ -336,13 +458,15 @@ class PumpingAmounts(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(PumpingAmounts, self).get_context_data(**kwargs)
         child = context["object"]
-        changes = models.Pumping.objects.filter(child=child)
+        changes = report_entries(models.Pumping, self.request, child=child)
         if changes and changes.count() > 0:
             context["html"], context["js"] = graphs.pumping_amounts(changes)
         return context
 
 
-class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
+class ActivityPatternChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Day-by-day chart of all activities for the last N days (#218, #881).
     """
@@ -358,17 +482,22 @@ class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         child = context["object"]
         user = self.request.user
-        try:
-            days = int(self.request.GET.get("days", self.default_days))
-        except (TypeError, ValueError):
-            days = self.default_days
-        days = max(1, min(days, 90))
-        context["days"] = days
-        last_day = timezone.localdate()
-        first_day = last_day - timezone.timedelta(days=days - 1)
-        window_start = timezone.make_aware(
-            timezone.datetime.combine(first_day, timezone.datetime.min.time())
-        )
+        period = report_period(self.request)
+        if not period.is_valid():
+            return context
+        first_day = period.cleaned_data.get("range_start")
+        last_day = period.cleaned_data.get("range_end")
+        if (
+            not first_day
+            and "period" not in self.request.GET
+            and "days" in self.request.GET
+        ):
+            try:
+                days = max(1, min(int(self.request.GET["days"]), 90))
+            except (ValueError, TypeError):
+                days = self.default_days
+            last_day = timezone.localdate()
+            first_day = last_day - timezone.timedelta(days=days - 1)
 
         intervals, points, labels = [], [], {}
         interval_models = (
@@ -383,10 +512,16 @@ class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
             ):
                 continue
             labels[kind] = name
-            for instance in model.objects.filter(
-                child=child, end__gte=window_start
-            ).order_by("start"):
-                end = instance.end
+            from django.db.models import Q
+
+            entries = model.objects.filter(child=child)
+            if first_day:
+                entries = entries.filter(start__date__lte=last_day).filter(
+                    Q(end__date__gte=first_day)
+                    | Q(end__isnull=True, start__date__gte=first_day)
+                )
+            for instance in entries.order_by("start"):
+                end = instance.end or instance.start
                 if end == instance.start:
                     # An instant (e.g. a bottle feed) is drawn as a short block.
                     end = end + timezone.timedelta(minutes=5)
@@ -395,8 +530,8 @@ class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
                 )
         if user.has_perm("core.view_diaperchange"):
             labels["diaperchange"] = _("Diaper Change")
-            for instance in models.DiaperChange.objects.filter(
-                child=child, time__gte=window_start
+            for instance in report_entries(
+                models.DiaperChange, self.request, child=child
             ):
                 points.append(
                     (
@@ -410,19 +545,29 @@ class ActivityPatternChildReport(PermissionRequiredMixin, DetailView):
                 )
         if user.has_perm("core.view_medication"):
             labels["medication"] = _("Medication")
-            for instance in models.Medication.objects.filter(
-                child=child, time__gte=window_start
+            for instance in report_entries(
+                models.Medication, self.request, child=child
             ):
                 points.append(("medication", instance.time, instance.name))
 
         if intervals or points:
+            dates = [
+                timezone.localtime(value).date()
+                for _, start, end, _ in intervals
+                for value in (start, end)
+            ]
+            dates.extend(timezone.localtime(value).date() for _, value, _ in points)
+            first_day = first_day or min(dates)
+            last_day = last_day or max(dates)
             context["html"], context["js"] = graphs.activity_pattern(
                 intervals, points, first_day, last_day, labels
             )
         return context
 
 
-class SleepPatternChildReport(PermissionRequiredMixin, DetailView):
+class SleepPatternChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of sleep pattern comparing sleep to wake times by day.
     """
@@ -442,13 +587,17 @@ class SleepPatternChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(SleepPatternChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Sleep.objects.filter(child=child).order_by("start")
+        instances = report_entries(models.Sleep, self.request, child=child).order_by(
+            "start"
+        )
         if instances:
             context["html"], context["js"] = graphs.sleep_pattern(instances)
         return context
 
 
-class SleepTotalsChildReport(PermissionRequiredMixin, DetailView):
+class SleepTotalsChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of total sleep by day.
     """
@@ -468,13 +617,17 @@ class SleepTotalsChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(SleepTotalsChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Sleep.objects.filter(child=child).order_by("start")
+        instances = report_entries(models.Sleep, self.request, child=child).order_by(
+            "start"
+        )
         if instances:
             context["html"], context["js"] = graphs.sleep_totals(instances)
         return context
 
 
-class TemperatureChangeChildReport(PermissionRequiredMixin, DetailView):
+class TemperatureChangeChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of temperature change over time.
     """
@@ -489,13 +642,15 @@ class TemperatureChangeChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(TemperatureChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        objects = models.Temperature.objects.filter(child=child)
+        objects = report_entries(models.Temperature, self.request, child=child)
         if objects:
             context["html"], context["js"] = graphs.temperature_change(objects)
         return context
 
 
-class TummyTimeDurationChildReport(PermissionRequiredMixin, DetailView):
+class TummyTimeDurationChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of tummy time durations over time.
     """
@@ -515,13 +670,15 @@ class TummyTimeDurationChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(TummyTimeDurationChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.TummyTime.objects.filter(child=child)
+        instances = report_entries(models.TummyTime, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.tummytime_duration(instances)
         return context
 
 
-class WeightChangeChildReport(PermissionRequiredMixin, DetailView):
+class WeightChangeChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of weight change over time.
     """
@@ -542,7 +699,7 @@ class WeightChangeChildReport(PermissionRequiredMixin, DetailView):
         context = super(WeightChangeChildReport, self).get_context_data(**kwargs)
         child = context["object"]
         birthday = child.corrected_birth_date
-        actual_weights = models.Weight.objects.filter(child=child)
+        actual_weights = report_entries(models.Weight, self.request, child=child)
         percentile_weights = models.WeightPercentile.objects.filter(sex=self.sex)
         context["target_url"] = self.target_url
         if actual_weights:
@@ -566,7 +723,9 @@ class WeightChangeChildGirlReport(WeightChangeChildReport):
         )
 
 
-class MedicationFrequencyChildReport(PermissionRequiredMixin, DetailView):
+class MedicationFrequencyChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of medication frequency over time.
     """
@@ -581,13 +740,15 @@ class MedicationFrequencyChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(MedicationFrequencyChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Medication.objects.filter(child=child)
+        instances = report_entries(models.Medication, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.medication_frequency(instances)
         return context
 
 
-class MedicationIntervalsChildReport(PermissionRequiredMixin, DetailView):
+class MedicationIntervalsChildReport(
+    ReportPresentationMixin, PermissionRequiredMixin, DetailView
+):
     """
     Graph of medication intervals over time.
     """
@@ -602,7 +763,7 @@ class MedicationIntervalsChildReport(PermissionRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super(MedicationIntervalsChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = models.Medication.objects.filter(child=child)
+        instances = report_entries(models.Medication, self.request, child=child)
         if instances:
             context["html"], context["js"] = graphs.medication_intervals(instances)
         return context

@@ -1,0 +1,20 @@
+{% load i18n presentation %}
+{% if measurements %}
+    <div class="dash-hero-measurements"
+         aria-label="{% trans 'Latest measurements' %}"
+         role="group">
+        {% for item in measurements %}
+            <a class="dash-chip dash-measurement"
+               href="{{ item.url }}"
+               aria-describedby="measurement-date-{{ measurement_child.pk }}-{{ item.field }}">
+                <span class="dash-measurement-label">{{ item.label }}</span>
+                <strong>{% if item.entry %}{% if item.field == "bmi" %}{{ item.entry.bmi|floatformat:2 }}{% else %}{% measurement item.entry item.field %}{% endif %}{% else %}—{% endif %}</strong>
+                <span class="dash-measurement-date"
+                      role="tooltip"
+                      id="measurement-date-{{ measurement_child.pk }}-{{ item.field }}">
+                    {% if item.entry %}{{ item.date|date:"M j, Y" }}{% if item.has_time %} · {{ item.date|time }}{% endif %}{% else %}{% trans "No entries" %}{% endif %}
+                </span>
+            </a>
+        {% endfor %}
+    </div>
+{% endif %}

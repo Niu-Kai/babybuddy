@@ -35,14 +35,11 @@ class ViewsTestCase(TestCase):
     def test_bmi_views(self):
         page = self.c.get("/bmi/")
         self.assertEqual(page.status_code, 200)
-        page = self.c.get("/bmi/add/")
-        self.assertEqual(page.status_code, 200)
+        self.assertRedirects(self.c.get("/bmi/add/"), "/bmi/")
 
         entry = models.BMI.objects.first()
-        page = self.c.get("/bmi/{}/".format(entry.id))
-        self.assertEqual(page.status_code, 200)
-        page = self.c.get("/bmi/{}/delete/".format(entry.id))
-        self.assertEqual(page.status_code, 200)
+        self.assertRedirects(self.c.get("/bmi/{}/".format(entry.id)), "/bmi/")
+        self.assertRedirects(self.c.get("/bmi/{}/delete/".format(entry.id)), "/bmi/")
 
     def test_child_views(self):
         page = self.c.get("/children/")
@@ -254,7 +251,8 @@ class ViewsTestCase(TestCase):
     def test_timeline_views(self):
         child = models.Child.objects.first()
         response = self.c.get("/timeline/")
-        self.assertRedirects(response, "/children/{}/".format(child.slug))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "timeline/timeline.html")
 
         models.Child.objects.create(
             first_name="Second", last_name="Child", birth_date="2000-01-01"

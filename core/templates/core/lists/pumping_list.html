@@ -1,0 +1,81 @@
+{% load presentation %}
+{% load datetime duration misc i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="date">{% trans "Date" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="amount">{% trans "Amount" %}</th>
+                <th data-column="side">{% trans "Side" %}</th>
+                <th data-column="duration">{% trans "Duration" %}</th>
+                <th data-column="previous">{% trans "Previous" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pumping in object_list %}
+                {% with prev_pumping=object_list|next:forloop.counter0 %}
+                    <tr>
+                        <th data-column="date" scope="row">{{ pumping.start|datetime_short }}</th>
+                        {% if not unique_child %}
+                            <td data-column="child">
+                                <a href="{% url 'core:child' pumping.child.slug %}">{{ pumping.child }}</a>
+                            </td>
+                        {% endif %}
+                        <td data-column="amount">{% measurement pumping 'amount' %}</td>
+                        <td data-column="side">{% if pumping.side %}{{ pumping.get_side_display }}{% endif %}</td>
+                        <td data-column="duration">{{ pumping.duration|duration_string }}</td>
+                        <td data-column="previous">
+                            {% if prev_pumping %}
+                                {% blocktrans trimmed with time_ago=prev_pumping.start|timesince:pumping.start %}
+                                    {{ time_ago }} ago
+                                {% endblocktrans %}
+                            {% endif %}
+                        </td>
+                        <td data-column="recorded-by">{{ pumping.created_by_display|default:"—" }}</td>
+                        <td data-column="tags">{% include "core/render_tag_list.html" with tags=pumping.tags.all %}</td>
+                        <td data-column="actions">
+                            <div class="btn-group btn-group-sm"
+                                 role="group"
+                                 aria-label="{% trans "Actions" %}">
+                                {% if perms.core.change_pumping %}
+                                    <a href="{% url 'core:pumping-update' pumping.id %}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                                {% endif %}
+                                {% if perms.core.delete_pumping %}
+                                    <details class="record-more">
+                                        <summary aria-label="{% trans 'More entry actions' %}"
+                                                 title="{% trans 'More entry actions' %}">•••</summary>
+                                        <div class="record-more-menu">
+                                            <a href="{% url 'core:pumping-delete' pumping.id %}"
+                                               class="btn btn-sm btn-outline-danger record-delete"
+                                               aria-label="{% trans 'Delete entry' %}"
+                                               title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                        </div>
+                                    </details>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% if pumping.notes %}
+                        <tr class="{{ row_class }} row-details" data-column="notes">
+                            <td colspan="8">
+                                <i class="icon-note me-2" aria-hidden="true"></i>{{ pumping.notes }}
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endwith %}
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}9{% else %}8{% endif %}">{% trans "No pumping entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

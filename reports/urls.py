@@ -6,6 +6,7 @@ from . import views
 app_name = "reports"
 
 urlpatterns = [
+    path("reports/", views.ReportsHome.as_view(), name="home"),
     path(
         "children/<str:slug>/reports",
         views.ChildReportList.as_view(),

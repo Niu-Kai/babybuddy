@@ -11,6 +11,7 @@ from core.models import (
     Reflux,
     DiaperChange,
     Feeding,
+    Pumping,
     Note,
     Sleep,
     TummyTime,
@@ -19,29 +20,47 @@ from core.models import (
 )
 from core.utils import duration_string
 
-from django.db.models import Q, F
+from django.db.models import Q, F, OuterRef, Prefetch, Subquery
+from core.units import entry_value
 
 
-def get_objects(date, child=None, user=None):
+def _date_range(field, start, end):
+    return Q(**{field + "__range": (start, end)}) if start is not None else Q()
+
+
+def _in_range(value, start, end):
+    return start is None or start <= value <= end
+
+
+def get_objects(date=None, child=None, user=None, activity="", end_date=None):
     """
     Create a time-sorted dictionary of all events for a child.
-    :param date: a DateTime instance for the day to be summarized.
+    :param date: optional local DateTime for one day; None includes all history.
+    :param end_date: optional inclusive end of a calendar range.
     :param child: Child instance to filter results for (no filter if `None`).
     :param user: User the timeline is rendered for. Event types the user has no
         `view` permission for are left out. All types are included if `None`.
-    :returns: a list of the day's events.
+    :returns: events ordered newest first.
     """
-    min_date = date
-    max_date = date.replace(hour=23, minute=59, second=59)
+    min_date = date.replace(hour=0, minute=0, second=0, microsecond=0) if date else None
+    max_date = (
+        (end_date or date).replace(hour=23, minute=59, second=59, microsecond=999999)
+        if date
+        else None
+    )
     events = []
 
     def permitted(model_name):
-        return user is None or user.has_perm(f"core.view_{model_name}")
+        return (not activity or activity == model_name) and (
+            user is None or user.has_perm(f"core.view_{model_name}")
+        )
 
     if permitted("diaperchange"):
         _add_diaper_changes(min_date, max_date, events, child)
     if permitted("feeding"):
         _add_feedings(min_date, max_date, events, child)
+    if permitted("pumping"):
+        _add_pumpings(min_date, max_date, events, child)
     if permitted("medication"):
         _add_medication(min_date, max_date, events, child)
     if permitted("sleep"):
@@ -73,18 +92,21 @@ def get_objects(date, child=None, user=None):
 
 def _add_tummy_times(min_date, max_date, events, child=None):
     instances = TummyTime.objects.filter(
-        Q(start__range=(min_date, max_date)) | Q(end__range=(min_date, max_date))
+        _date_range("start", min_date, max_date)
+        | _date_range("end", min_date, max_date)
     ).order_by("-start")
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.milestone:
             details.append(instance.milestone)
         if instance.notes:
             details.append(instance.notes)
         edit_link = reverse("core:tummytime-update", args=[instance.id])
-        if min_date <= instance.start <= max_date:
+        if _in_range(instance.start, min_date, max_date):
             events.append(
                 {
                     "time": timezone.localtime(instance.start),
@@ -94,11 +116,11 @@ def _add_tummy_times(min_date, max_date, events, child=None):
                     "edit_link": edit_link,
                     "model_name": instance.model_name,
                     "type": "start",
-                    "tags": instance.tags.all(),
+                    "tags": instance.timeline_tags,
                 }
             )
 
-        if min_date <= instance.end <= max_date:
+        if _in_range(instance.end, min_date, max_date):
             end = {
                 "time": timezone.localtime(instance.end),
                 "event": _("%(child)s finished tummy time.")
@@ -107,7 +129,7 @@ def _add_tummy_times(min_date, max_date, events, child=None):
                 "edit_link": edit_link,
                 "model_name": instance.model_name,
                 "type": "end",
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
             if instance.duration > timedelta(seconds=0):
                 end["duration"] = duration_string(instance.duration)
@@ -117,16 +139,19 @@ def _add_tummy_times(min_date, max_date, events, child=None):
 
 def _add_sleeps(min_date, max_date, events, child=None):
     instances = Sleep.objects.filter(
-        Q(start__range=(min_date, max_date)) | Q(end__range=(min_date, max_date))
+        _date_range("start", min_date, max_date)
+        | _date_range("end", min_date, max_date)
     ).order_by("-start")
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.notes:
             details.append(instance.notes)
         edit_link = reverse("core:sleep-update", args=[instance.id])
-        if min_date <= instance.start <= max_date:
+        if _in_range(instance.start, min_date, max_date):
             events.append(
                 {
                     "time": timezone.localtime(instance.start),
@@ -136,11 +161,11 @@ def _add_sleeps(min_date, max_date, events, child=None):
                     "edit_link": edit_link,
                     "model_name": instance.model_name,
                     "type": "start",
-                    "tags": instance.tags.all(),
+                    "tags": instance.timeline_tags,
                 }
             )
 
-        if min_date <= instance.end <= max_date:
+        if _in_range(instance.end, min_date, max_date):
             end = {
                 "time": timezone.localtime(instance.end),
                 "event": _("%(child)s woke up.") % {"child": instance.child.first_name},
@@ -148,7 +173,7 @@ def _add_sleeps(min_date, max_date, events, child=None):
                 "edit_link": edit_link,
                 "model_name": instance.model_name,
                 "type": "end",
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
             if instance.duration > timedelta(seconds=0):
                 end["duration"] = duration_string(instance.duration)
@@ -156,26 +181,46 @@ def _add_sleeps(min_date, max_date, events, child=None):
 
 
 def _add_feedings(min_date, max_date, events, child=None):
-    # Ensure first feeding has a previous.
-    yesterday = min_date - timedelta(days=1)
-    prev_start = None
-
-    instances = Feeding.objects.filter(
-        Q(start__range=(yesterday, max_date)) | Q(end__range=(min_date, max_date))
-    ).order_by("start")
+    previous = (
+        Feeding.objects.filter(child_id=OuterRef("child_id"))
+        .filter(
+            Q(start__lt=OuterRef("start"))
+            | Q(start=OuterRef("start"), pk__lt=OuterRef("pk"))
+        )
+        .order_by("-start", "-pk")
+    )
+    instances = (
+        Feeding.objects.filter(
+            _date_range("start", min_date, max_date)
+            | _date_range("end", min_date, max_date)
+        )
+        .annotate(previous_start=Subquery(previous.values("start")[:1]))
+        .order_by("start", "pk")
+    )
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.notes:
             details.append(instance.notes)
         time_since_prev = None
-        if prev_start:
-            time_since_prev = timesince.timesince(prev_start, now=instance.start)
-        prev_start = instance.start
+        if instance.previous_start:
+            time_since_prev = timesince.timesince(
+                instance.previous_start, now=instance.start
+            )
         edit_link = reverse("core:feeding-update", args=[instance.id])
         if instance.total_amount:
-            details.append(_("Amount") + ": " + instance.amount_display)
+            details.append(
+                _("Amount")
+                + ": "
+                + (
+                    entry_value(instance, "total_amount")
+                    if instance.entry_unit
+                    else instance.amount_display
+                )
+            )
         if instance.secondary_type:
             details.append(instance.type_display)
 
@@ -184,11 +229,11 @@ def _add_feedings(min_date, max_date, events, child=None):
             "details": details,
             "edit_link": edit_link,
             "model_name": instance.model_name,
-            "tags": instance.tags.all(),
+            "tags": instance.timeline_tags,
         }
 
         if instance.duration > timedelta(seconds=0):
-            if min_date <= instance.start <= max_date:
+            if _in_range(instance.start, min_date, max_date):
                 start_event = {
                     **base_object,
                     "event": _("%(child)s started feeding.")
@@ -198,7 +243,7 @@ def _add_feedings(min_date, max_date, events, child=None):
                 }
                 events.append(start_event)
 
-            if min_date <= instance.end <= max_date:
+            if _in_range(instance.end, min_date, max_date):
                 end_event = {
                     **base_object,
                     "time": timezone.localtime(instance.end),
@@ -210,7 +255,7 @@ def _add_feedings(min_date, max_date, events, child=None):
 
                 events.append(end_event)
         else:
-            if min_date <= instance.start <= max_date:
+            if _in_range(instance.start, min_date, max_date):
                 feed_event = {
                     **base_object,
                     "event": _("%(child)s had a feeding.")
@@ -221,12 +266,14 @@ def _add_feedings(min_date, max_date, events, child=None):
 
 
 def _add_diaper_changes(min_date, max_date, events, child):
-    instances = DiaperChange.objects.filter(time__range=(min_date, max_date)).order_by(
-        "-time"
-    )
+    instances = DiaperChange.objects.filter(
+        _date_range("time", min_date, max_date)
+    ).order_by("-time")
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         contents = []
         if instance.wet:
             contents.append("💧")
@@ -242,7 +289,7 @@ def _add_diaper_changes(min_date, max_date, events, child):
                 },
                 "edit_link": reverse("core:diaperchange-update", args=[instance.id]),
                 "model_name": instance.model_name,
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
         )
 
@@ -253,14 +300,16 @@ def _add_medication(min_date, max_date, events, child):
             db_next_dose_time=F("time") + F("next_dose_interval")
         )
         .filter(
-            Q(time__range=(min_date, max_date))
-            | Q(db_next_dose_time__range=(min_date, max_date))
+            _date_range("time", min_date, max_date)
+            | _date_range("db_next_dose_time", min_date, max_date)
         )
         .order_by("-time")
     )
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.dosage:
             details.append(
@@ -274,7 +323,7 @@ def _add_medication(min_date, max_date, events, child):
             details.append(instance.notes)
         edit_link = reverse("core:medication-update", args=[instance.id])
 
-        if min_date <= instance.time <= max_date:
+        if _in_range(instance.time, min_date, max_date):
             events.append(
                 {
                     "time": timezone.localtime(instance.time),
@@ -287,10 +336,12 @@ def _add_medication(min_date, max_date, events, child):
                     "edit_link": edit_link,
                     "model_name": instance.model_name,
                     "type": "start" if instance.next_dose_time else None,
-                    "tags": instance.tags.all(),
+                    "tags": instance.timeline_tags,
                 }
             )
-        if instance.next_dose_time and min_date <= instance.next_dose_time <= max_date:
+        if instance.next_dose_time and _in_range(
+            instance.next_dose_time, min_date, max_date
+        ):
             events.append(
                 {
                     "time": timezone.localtime(instance.next_dose_time),
@@ -303,39 +354,47 @@ def _add_medication(min_date, max_date, events, child):
                     "edit_link": edit_link,
                     "model_name": instance.model_name,
                     "type": "end",
-                    "tags": instance.tags.all(),
+                    "tags": instance.timeline_tags,
                 }
             )
 
 
 def _add_notes(min_date, max_date, events, child):
-    instances = Note.objects.filter(time__range=(min_date, max_date)).order_by("-time")
+    instances = Note.objects.filter(_date_range("time", min_date, max_date)).order_by(
+        "-time"
+    )
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         events.append(
             {
                 "time": timezone.localtime(instance.time),
                 "details": [instance.note],
                 "edit_link": reverse("core:note-update", args=[instance.id]),
                 "model_name": instance.model_name,
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
         )
 
 
 def _add_temperature_measurements(min_date, max_date, events, child):
-    instances = Temperature.objects.filter(time__range=(min_date, max_date)).order_by(
-        "-time"
-    )
+    instances = Temperature.objects.filter(
+        _date_range("time", min_date, max_date)
+    ).order_by("-time")
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.notes:
             details.append(instance.notes)
         if instance.temperature:
-            details.append(_("Temperature") + ": " + str(instance.temperature))
+            details.append(
+                _("Temperature") + ": " + entry_value(instance, "temperature")
+            )
         events.append(
             {
                 "time": timezone.localtime(instance.time),
@@ -346,21 +405,24 @@ def _add_temperature_measurements(min_date, max_date, events, child):
                 "details": details,
                 "edit_link": reverse("core:temperature-update", args=[instance.id]),
                 "model_name": instance.model_name,
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
         )
 
 
 def _add_bathtimes(min_date, max_date, events, child=None):
     instances = BathTime.objects.filter(
-        Q(start__range=(min_date, max_date)) | Q(end__range=(min_date, max_date))
+        _date_range("start", min_date, max_date)
+        | _date_range("end", min_date, max_date)
     ).order_by("-start")
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = [instance.notes] if instance.notes else []
         edit_link = reverse("core:bathtime-update", args=[instance.id])
-        if min_date <= instance.start <= max_date:
+        if _in_range(instance.start, min_date, max_date):
             events.append(
                 {
                     "time": timezone.localtime(instance.start),
@@ -370,10 +432,10 @@ def _add_bathtimes(min_date, max_date, events, child=None):
                     "edit_link": edit_link,
                     "model_name": instance.model_name,
                     "type": "start",
-                    "tags": instance.tags.all(),
+                    "tags": instance.timeline_tags,
                 }
             )
-        if min_date <= instance.end <= max_date:
+        if _in_range(instance.end, min_date, max_date):
             end = {
                 "time": timezone.localtime(instance.end),
                 "event": _("%(child)s finished a bath.")
@@ -382,7 +444,7 @@ def _add_bathtimes(min_date, max_date, events, child=None):
                 "edit_link": edit_link,
                 "model_name": instance.model_name,
                 "type": "end",
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
             if instance.duration and instance.duration > timedelta(seconds=0):
                 end["duration"] = duration_string(instance.duration)
@@ -390,12 +452,14 @@ def _add_bathtimes(min_date, max_date, events, child=None):
 
 
 def _add_reflux(min_date, max_date, events, child=None):
-    instances = Reflux.objects.filter(time__range=(min_date, max_date)).order_by(
+    instances = Reflux.objects.filter(_date_range("time", min_date, max_date)).order_by(
         "-time"
     )
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = [instance.get_severity_display()]
         if instance.notes:
             details.append(instance.notes)
@@ -407,16 +471,20 @@ def _add_reflux(min_date, max_date, events, child=None):
                 "details": details,
                 "edit_link": reverse("core:reflux-update", args=[instance.id]),
                 "model_name": instance.model_name,
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
             }
         )
 
 
 def _add_foods(min_date, max_date, events, child=None):
-    instances = Food.objects.filter(time__range=(min_date, max_date)).order_by("-time")
+    instances = Food.objects.filter(_date_range("time", min_date, max_date)).order_by(
+        "-time"
+    )
     if child:
         instances = instances.filter(child=child)
-    for instance in instances:
+    for instance in instances.select_related("child").prefetch_related(
+        Prefetch("tags", to_attr="timeline_tags")
+    ):
         details = []
         if instance.amount is not None:
             details.append(_("Amount") + ": " + str(instance.amount))
@@ -432,6 +500,29 @@ def _add_foods(min_date, max_date, events, child=None):
                 "details": details,
                 "edit_link": reverse("core:food-update", args=[instance.id]),
                 "model_name": instance.model_name,
-                "tags": instance.tags.all(),
+                "tags": instance.timeline_tags,
+            }
+        )
+
+
+def _add_pumpings(min_date, max_date, events, child):
+    entries = (
+        Pumping.objects.filter(_date_range("start", min_date, max_date))
+        .select_related("child")
+        .prefetch_related(Prefetch("tags", to_attr="timeline_tags"))
+    )
+    if child:
+        entries = entries.filter(child=child)
+    for entry in entries:
+        events.append(
+            {
+                "time": timezone.localtime(entry.start),
+                "event": _("Pumping for %(child)s") % {"child": entry.child.first_name},
+                "details": [entry_value(entry, "amount")]
+                + ([entry.notes] if entry.notes else []),
+                "duration": duration_string(entry.duration) if entry.duration else None,
+                "edit_link": reverse("core:pumping-update", args=[entry.pk]),
+                "model_name": "pumping",
+                "tags": entry.timeline_tags,
             }
         )

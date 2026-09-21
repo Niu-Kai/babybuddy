@@ -9,14 +9,15 @@
     <li class="breadcrumb-item fw-bold">{{ object }}</li>
 {% endblock %}
 {% block content %}
-    <div class="p-5 mb-4 bg rounded-3 text-center">
+    <h1>{% trans "Timer" %}</h1>
+    <div class="timer-detail">
         <div class="container-fluid py-1">
-            <h1 id="timer-status"
+            <h2 id="timer-status"
                 class="display-1{% if object.is_paused %} text-body-secondary{% endif %}">
                 <span class="timer-hours">{{ object.duration|hours }}</span>h
                 <span class="timer-minutes">{{ object.duration|minutes }}</span>m
                 <span class="timer-seconds">{{ object.duration|seconds }}</span>s
-            </h1>
+            </h2>
             {% if object.is_paused %}
                 <p>
                     <span class="badge bg-warning text-dark">{% trans "Paused" %}</span>
@@ -24,11 +25,6 @@
             {% endif %}
             {% if timer.child and CHILD_COUNT > 1 %}<h2 class="text-body-secondary">{{ timer.child }}</h2>{% endif %}
             <p class="lead text-secondary">{% trans "Started" %} {{ object.start }}</p>
-            <p class="text-body-secondary">
-                {% blocktrans trimmed with user=object.user_username %}
-                    {{ timer }} created by {{ user }}
-                {% endblocktrans %}
-            </p>
             <div id="timer-stopped" class="alert alert-warning d-none" role="alert">
                 {% trans "This timer has already been stopped." %}
                 <a href="{% url 'core:timer-list' %}" class="alert-link">{% trans "View Timers" %}</a>
@@ -37,33 +33,33 @@
                 <input class="form-check-input" type="checkbox" id="timer-keep-screen-on">
                 <label class="form-check-label" for="timer-keep-screen-on">{% trans "Keep screen on" %}</label>
             </div>
-            <div id="timer-actions" class="d-grid gap-4 mb-4">
+            <div id="timer-actions" class="timer-entry-actions">
                 {% if perms.core.add_feeding %}
-                    <a class="btn btn-success btn-lg"
+                    <a class="btn btn-outline-primary"
                        href="{% instance_add_url 'core:feeding-add' %}"
                        role="button"><i class="icon-feeding" aria-hidden="true"></i>
-                        {% trans "Feeding" %}
+                        {% trans "Save feeding" %}
                     </a>
                 {% endif %}
                 {% if perms.core.add_pumping %}
-                    <a class="btn btn-success btn-lg"
+                    <a class="btn btn-outline-primary"
                        href="{% instance_add_url 'core:pumping-add' %}"
                        role="button"><i class="icon-pumping" aria-hidden="true"></i>
-                        {% trans "Pumping" %}
+                        {% trans "Save pumping" %}
                     </a>
                 {% endif %}
                 {% if perms.core.add_sleep %}
-                    <a class="btn btn-success btn-lg"
+                    <a class="btn btn-outline-primary"
                        href="{% instance_add_url 'core:sleep-add' %}"
                        role="button"><i class="icon-sleep" aria-hidden="true"></i>
-                        {% trans "Sleep" %}
+                        {% trans "Save sleep" %}
                     </a>
                 {% endif %}
                 {% if perms.core.add_tummytime %}
-                    <a class="btn btn-success btn-lg"
+                    <a class="btn btn-outline-primary"
                        href="{% instance_add_url 'core:tummytime-add' %}"
                        role="button"><i class="icon-tummytime" aria-hidden="true"></i>
-                        {% trans "Tummy Time" %}
+                        {% trans "Save tummy time" %}
                     </a>
                 {% endif %}
             </div>
@@ -73,11 +69,15 @@
                 {% if perms.core.delete_timer %}
                     <a class="btn btn-lg btn-danger"
                        href="{% url 'core:timer-delete' timer.id %}"
+                       aria-label="{% trans "Delete timer" %}"
+                       title="{% trans "Delete timer" %}"
                        role="button"><i class="icon-delete" aria-hidden="true"></i></a>
                 {% endif %}
                 {% if perms.core.change_timer %}
                     <a class="btn btn-lg btn-primary"
                        href="{% url 'core:timer-update' timer.id %}"
+                       aria-label="{% trans "Edit timer" %}"
+                       title="{% trans "Edit timer" %}"
                        role="button"><i class="icon-update" aria-hidden="true"></i></a>
                     {% if timer.is_paused %}
                         <form action="{% url 'core:timer-resume' timer.id %}"
@@ -106,7 +106,10 @@
                           class="d-inline">
                         {% csrf_token %}
                         <label class="visually-hidden">{% trans "Restart timer" %}</label>
-                        <button type="submit" class="btn btn-lg btn-secondary">
+                        <button type="submit"
+                                class="btn btn-lg btn-secondary"
+                                aria-label="{% trans "Restart timer" %}"
+                                title="{% trans "Restart timer" %}">
                             <i class="icon-refresh" aria-hidden="true"></i>
                         </button>
                     </form>

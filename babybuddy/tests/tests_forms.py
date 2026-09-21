@@ -404,7 +404,7 @@ class FormsTestCase(TestCase):
         page = self.c.post("/user/settings/", params)
         self.assertEqual(page.status_code, 200)
         self.assertFormError(
-            page.context["user_form"], "email", "Enter a valid email address."
+            page.context["form_user"], "email", "Enter a valid email address."
         )
 
     def test_user_settings_language(self):

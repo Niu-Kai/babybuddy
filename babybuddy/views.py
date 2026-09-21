@@ -82,11 +82,179 @@ class BabyBuddyFilterView(FilterView):
     # TODO Figure out the correct way to use this.
     strict = False
 
+    def get_queryset(self):
+        from core.presentation import presentation
+        from django.db.models import DateTimeField, DateField, OuterRef, Subquery, Q
+
+        queryset = super().get_queryset()
+        fields = {field.name: field for field in self.model._meta.fields}
+        if "child" not in fields:
+            return queryset
+        self.record_model_name = self.model._meta.model_name
+        if self.record_model_name == "headcircumference":
+            self.record_model_name = "head-circumference"
+        scope = presentation(self.request)
+        if scope["selected_child"]:
+            queryset = queryset.filter(child=scope["selected_child"])
+        queryset = queryset.select_related("child")
+        if "created_by" in fields:
+            queryset = queryset.select_related("created_by")
+        if self.model._meta.model_name == "bmi":
+            queryset = queryset.select_related("source_weight", "source_height")
+        elif hasattr(self.model, "tags"):
+            queryset = queryset.prefetch_related("tags")
+        if "user" in fields:
+            queryset = queryset.select_related("user")
+        if self.model._meta.model_name == "feeding":
+            # Correlated lookup works across page boundaries and never compares
+            # different children, even in the combined household view.
+            previous = (
+                self.model.objects.filter(child_id=OuterRef("child_id"))
+                .filter(
+                    Q(start__lt=OuterRef("start"))
+                    | Q(start=OuterRef("start"), pk__lt=OuterRef("pk"))
+                )
+                .order_by("-start", "-pk")
+            )
+            queryset = queryset.annotate(
+                previous_feeding_start=Subquery(previous.values("start")[:1])
+            )
+        date_field = next(
+            (
+                name
+                for name in ("start", "time", "date")
+                if name in fields
+                and isinstance(fields[name], (DateTimeField, DateField))
+            ),
+            None,
+        )
+        if date_field:
+            from core.forms import RecordPeriodFilterForm
+            from datetime import date
+
+            self.record_period = RecordPeriodFilterForm(
+                self.request.GET, user=self.request.user
+            )
+            if not self.record_period.is_valid():
+                return queryset.none()
+            name = date_field + (
+                "__date" if isinstance(fields[date_field], DateTimeField) else ""
+            )
+            first = self.record_period.cleaned_data.get("range_start")
+            last = self.record_period.cleaned_data.get("range_end")
+            if first:
+                queryset = queryset.filter(
+                    **{name + "__gte": first, name + "__lte": last}
+                )
+            elif "period" not in self.request.GET:
+                # Keep existing bookmarked date-range links working.
+                for parameter, lookup in (("from", "gte"), ("to", "lte")):
+                    try:
+                        value = date.fromisoformat(self.request.GET.get(parameter, ""))
+                    except ValueError:
+                        continue
+                    queryset = queryset.filter(**{name + "__" + lookup: value})
+        return queryset
+
+    def get_filterset_kwargs(self, filterset_class):
+        from core.presentation import presentation
+
+        kwargs = super().get_filterset_kwargs(filterset_class)
+        if any(field.name == "child" for field in self.model._meta.fields):
+            data = self.request.GET.copy()
+            if (
+                "scope" in data
+                or presentation(self.request)["side_by_side"]
+                or presentation(self.request)["selected_child"]
+            ):
+                data.pop("child", None)
+            kwargs["data"] = data
+        return kwargs
+
     def get_context_data(self, **kwargs):
+        from django.core.paginator import Paginator
+        from core.presentation import presentation
+
         context = super().get_context_data(**kwargs)
-        children = {o.child for o in context["object_list"] if hasattr(o, "child")}
-        if len(children) == 1:
-            context["unique_child"] = True
+        if not hasattr(self, "record_model_name"):
+            return context
+        from core.units import SPECS, preferred_unit
+
+        spec = SPECS.get(self.model._meta.model_name)
+        if spec:
+            unit_key = "display_unit_" + self.model._meta.model_name
+            allowed = {unit for unit, _ in spec[3]} | {"original"}
+            requested = self.request.GET.get("unit")
+            if requested in allowed:
+                self.request.session[unit_key] = requested
+            default = preferred_unit(
+                self.request.user.settings, self.model._meta.model_name
+            )
+            context["display_unit"] = self.request.session.get(unit_key, default)
+            if context["display_unit"] not in allowed:
+                context["display_unit"] = default
+            context["unit_choices"] = [("original", _("As entered"))] + list(spec[3])
+            context["unrecorded_units"] = self.filterset.qs.filter(
+                entry_unit=""
+            ).exists()
+        context["record_model_name"] = self.record_model_name
+        context["record_add_permission"] = (
+            self.model._meta.model_name != "bmi"
+            and self.request.user.has_perm("core.add_" + self.model._meta.model_name)
+        )
+        scope = presentation(self.request)
+        context["unique_child"] = bool(scope["selected_child"])
+        context["record_count"] = (
+            context["paginator"].count
+            if context.get("paginator")
+            else self.filterset.qs.count()
+        )
+        if hasattr(self, "record_period"):
+            from django.utils import timezone
+
+            context["record_period"] = self.record_period
+            context["today"] = timezone.localdate()
+            context["record_range_start"] = self.record_period.cleaned_data.get(
+                "range_start"
+            )
+            context["record_range_end"] = self.record_period.cleaned_data.get(
+                "range_end"
+            )
+            context["extra_filters_active"] = any(
+                self.request.GET.get(name)
+                for name in context["filter"].form.fields
+                if name != "child"
+            )
+        context["filter"].form.fields.pop("child", None)
+        if scope["side_by_side"]:
+            panels = []
+            for child in scope["scope_children"]:
+                query = self.filterset.qs.filter(child=child)
+                pager = Paginator(query, self.get_paginate_by(query))
+                key = f"page_child_{child.pk}"
+                panels.append(
+                    {
+                        "child": child,
+                        "page": pager.get_page(self.request.GET.get(key)),
+                        "page_key": key,
+                    }
+                )
+            if (
+                self.model._meta.model_name == "timer"
+                and self.filterset.qs.filter(child__isnull=True).exists()
+            ):
+                pager = Paginator(
+                    self.filterset.qs.filter(child__isnull=True),
+                    self.get_paginate_by(self.filterset.qs),
+                )
+                panels.append(
+                    {
+                        "child": None,
+                        "page": pager.get_page(self.request.GET.get("page_unassigned")),
+                        "page_key": "page_unassigned",
+                    }
+                )
+            context["record_panels"] = panels
         return context
 
 
@@ -118,6 +286,11 @@ class UserAdd(StaffOnlyMixin, PermissionRequiredMixin, SuccessMessageMixin, Crea
     success_url = reverse_lazy("babybuddy:user-list")
     success_message = gettext_lazy("User %(username)s added!")
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
+
 
 class UserUpdate(
     StaffOnlyMixin, PermissionRequiredMixin, SuccessMessageMixin, UpdateView
@@ -128,6 +301,11 @@ class UserUpdate(
     form_class = forms.UserUpdateForm
     success_url = reverse_lazy("babybuddy:user-list")
     success_message = gettext_lazy("User %(username)s updated.")
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        return kwargs
 
 
 class UserUnlock(
@@ -241,6 +419,11 @@ class UserSettings(LoginRequiredMixin, View):
             user_settings = form_settings.save(commit=False)
             user.settings = user_settings
             user.save()
+            from core.units import UNIT_PREFERENCE_FIELDS
+
+            for model, field in UNIT_PREFERENCE_FIELDS.items():
+                if request.POST.get(field) and field in form_settings.changed_data:
+                    request.session.pop("display_unit_" + model, None)
             translation.activate(user.settings.language)
             messages.success(request, _("Settings saved!"))
             translation.deactivate()
@@ -248,7 +431,7 @@ class UserSettings(LoginRequiredMixin, View):
         return render(
             request,
             self.template_name,
-            {"user_form": form_user, "settings_form": form_settings},
+            {"form_user": form_user, "form_settings": form_settings},
         )
 
 

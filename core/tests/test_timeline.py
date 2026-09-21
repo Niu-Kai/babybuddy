@@ -111,3 +111,283 @@ class TimelineTestCase(TestCase):
         self.assertEqual(events_day_2[0]["time"], start_time + interval)
 
         instance.delete()
+
+
+class TimelineHistoryViewsTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from django.contrib.auth import get_user_model
+        from zoneinfo import ZoneInfo
+
+        cls.user = get_user_model().objects.create_user(
+            "timeline-history", is_superuser=True
+        )
+        cls.user.settings.timezone = "Pacific/Honolulu"
+        cls.user.settings.save()
+        cls.child = models.Child.objects.create(
+            first_name="Alice", last_name="Timeline", birth_date="2026-01-01"
+        )
+        cls.other = models.Child.objects.create(
+            first_name="Ben", last_name="Timeline", birth_date="2026-01-01"
+        )
+        cls.day = datetime.datetime(2026, 9, 19, tzinfo=ZoneInfo("Pacific/Honolulu"))
+        cls.old = models.Note.objects.create(
+            child=cls.child,
+            time=cls.day - datetime.timedelta(days=2),
+            note="Older history marker",
+        )
+        cls.note = models.Note.objects.create(
+            child=cls.child,
+            time=cls.day
+            + datetime.timedelta(hours=23, minutes=59, seconds=59, microseconds=500000),
+            note="Selected day marker",
+        )
+        models.Temperature.objects.create(
+            child=cls.child, time=cls.day, temperature=37, entry_unit="C"
+        )
+        models.Note.objects.create(
+            child=cls.other, time=cls.day, note="Other child marker"
+        )
+
+    def setUp(self):
+        self.addCleanup(timezone.deactivate)
+        self.client.force_login(self.user)
+
+    def test_all_dates_by_default_and_local_day_activity_filters(self):
+        response = self.client.get("/timeline/", {"scope": self.child.slug})
+        self.assertContains(response, "Older history marker")
+        self.assertContains(response, "Selected day marker")
+        self.assertNotContains(response, "Other child marker")
+        self.assertIsNone(response.context["date"])
+        times = [event["time"] for event in response.context["timeline_objects"]]
+        self.assertEqual(times, sorted(times, reverse=True))
+        response = self.client.get(
+            "/timeline/", {"date": "2026-09-19", "activity": "note"}
+        )
+        self.assertContains(response, "Selected day marker")
+        self.assertNotContains(response, "Older history marker")
+        self.assertEqual(len(response.context["timeline_objects"]), 1)
+        response = self.client.get("/timeline/", {"activity": "note"})
+        self.assertContains(response, "Older history marker")
+        self.assertEqual(
+            {event["model_name"] for event in response.context["timeline_objects"]},
+            {"note"},
+        )
+
+    def test_history_pagination_keeps_filters_and_child_pages_independent(self):
+        for index in range(55):
+            models.Note.objects.create(
+                child=self.child,
+                time=self.day + datetime.timedelta(minutes=index),
+                note="History entry " + str(index),
+            )
+        response = self.client.get(
+            "/timeline/",
+            {
+                "scope": "compare",
+                "activity": "note",
+                "page_child_" + str(self.child.pk): 2,
+            },
+        )
+        panels = {
+            panel["child"].pk: panel for panel in response.context["timeline_panels"]
+        }
+        self.assertEqual(panels[self.child.pk]["timeline_page"].number, 2)
+        self.assertEqual(panels[self.other.pk]["timeline_page"].number, 1)
+        self.assertEqual(len(panels[self.child.pk]["timeline_objects"]), 7)
+        self.assertContains(response, "activity=note")
+        self.assertContains(response, "Newer events")
+
+    def test_invalid_filter_shows_error_instead_of_unfiltered_history(self):
+        for params in ({"date": "invalid"}, {"activity": "unknown"}):
+            response = self.client.get("/timeline/", params)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.context["timeline_filter"].errors)
+            self.assertNotContains(response, "Older history marker")
+
+    def test_page_headings_replace_breadcrumb_navigation(self):
+        from django.urls import reverse
+
+        for path in (
+            reverse("dashboard:dashboard"),
+            reverse("dashboard:dashboard-child", args=[self.child.slug]),
+            reverse("core:timeline"),
+            reverse("reports:report-height-change-child", args=[self.child.slug]),
+        ):
+            response = self.client.get(path, {"scope": "all"})
+            self.assertNotContains(response, 'aria-label="breadcrumb"')
+            self.assertContains(response, "<h1>")
+            self.assertNotContains(response, "Your household at a glance")
+
+    def test_feeding_interval_uses_same_child_even_outside_selected_day(self):
+        previous = self.day - datetime.timedelta(days=3)
+        for child, start in (
+            (self.child, previous),
+            (self.other, self.day - datetime.timedelta(hours=1)),
+            (self.child, self.day),
+        ):
+            models.Feeding.objects.create(
+                child=child, start=start, end=start, type="formula", method="bottle"
+            )
+        events = get_objects(self.day, activity="feeding")
+        self.assertEqual(len(events), 1)
+        from django.utils.timesince import timesince
+
+        self.assertEqual(
+            events[0]["time_since_prev"], timesince(previous, now=self.day)
+        )
+
+    def test_activity_filter_cannot_expose_unpermitted_records(self):
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import Permission
+
+        user = get_user_model().objects.create_user("timeline-restricted")
+        user.user_permissions.add(
+            Permission.objects.get(
+                content_type__app_label="core", codename="view_temperature"
+            )
+        )
+        self.client.force_login(user)
+        response = self.client.get("/timeline/")
+        self.assertNotContains(response, "Older history marker")
+        self.assertEqual(
+            {event["model_name"] for event in response.context["timeline_objects"]},
+            {"temperature"},
+        )
+        response = self.client.get("/timeline/", {"activity": "note"})
+        self.assertTrue(response.context["timeline_filter"].errors)
+        self.assertNotContains(response, "Older history marker")
+
+    def test_calendar_periods_share_exact_boundaries_across_children(self):
+        from zoneinfo import ZoneInfo
+
+        cases = (
+            ("week", "2026-01-01", "2025-12-28", "2026-01-03"),
+            ("month", "2024-02-15", "2024-02-01", "2024-02-29"),
+            ("year", "2024-09-19", "2024-01-01", "2024-12-31"),
+        )
+        for period, anchor, first, last in cases:
+            with self.subTest(period=period):
+                start = datetime.datetime.fromisoformat(first).replace(
+                    tzinfo=ZoneInfo("Pacific/Honolulu")
+                )
+                end = datetime.datetime.fromisoformat(last).replace(
+                    tzinfo=start.tzinfo,
+                    hour=23,
+                    minute=59,
+                    second=59,
+                    microsecond=999999,
+                )
+                for child in (self.child, self.other):
+                    for suffix, moment in (
+                        ("before", start - datetime.timedelta(microseconds=1)),
+                        ("start", start),
+                        ("end", end),
+                        ("after", end + datetime.timedelta(microseconds=1)),
+                    ):
+                        models.Note.objects.create(
+                            child=child,
+                            time=moment,
+                            note=period + " boundary " + suffix,
+                        )
+                response = self.client.get(
+                    "/timeline/",
+                    {
+                        "scope": "compare",
+                        "activity": "note",
+                        "period": period,
+                        "date": anchor,
+                    },
+                )
+                self.assertEqual(response.context["range_start"].isoformat(), first)
+                self.assertEqual(response.context["range_end"].isoformat(), last)
+                self.assertContains(response, "Same period for every child")
+                for panel in response.context["timeline_panels"]:
+                    events = panel["timeline_objects"]
+                    self.assertTrue(
+                        all(start <= event["time"] <= end for event in events)
+                    )
+                    descriptions = " ".join(
+                        detail for event in events for detail in event["details"]
+                    )
+                    self.assertIn(period + " boundary start", descriptions)
+                    self.assertIn(period + " boundary end", descriptions)
+                    self.assertNotIn(period + " boundary before", descriptions)
+                    self.assertNotIn(period + " boundary after", descriptions)
+
+    def test_period_navigation_preserves_comparison_and_activity_but_resets_pages(self):
+        from urllib.parse import parse_qs, urlsplit
+
+        response = self.client.get(
+            "/timeline/",
+            {
+                "scope": "compare",
+                "period": "month",
+                "date": "2024-02-15",
+                "activity": "note",
+                "page_child_" + str(self.child.pk): 2,
+            },
+        )
+        previous = parse_qs(urlsplit(response.context["previous_period_url"]).query)
+        following = parse_qs(urlsplit(response.context["next_period_url"]).query)
+        self.assertEqual(previous["date"], ["2024-01-31"])
+        self.assertEqual(following["date"], ["2024-03-01"])
+        self.assertEqual(following["scope"], ["compare"])
+        self.assertEqual(following["activity"], ["note"])
+        self.assertEqual(following["period"], ["month"])
+        self.assertFalse(any(key.startswith("page") for key in following))
+        next_page = self.client.get("/timeline/" + response.context["next_period_url"])
+        self.assertEqual(str(next_page.context["range_end"]), "2024-03-31")
+
+    def test_all_dates_and_invalid_period_edges(self):
+        response = self.client.get(
+            "/timeline/",
+            {
+                "period": "all",
+                "date": "2026-09-19",
+                "activity": "note",
+                "scope": self.child.slug,
+            },
+        )
+        self.assertIsNone(response.context["range_start"])
+        self.assertContains(response, "Older history marker")
+        for params in ({"period": "unknown"}, {"period": "week", "date": "0001-01-01"}):
+            response = self.client.get("/timeline/", params)
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.context["timeline_filter"].errors)
+        response = self.client.get("/timeline/", {"period": "year"})
+        self.assertEqual(
+            response.context["range_start"].year, timezone.localdate().year
+        )
+
+    def test_month_range_uses_local_midnight_across_daylight_saving(self):
+        from zoneinfo import ZoneInfo
+
+        self.user.settings.timezone = "America/New_York"
+        self.user.settings.save()
+        for marker, moment in (
+            (
+                "DST included",
+                datetime.datetime(
+                    2026, 3, 31, 23, 59, tzinfo=ZoneInfo("America/New_York")
+                ),
+            ),
+            (
+                "DST excluded",
+                datetime.datetime(
+                    2026, 4, 1, 0, 0, tzinfo=ZoneInfo("America/New_York")
+                ),
+            ),
+        ):
+            models.Note.objects.create(child=self.child, time=moment, note=marker)
+        response = self.client.get(
+            "/timeline/",
+            {
+                "period": "month",
+                "date": "2026-03-15",
+                "activity": "note",
+                "scope": self.child.slug,
+            },
+        )
+        self.assertContains(response, "DST included")
+        self.assertNotContains(response, "DST excluded")

@@ -1,0 +1,6 @@
+{% load i18n %}
+{% if menu %}<li class="nav-item dropdown"><button class="nav-link dropdown-toggle{% if active %} active{% endif %}"
+        id="{{ menu_id }}"
+        data-bs-toggle="dropdown"
+        aria-expanded="false">{% trans label %}</button><div class="dropdown-menu navigation-menu" aria-labelledby="{{ menu_id }}">{% for group in menu %}<section><h6 class="dropdown-header">{{ group.label }}</h6>{% for item in group.items %}<a class="dropdown-item{% if item.active and menu_id != 'add-entry-menu' %} active{% endif %}"
+   href="{{ item.url }}">{{ item.label }}</a>{% endfor %}</section>{% endfor %}</div></li>{% endif %}

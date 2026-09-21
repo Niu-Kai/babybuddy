@@ -1,0 +1,67 @@
+{% load presentation %}
+{% load datetime i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="time">{% trans "Time" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="temperature">{% trans "Temperature" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for temperature in object_list %}
+                <tr>
+                    <th data-column="time" scope="row">{{ temperature.time|datetime_short }}</th>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' temperature.child.slug %}">{{ temperature.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="temperature">{% measurement temperature 'temperature' %}</td>
+                    <td data-column="recorded-by">{{ temperature.created_by_display|default:"—" }}</td>
+                    <td data-column="tags">{% include "core/render_tag_list.html" with tags=temperature.tags.all %}</td>
+                    <td data-column="actions">
+                        <div class="btn-group btn-group-sm"
+                             role="group"
+                             aria-label="{% trans "Actions" %}">
+                            {% if perms.core.change_temperature %}
+                                <a href="{% url 'core:temperature-update' temperature.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.core.delete_temperature %}
+                                <details class="record-more">
+                                    <summary aria-label="{% trans 'More entry actions' %}"
+                                             title="{% trans 'More entry actions' %}">•••</summary>
+                                    <div class="record-more-menu">
+                                        <a href="{% url 'core:temperature-delete' temperature.id %}"
+                                           class="btn btn-sm btn-outline-danger record-delete"
+                                           aria-label="{% trans 'Delete entry' %}"
+                                           title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                    </div>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if temperature.notes %}
+                    <tr class="{{ row_class }} row-details" data-column="notes">
+                        <td colspan="6">
+                            <i class="icon-note me-2" aria-hidden="true"></i>{{ temperature.notes }}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No temperature entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

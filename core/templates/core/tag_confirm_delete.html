@@ -13,7 +13,7 @@
     <li class="breadcrumb-item active" aria-current="page">{% trans "Delete" %}</li>
 {% endblock %}
 {% block content %}
-    <form role="form" method="post">
+    <form role="form" method="post" class="confirmation-form">
         {% csrf_token %}
         <h1>{% confirm_delete_text object %}</h1>
         {% if object.core_tagged_items__count > 0 %}
@@ -32,7 +32,9 @@
                 </p>
             </div>
         {% endif %}
-        <button type="submit" class="btn btn-danger">{% trans "Delete Tag" %}</button>
-        <a href="{% url 'core:tag-list' %}" class="btn btn-default">{% trans "Cancel" %}</a>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">{% trans "Delete Tag" %}</button>
+            <a href="{% url 'core:tag-list' %}" class="btn btn-outline-secondary">{% trans "Cancel" %}</a>
+        </div>
     </form>
 {% endblock %}

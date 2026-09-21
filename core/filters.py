@@ -9,13 +9,13 @@ from core import models
 class TagFilter(django_filters.FilterSet):
     tag = django_filters.ModelChoiceFilter(
         label=_("Tag"),
-        field_name="tags__name",
+        field_name="tags",
         distinct=True,
         queryset=models.Tag.objects.all().order_by("name"),
     )
 
 
-class BMIFilter(TagFilter):
+class BMIFilter(django_filters.FilterSet):
     class Meta:
         model = models.BMI
         fields = ["child"]

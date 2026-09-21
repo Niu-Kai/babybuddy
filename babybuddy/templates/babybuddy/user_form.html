@@ -34,5 +34,6 @@
     {% else %}
         <h1>{% trans "Create User" %}</h1>
     {% endif %}
+    {% url "babybuddy:user-list" as cancel_url %}
     {% include "babybuddy/form.html" %}
 {% endblock %}

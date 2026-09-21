@@ -5,7 +5,8 @@
     {% else %}
         {{ field|add_class:"btn-check d-none" }}
     {% endif %}
-    <label for="id_{{ field.name }}" class="btn btn-outline-light btn-no-hover">{{ field.label }}</label>
+    <label for="{{ field.id_for_label }}"
+           class="btn btn-outline-secondary btn-no-hover">{{ field.label }}</label>
 {% elif "choice" in field|field_type %}
     {% if field.errors %}
         {{ field|add_class:"form-select is-invalid" }}
@@ -25,7 +26,7 @@
         {{ field|add_class:"form-control" }}
     {% endif %}
 {% endif %}
-{% if field.help_text %}
+{% if field.help_text and not form.hide_field_help %}
     <div class="help-block">
         <small>{{ field.help_text }}</small>
     </div>

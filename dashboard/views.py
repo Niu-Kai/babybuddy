@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.views.generic.base import TemplateView
 from django.utils import timezone
 from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormView
 
 from babybuddy.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from core.models import Child
 from dashboard.templatetags import cards
+from dashboard.forms import DashboardLayoutForm
 
 
 class Dashboard(LoginRequiredMixin, TemplateView):
@@ -16,20 +18,41 @@ class Dashboard(LoginRequiredMixin, TemplateView):
 
     # Show the overall dashboard or a child dashboard if one Child instance.
     def get(self, request, *args, **kwargs):
-        children = Child.objects.count()
+        from core.presentation import presentation
+
+        scope = presentation(request)
+        if scope["selected_child"]:
+            return HttpResponseRedirect(
+                reverse(
+                    "dashboard:dashboard-child", args=[scope["selected_child"].slug]
+                )
+            )
+        children = len(scope["scope_children"])
         if children == 0:
             return HttpResponseRedirect(reverse("babybuddy:welcome"))
         elif children == 1:
             return HttpResponseRedirect(
-                reverse("dashboard:dashboard-child", args={Child.objects.first().slug})
+                reverse(
+                    "dashboard:dashboard-child", args=[scope["scope_children"][0].slug]
+                )
             )
         return super(Dashboard, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(Dashboard, self).get_context_data(**kwargs)
-        context["objects"] = Child.objects.all().order_by(
-            "last_name", "first_name", "id"
+        from core.presentation import presentation
+
+        context["objects"] = sorted(
+            presentation(self.request)["scope_children"],
+            key=lambda child: (child.last_name, child.first_name, child.pk),
         )
+        context["hidden_cards"] = (
+            self.request.user.settings.dashboard_hidden_cards or []
+        )
+        context["today"] = timezone.localdate()
+        from dashboard.layout import sections
+
+        context["dashboard_sections"] = sections(self.request.user)
         return context
 
 
@@ -44,6 +67,9 @@ class ChildDashboard(PermissionRequiredMixin, DetailView):
             self.request.user.settings.dashboard_hidden_cards or []
         )
         context["today"] = timezone.localdate()
+        from dashboard.layout import sections
+
+        context["dashboard_sections"] = sections(self.request.user)
         return context
 
 
@@ -61,3 +87,27 @@ class ChildStatistics(PermissionRequiredMixin, DetailView):
         card = cards.card_statistics({"request": self.request}, self.object)
         context["stats"] = card["stats"]
         return context
+
+
+class DashboardCustomize(LoginRequiredMixin, FormView):
+    template_name = "dashboard/customize.html"
+    form_class = DashboardLayoutForm
+    success_url = reverse_lazy("dashboard:dashboard")
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "user": self.request.user}
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("action") == "reset":
+            from babybuddy.models import default_hidden_dashboard_cards
+
+            request.user.settings.dashboard_hidden_cards = (
+                default_hidden_dashboard_cards()
+            )
+            request.user.settings.save(update_fields=["dashboard_hidden_cards"])
+            return HttpResponseRedirect(self.success_url)
+        return super().post(request, *args, **kwargs)

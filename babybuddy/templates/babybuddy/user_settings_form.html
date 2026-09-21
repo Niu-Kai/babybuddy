@@ -9,16 +9,18 @@
 {% endblock %}
 {% block content %}
     <h1>{% trans "User Settings" %}</h1>
-    <div class="container-fluid">
+    <div class="entry-form settings-form">
         <form role="form" method="post">
             {% csrf_token %}
-            {% if form.non_field_errors %}
-                {% for error in form.non_field_errors %}
+            {% if form_user.errors or form_settings.errors %}
+                {% for error in form_user.non_field_errors %}
                     <div class="alert alert-danger" role="alert">
                         <strong>{% trans "Error" %}</strong>: {{ error }}
                     </div>
                 {% endfor %}
-            {% elif form.errors %}
+            {% endif %}
+            {% if form_user.errors or form_settings.errors %}
+                {{ form_settings.non_field_errors }}
                 <div class="alert alert-danger" role="alert">
                     <strong>{% trans "Error" %}</strong>: {% trans "Some fields have errors. See below for details." %}
                 </div>
@@ -27,47 +29,70 @@
                 <legend>{% trans "User Profile" %}</legend>
                 <div class="form-group row">
                     {% with form_user.first_name as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_user.last_name as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_user.email as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.language as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.theme as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.timezone as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.timezone_follow_device as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.use_24_hour_time as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.pagination_count as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
+                    {% endwith %}
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>{% trans "Preferred units" %}</legend>
+                <div class="form-group row">
+                    {% with form_settings.liquid_unit as field %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
+                    {% endwith %}
+                </div>
+                <div class="form-group row">
+                    {% with form_settings.length_unit as field %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
+                    {% endwith %}
+                </div>
+                <div class="form-group row">
+                    {% with form_settings.weight_unit as field %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
+                    {% endwith %}
+                </div>
+                <div class="form-group row">
+                    {% with form_settings.temperature_unit as field %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
             </fieldset>
@@ -75,36 +100,21 @@
                 <legend>{% trans "Dashboard" %}</legend>
                 <div class="form-group row">
                     {% with form_settings.dashboard_refresh_rate as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.dashboard_hide_empty as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
                 <div class="form-group row">
                     {% with form_settings.dashboard_hide_age as field %}
-                        {% include "babybuddy/form_field.html" %}
+                        {% include "babybuddy/form_field.html" with form=form_settings %}
                     {% endwith %}
                 </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label">{{ form_settings.dashboard_cards.label }}</label>
-                    <div class="col-sm-10">
-                        <input type="hidden" name="dashboard_cards_present" value="1" />
-                        <div class="row row-cols-1 row-cols-md-2 g-1">
-                            {% for checkbox in form_settings.dashboard_cards %}
-                                <div class="col">
-                                    <div class="form-check">
-                                        {{ checkbox.tag }}
-                                        <label class="form-check-label"
-                                               for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'dashboard:dashboard-customize' %}">{% trans "Edit dashboard" %}</a>
             </fieldset>
             <fieldset>
                 <legend>{% trans "API" %}</legend>
@@ -119,7 +129,13 @@
                 </div>
             </fieldset>
             <input type="hidden" name="next" value="{% url 'babybuddy:user-settings' %}" />
-            <button type="submit" name="save_settings" class="btn btn-primary">{% trans "Submit" %}</button>
+            <div class="form-actions">
+                <button type="submit"
+                        name="save_settings"
+                        class="btn btn-primary">{% trans "Save preferences" %}</button>
+                <a class="btn btn-outline-secondary"
+                   href="{% url 'dashboard:dashboard' %}">{% trans "Cancel" %}</a>
+            </div>
         </form>
     </div>
 {% endblock %}

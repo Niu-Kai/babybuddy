@@ -216,6 +216,23 @@ class BMI(CreatedByMixin):
         "Child", on_delete=models.CASCADE, related_name="bmi", verbose_name=_("Child")
     )
     bmi = models.FloatField(blank=False, null=False, verbose_name=_("BMI"))
+    is_calculated = models.BooleanField(default=False, editable=False)
+    source_weight = models.ForeignKey(
+        "Weight",
+        null=True,
+        blank=True,
+        editable=False,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    source_height = models.ForeignKey(
+        "Height",
+        null=True,
+        blank=True,
+        editable=False,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
     date = models.DateField(
         blank=False, default=timezone.localdate, null=False, verbose_name=_("Date")
     )
@@ -390,7 +407,16 @@ class DiaperChange(CreatedByMixin):
         validate_time(self.time, "time")
 
 
-class Feeding(CreatedByMixin):
+class MeasurementUnitMixin(models.Model):
+    entry_unit = models.CharField(
+        max_length=8, blank=True, default="", verbose_name=_("Entry unit")
+    )
+
+    class Meta:
+        abstract = True
+
+
+class Feeding(MeasurementUnitMixin, CreatedByMixin):
     model_name = "feeding"
     child = models.ForeignKey(
         "Child",
@@ -541,7 +567,7 @@ class Feeding(CreatedByMixin):
             )
 
 
-class HeadCircumference(CreatedByMixin):
+class HeadCircumference(MeasurementUnitMixin, CreatedByMixin):
     model_name = "head_circumference"
     child = models.ForeignKey(
         "Child",
@@ -573,7 +599,7 @@ class HeadCircumference(CreatedByMixin):
         validate_date(self.date, "date")
 
 
-class Height(CreatedByMixin):
+class Height(MeasurementUnitMixin, CreatedByMixin):
     model_name = "height"
     child = models.ForeignKey(
         "Child",
@@ -771,7 +797,7 @@ class Appointment(CreatedByMixin):
         return lines
 
 
-class Pumping(CreatedByMixin):
+class Pumping(MeasurementUnitMixin, CreatedByMixin):
     model_name = "pumping"
     child = models.ForeignKey(
         "Child",
@@ -884,7 +910,7 @@ class Sleep(CreatedByMixin):
         validate_unique_period(Sleep.objects.filter(child=self.child), self)
 
 
-class Temperature(CreatedByMixin):
+class Temperature(MeasurementUnitMixin, CreatedByMixin):
     model_name = "temperature"
     child = models.ForeignKey(
         "Child",
@@ -1070,7 +1096,7 @@ class TummyTime(CreatedByMixin):
         validate_unique_period(TummyTime.objects.filter(child=self.child), self)
 
 
-class Weight(CreatedByMixin):
+class Weight(MeasurementUnitMixin, CreatedByMixin):
     model_name = "weight"
     child = models.ForeignKey(
         "Child",

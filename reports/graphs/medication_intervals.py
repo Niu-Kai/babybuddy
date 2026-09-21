@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.db.models import Count
 from django.utils.translation import gettext as _
 
 import plotly.offline as plotly
@@ -17,18 +16,15 @@ def medication_intervals(instances):
     :param instances: a QuerySet of Medication instances.
     :returns: a tuple of the graph's html and javascript.
     """
-    totals = instances.annotate(count=Count("id")).order_by("time")
-
-    if not totals.exists():
-        return None, None
-
-    intervals = []
-    last_medication = totals.first()
-    for medication in totals[1:]:
-        interval = medication.time - last_medication.time
+    moments = instances.order_by("time").values_list("time", flat=True).iterator()
+    intervals, times = [], []
+    previous = next(moments, None)
+    for moment in moments:
+        interval = moment - previous
         if interval.total_seconds() > 0:
             intervals.append(interval)
-        last_medication = medication
+            times.append(moment)
+        previous = moment
 
     if not intervals:
         return None, None
@@ -36,7 +32,7 @@ def medication_intervals(instances):
     trace_avg = go.Scatter(
         name=_("Interval"),
         line=dict(shape="spline"),
-        x=list(totals.values_list("time", flat=True)[1:]),
+        x=times,
         y=[i.total_seconds() / 3600 for i in intervals],
         hoverinfo="text",
         text=[_duration_string_hms(i) for i in intervals],

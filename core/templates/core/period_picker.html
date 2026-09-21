@@ -1,0 +1,46 @@
+{% load i18n %}
+<div class="timeline-filter-field">
+    <label id="timeline-date-label"
+           for="{{ period_filter.date.id_for_label }}"
+           data-picker-label>{% trans "Date in period" %}</label>
+    {{ period_filter.date }}
+    <details class="timeline-date-picker"
+             data-date-picker
+             hidden
+             data-all-label="{% trans 'All dates' %}"
+             data-day-label="{% trans 'Day' %}"
+             data-week-label="{% trans 'Week' %}"
+             data-month-label="{% trans 'Month and year' %}"
+             data-year-label="{% trans 'Year' %}">
+        <summary class="form-select"
+                 aria-labelledby="timeline-date-label timeline-date-value">
+            <span id="timeline-date-value" data-picker-value></span>
+        </summary>
+        <div class="timeline-picker-popover">
+            <div class="timeline-picker-heading">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-picker-prev
+                        aria-label="{% trans 'Previous choices' %}">‹</button>
+                <select class="form-select form-select-sm"
+                        data-picker-month
+                        aria-label="{% trans 'Month' %}"></select>
+                <input class="form-control form-control-sm"
+                       type="number"
+                       min="1"
+                       max="9999"
+                       data-picker-year
+                       aria-label="{% trans 'Year' %}">
+                <button type="button"
+                        class="btn btn-sm btn-outline-secondary"
+                        data-picker-next
+                        aria-label="{% trans 'Next choices' %}">›</button>
+            </div>
+            <div class="timeline-picker-options" data-picker-options></div>
+            <button type="button"
+                    class="timeline-picker-today"
+                    data-picker-today>{% trans "Today" %} · {{ today|date:"M j, Y" }}</button>
+        </div>
+    </details>
+    {{ period_filter.date.errors }}
+</div>

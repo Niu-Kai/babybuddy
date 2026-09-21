@@ -6,6 +6,16 @@ from . import views
 app_name = "core"
 
 urlpatterns = [
+    path(
+        "entries/<str:model_name>/end-preview/",
+        views.EntryEndPreview.as_view(),
+        name="entry-end-preview",
+    ),
+    path(
+        "appointments/end-preview/",
+        views.AppointmentEndPreview.as_view(),
+        name="appointment-end-preview",
+    ),
     path("pumping/", views.PumpingList.as_view(), name="pumping-list"),
     path("pumping/add/", views.PumpingAdd.as_view(), name="pumping-add"),
     path(

@@ -66,6 +66,7 @@ const config = {
       "babybuddy/static_src/js/babybuddy.js",
       "core/static_src/js/*.js",
       "dashboard/static_src/js/*.js",
+      "reports/static_src/js/*.js",
     ],
     tags_editor: ["babybuddy/static_src/js/tags_editor.js"],
   },

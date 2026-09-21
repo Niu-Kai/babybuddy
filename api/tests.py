@@ -87,48 +87,35 @@ class BMIAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
     model = models.BMI
 
     def test_get(self):
+        child = models.Child.objects.first()
+        models.Height.objects.create(
+            child=child, date="2020-01-01", height=50, entry_unit="cm"
+        )
+        models.Weight.objects.create(
+            child=child, date="2020-01-01", weight=5, entry_unit="kg"
+        )
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data["results"][0],
-            {
-                "id": 2,
-                "child": 1,
-                "created_by": "",
-                "bmi": 26.5,
-                "date": "2017-11-18",
-                "notes": "before feed",
-                "tags": [],
-            },
-        )
+        self.assertEqual(response.data["results"][0]["bmi"], 20)
+        self.assertEqual(response.data["results"][0]["child"], child.pk)
 
     def test_post(self):
-        data = {
-            "child": 1,
-            "bmi": "27.0",
-            "date": "2017-11-15",
-        }
-        response = self.client.post(self.endpoint, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        obj = self.model.objects.get(pk=response.data["id"])
-        self.assertEqual(str(obj.bmi), data["bmi"])
-
-    def test_post_null_date(self):
-        data = {"child": 1, "bmi": "12.25"}
-        response = self.client.post(self.endpoint, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        obj = self.model.objects.get(pk=response.data["id"])
-        self.assertEqual(str(obj.bmi), data["bmi"])
-        self.assertEqual(str(obj.date), timezone.localdate().strftime("%Y-%m-%d"))
+        self.assertEqual(
+            self.client.post(self.endpoint, {"child": 1, "bmi": 27}).status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
     def test_patch(self):
-        endpoint = "{}{}/".format(self.endpoint, 2)
-        response = self.client.get(endpoint)
-        entry = response.data
-        entry["bmi"] = 30.0
-        response = self.client.patch(endpoint, {"bmi": entry["bmi"]})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, entry)
+        self.assertEqual(
+            self.client.patch(self.endpoint + "2/", {"bmi": 30}).status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def test_delete(self):
+        self.assertEqual(
+            self.client.delete(self.endpoint + "2/").status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
 
 class ChildAPITestCase(TestBase.BabyBuddyAPITestCaseBase):

@@ -10,74 +10,11 @@
     <h1>
         {% trans "Weight" %}
         {% if perms.core.add_weight %}
-            <a href="{% url 'core:weight-add' %}" class="btn btn-sm btn-success">
+            <a href="{% url 'core:weight-add' %}" class="btn btn-sm btn-primary">
                 <i class="icon-weight" aria-hidden="true"></i> {% trans "Add Weight" %}
             </a>
         {% endif %}
     </h1>
     {% include "babybuddy/filter.html" %}
-    <div class="table-responsive">
-        <table class="table table-instances table-borderless table-striped table-hover align-middle">
-            <thead>
-                <tr>
-                    <th>{% trans "Actions" %}</th>
-                    <th>{% trans "Date" %}</th>
-                    {% if not unique_child %}
-                        <th>{% trans "Child" %}</th>
-                    {% endif %}
-                    <th>{% trans "Weight" %}</th>
-                    <th>{% trans "By" %}</th>
-                    <th>{% trans "Tags" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for weight in object_list %}
-                    <tr>
-                        <td>
-                            <div class="btn-group btn-group-sm"
-                                 role="group"
-                                 aria-label="{% trans "Actions" %}">
-                                {% if perms.core.change_weight %}
-                                    <a href="{% url 'core:weight-update' weight.id %}"
-                                       class="btn btn-primary">
-                                        <i class="icon-update" aria-hidden="true"></i>
-                                    </a>
-                                {% endif %}
-                                {% if perms.core.delete_weight %}
-                                    <a href="{% url 'core:weight-delete' weight.id %}"
-                                       class="btn btn-danger">
-                                        <i class="icon-delete" aria-hidden="true"></i>
-                                    </a>
-                                {% endif %}
-                            </div>
-                        </td>
-                        <th scope="row">
-                            {{ weight.date }}
-                            {% if weight.time %}<small class="text-body-secondary">{{ weight.time|time }}</small>{% endif %}
-                        </th>
-                        {% if not unique_child %}
-                            <td>
-                                <a href="{% url 'core:child' weight.child.slug %}">{{ weight.child }}</a>
-                            </td>
-                        {% endif %}
-                        <td>{{ weight.weight }}</td>
-                        <td>{{ weight.created_by_display }}</td>
-                        <td>{% include "core/render_tag_list.html" with tags=weight.tags.all %}</td>
-                    </tr>
-                    {% if weight.notes %}
-                        <tr class="{{ row_class }} row-details">
-                            <td colspan="6">
-                                <i class="icon-note me-2" aria-hidden="true"></i>{{ weight.notes }}
-                            </td>
-                        </tr>
-                    {% endif %}
-                {% empty %}
-                    <tr>
-                        <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No weight entries found." %}</th>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% include "babybuddy/paginator.html" %}
+    {% include "core/record_panels.html" with list_template="core/lists/weight_list.html" %}
 {% endblock %}

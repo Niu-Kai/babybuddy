@@ -132,3 +132,7 @@ class CoreConfig(AppConfig):
         from core import webhooks
 
         webhooks.connect()
+
+        from core import bmi
+
+        bmi.connect()

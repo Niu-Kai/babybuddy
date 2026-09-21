@@ -2,7 +2,8 @@
 {% load static widget_tweaks %}
 {% block breadcrumb_nav %}{% endblock %}
 {% block page %}
-    <div id="view-{{ request.resolver_match.view_name }}" class="container">
+    <div id="view-{{ request.resolver_match.view_name }}"
+         class="container auth-page">
         <div class="text-center pt-3">
             <img src="{% static "babybuddy/logo/icon-brand.png" %}"
                  width="65"
@@ -12,11 +13,10 @@
             <h1 class="d-none d-md-inline-block display-4 ms-2">
                 <span class="text-primary">Baby</span> Buddy
             </h1>
-        </a>
-    </div>
-    <div class="p-4 rounded text-body">
-        {% include "babybuddy/messages.html" %}
-        {% block content %}{% endblock %}
-    </div>
+        </div>
+        <div class="auth-card p-4 text-body">
+            {% include "babybuddy/messages.html" %}
+            {% block content %}{% endblock %}
+        </div>
     </div>
 {% endblock %}

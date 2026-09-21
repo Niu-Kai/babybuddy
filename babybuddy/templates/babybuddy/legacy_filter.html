@@ -1,0 +1,14 @@
+{% load i18n widget_tweaks %}
+{% if filter.form.fields %}
+    <form method="get" class="timeline-toolbar management-toolbar">
+        {% for field in filter.form %}
+            <div class="timeline-filter-field">
+                {{ field.label_tag }}
+                {% if "choice" in field|field_type %}{{ field|add_class:'form-select' }}{% else %}{{ field|add_class:'form-control' }}{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+        <a href="{{ request.path }}" class="btn btn-outline-secondary">{% trans "Clear filters" %}</a>
+    </form>
+{% endif %}

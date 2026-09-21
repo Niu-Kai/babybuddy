@@ -1,0 +1,14 @@
+{% load i18n %}
+<div class="appointment-time-fields"
+     data-original-start="{{ form.entry_original_start|date:'c' }}"
+     {% if form.entry_has_duration %}data-appointment-time data-preview-url="{% url 'core:entry-end-preview' model_name=form.entry_model %}" data-incomplete="—" data-unavailable="{% trans 'The end time will be calculated when you save.' %}"{% endif %}>
+    {% for field in fieldset.fields %}
+        <div class="row">{% include "babybuddy/form_field.html" %}</div>
+    {% endfor %}
+    {% if form.entry_has_duration %}
+        <p class="appointment-end-preview">
+            <strong>{% trans "Ends" %}</strong>
+            <output data-appointment-end aria-live="polite">—</output>
+        </p>
+    {% endif %}
+</div>

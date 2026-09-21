@@ -11,3 +11,6 @@
 {% block toolbar %}
     {% include "reports/percentile_switch.html" with plain="reports:report-height-change-child" boy="reports:report-height-change-child-boy" girl="reports:report-height-change-child-girl" %}
 {% endblock %}
+{% block report_heading %}
+    {% trans "Height" %}
+{% endblock %}

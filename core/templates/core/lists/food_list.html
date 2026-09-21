@@ -1,0 +1,70 @@
+{% load datetime duration i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="time">{% trans "Time" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="food">{% trans "Food" %}</th>
+                <th data-column="amount">{% trans "Amount" %}</th>
+                <th data-column="reaction">{% trans "Reaction" %}</th>
+                <th data-column="recorded-by">{% trans "Recorded by" %}</th>
+                <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for food in object_list %}
+                <tr>
+                    <th data-column="time" scope="row">{{ food.time|datetime_short }}</th>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            <a href="{% url 'core:child' food.child.slug %}">{{ food.child }}</a>
+                        </td>
+                    {% endif %}
+                    <td data-column="food">{% if food.name is not None %}{{ food.name }}{% endif %}</td>
+                    <td data-column="amount">{% if food.amount is not None %}{{ food.amount }}{% endif %}</td>
+                    <td data-column="reaction">{{ food.get_reaction_display }}</td>
+                    <td data-column="recorded-by">{{ food.created_by_display|default:"—" }}</td>
+                    <td data-column="tags">{% include "core/render_tag_list.html" with tags=food.tags.all %}</td>
+                    <td data-column="actions">
+                        <div class="btn-group btn-group-sm"
+                             role="group"
+                             aria-label="{% trans "Actions" %}">
+                            {% if perms.core.change_food %}
+                                <a href="{% url 'core:food-update' food.id %}"
+                                   class="btn btn-sm btn-outline-primary"
+                                   aria-label="{% trans 'Edit entry' %}">{% trans "Edit" %}</a>
+                            {% endif %}
+                            {% if perms.core.delete_food %}
+                                <details class="record-more">
+                                    <summary aria-label="{% trans 'More entry actions' %}"
+                                             title="{% trans 'More entry actions' %}">•••</summary>
+                                    <div class="record-more-menu">
+                                        <a href="{% url 'core:food-delete' food.id %}"
+                                           class="btn btn-sm btn-outline-danger record-delete"
+                                           aria-label="{% trans 'Delete entry' %}"
+                                           title="{% trans 'Delete entry' %}"><i class="icon-delete" aria-hidden="true"></i></a>
+                                    </div>
+                                </details>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% if food.notes %}
+                    <tr class="row-details" data-column="notes">
+                        <td colspan="7">
+                            <i class="icon-note me-2" aria-hidden="true"></i>{{ food.notes }}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% empty %}
+                <tr>
+                    <th colspan="7">{% trans "No entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

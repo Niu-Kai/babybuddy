@@ -1,0 +1,37 @@
+{% load bootstrap datetime duration i18n widget_tweaks %}
+<div class="table-responsive">
+    <table class="table table-instances table-hover record-table align-middle">
+        <thead>
+            <tr>
+                <th data-column="start">{% trans "Start" %}</th>
+                <th data-column="name">{% trans "Name" %}</th>
+                {% if not unique_child %}
+                    <th data-column="child">{% trans "Child" %}</th>
+                {% endif %}
+                <th data-column="user">{% trans "User" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for timer in object_list %}
+                <tr>
+                    <th data-column="start" scope="row">{{ timer.start|datetime_short }}</th>
+                    <td data-column="name">
+                        <a href="{% url 'core:timer-detail' timer.id %}">{{ timer }}</a>
+                    </td>
+                    {% if not unique_child %}
+                        <td data-column="child">
+                            {% if timer.child %}
+                                <a href="{% url 'core:child' timer.child.slug %}">{{ timer.child }}</a>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                    <td data-column="user">{{ timer.user_username }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <th colspan="{% if not unique_child %}4{% else %}3{% endif %}">{% trans "No timer entries found." %}</th>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

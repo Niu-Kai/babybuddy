@@ -11,3 +11,6 @@
 {% block toolbar %}
     {% include "reports/percentile_switch.html" with plain="reports:report-head-circumference-change-child" boy="reports:report-head-circumference-change-child-boy" girl="reports:report-head-circumference-change-child-girl" %}
 {% endblock %}
+{% block report_heading %}
+    {% trans "Head Circumference" %}
+{% endblock %}

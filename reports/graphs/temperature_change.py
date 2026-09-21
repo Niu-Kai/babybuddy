@@ -29,7 +29,7 @@ def temperature_change(objects):
     layout_args["xaxis"]["autorange"] = True
     layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(trace.x)
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_time()
-    layout_args["yaxis"]["title"] = _("Temperature")
+    layout_args["yaxis"]["title"] = _("Temperature (°C)")
 
     fig = go.Figure({"data": [trace], "layout": go.Layout(**layout_args)})
     output = plotly.plot(fig, output_type="div", include_plotlyjs=False)

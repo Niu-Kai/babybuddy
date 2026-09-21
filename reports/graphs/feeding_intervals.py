@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.db.models import Count, Sum
-from django.db.models.functions import TruncDate
 from django.utils.translation import gettext as _
 
 import plotly.offline as plotly
@@ -18,20 +16,23 @@ def feeding_intervals(instances):
     :param instances: a QuerySet of Feeding instances.
     :returns: a tuple of the graph's html and javascript.
     """
-    totals = instances.annotate(count=Count("id")).order_by("start")
-
-    intervals = []
-    last_feeding = totals.first()
-    for feeding in totals[1:]:
-        interval = feeding.start - last_feeding.start
+    moments = instances.order_by("start").values_list("start", flat=True).iterator()
+    intervals, times = [], []
+    previous = next(moments, None)
+    for moment in moments:
+        interval = moment - previous
         if interval.total_seconds() > 0:
             intervals.append(interval)
-        last_feeding = feeding
+            times.append(moment)
+        previous = moment
+
+    if not intervals:
+        return None, None
 
     trace_avg = go.Scatter(
         name=_("Interval"),
         line=dict(shape="spline"),
-        x=list(totals.values_list("start", flat=True)),
+        x=times,
         y=[i.total_seconds() / 3600 for i in intervals],
         hoverinfo="text",
         text=[_duration_string_hms(i) for i in intervals],
