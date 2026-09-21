@@ -27,6 +27,7 @@
                     {% endif %}
                     <th>{% trans "Image" %}</th>
                     <th>{% trans "Note" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -64,11 +65,12 @@
                                 {% endif %}
                                 </td>
                                 <td>{{ note.note }}</td>
+                                <td>{{ note.created_by_display }}</td>
                                 <td>{% include "core/render_tag_list.html" with tags=note.tags.all %}</td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No notes found." %}</th>
+                                    <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No notes found." %}</th>
                                 </tr>
                             {% endfor %}
                         </tbody>

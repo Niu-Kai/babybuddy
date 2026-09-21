@@ -21,6 +21,17 @@ class CoreModelSerializer(serializers.HyperlinkedModelSerializer):
     """
 
     child = serializers.PrimaryKeyRelatedField(queryset=models.Child.objects.all())
+    created_by = serializers.CharField(
+        source="created_by_display", read_only=True, required=False
+    )
+
+    def create(self, validated_data):
+        # Record who added the entry (#900).
+        request = self.context.get("request")
+        model_fields = {field.name for field in self.Meta.model._meta.get_fields()}
+        if "created_by" in model_fields and request and request.user.is_authenticated:
+            validated_data["created_by"] = request.user
+        return super().create(validated_data)
 
     def validate(self, attrs):
         # Ensure that all instance data is available for partial updates to
@@ -136,7 +147,7 @@ class TaggableSerializer(TaggitSerializer, serializers.HyperlinkedModelSerialize
 class BMISerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.BMI
-        fields = ("id", "child", "bmi", "date", "notes", "tags")
+        fields = ("created_by", "id", "child", "bmi", "date", "notes", "tags")
         extra_kwargs = {
             "core.BMI.bmi": {"label": "BMI"},
         }
@@ -146,6 +157,7 @@ class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Pumping
         fields = (
+            "created_by",
             "id",
             "child",
             "amount",
@@ -179,6 +191,7 @@ class DiaperChangeSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.DiaperChange
         fields = (
+            "created_by",
             "id",
             "child",
             "time",
@@ -195,6 +208,7 @@ class FeedingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Feeding
         fields = (
+            "created_by",
             "id",
             "child",
             "start",
@@ -212,19 +226,28 @@ class FeedingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
 class HeadCircumferenceSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.HeadCircumference
-        fields = ("id", "child", "head_circumference", "date", "notes", "tags")
+        fields = (
+            "created_by",
+            "id",
+            "child",
+            "head_circumference",
+            "date",
+            "notes",
+            "tags",
+        )
 
 
 class HeightSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Height
-        fields = ("id", "child", "height", "date", "notes", "tags")
+        fields = ("created_by", "id", "child", "height", "date", "notes", "tags")
 
 
 class MedicationSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Medication
         fields = (
+            "created_by",
             "id",
             "child",
             "name",
@@ -240,7 +263,7 @@ class MedicationSerializer(CoreModelSerializer, TaggableSerializer):
 class NoteSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Note
-        fields = ("id", "child", "note", "image", "time", "tags")
+        fields = ("created_by", "id", "child", "note", "image", "time", "tags")
 
 
 class SleepSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
@@ -249,6 +272,7 @@ class SleepSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Sleep
         fields = (
+            "created_by",
             "id",
             "child",
             "start",
@@ -275,7 +299,7 @@ class TagSerializer(serializers.HyperlinkedModelSerializer):
 class TemperatureSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Temperature
-        fields = ("id", "child", "temperature", "time", "notes", "tags")
+        fields = ("created_by", "id", "child", "temperature", "time", "notes", "tags")
 
 
 class TimerSerializer(CoreModelSerializer):
@@ -341,6 +365,7 @@ class TummyTimeSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.TummyTime
         fields = (
+            "created_by",
             "id",
             "child",
             "start",
@@ -356,7 +381,7 @@ class TummyTimeSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
 class WeightSerializer(CoreModelSerializer, TaggableSerializer):
     class Meta:
         model = models.Weight
-        fields = ("id", "child", "weight", "date", "notes", "tags")
+        fields = ("created_by", "id", "child", "weight", "date", "notes", "tags")
 
 
 class UserSerializer(serializers.ModelSerializer):

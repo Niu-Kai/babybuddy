@@ -36,6 +36,7 @@
                     <th>{% trans "Amt." %}</th>
                     <th>{% trans "Duration" %}</th>
                     <th>{% trans "Previous" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -80,11 +81,12 @@
                                     {% endblocktrans %}
                                 {% endif %}
                             </td>
+                            <td>{{ feeding.created_by_display }}</td>
                             <td>{% include "core/render_tag_list.html" with tags=feeding.tags.all %}</td>
                         </tr>
                         {% if feeding.notes %}
                             <tr class="{{ row_class }} row-details">
-                                <td colspan="9">
+                                <td colspan="10">
                                     <i class="icon-note me-2" aria-hidden="true"></i>{{ feeding.notes }}
                                 </td>
                             </tr>
@@ -92,7 +94,7 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %} 10 {% else %} 9 {% endif %}">{% trans "No feedings found." %}</th>
+                        <th colspan="{% if not unique_child %}11{% else %}10{% endif %}">{% trans "No feedings found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

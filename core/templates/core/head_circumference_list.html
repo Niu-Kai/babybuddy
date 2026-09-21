@@ -27,6 +27,7 @@
                         <th>{% trans "Child" %}</th>
                     {% endif %}
                     <th>{% trans "Head Circumference" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -58,18 +59,19 @@
                             </td>
                         {% endif %}
                         <td>{{ head_circumference.head_circumference }}</td>
+                        <td>{{ head_circumference.created_by_display }}</td>
                         <td>{% include "core/render_tag_list.html" with tags=head_circumference.tags.all %}</td>
                     </tr>
                     {% if head_circumference.notes %}
                         <tr class="{{ row_class }} row-details">
-                            <td colspan="5">
+                            <td colspan="6">
                                 <i class="icon-note me-2" aria-hidden="true"></i>{{ head_circumference.notes }}
                             </td>
                         </tr>
                     {% endif %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}5{% else %}4{% endif %}">{% trans "No head circumference entries found." %}</th>
+                        <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No head circumference entries found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

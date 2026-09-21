@@ -260,6 +260,9 @@ class CoreModelForm(forms.ModelForm):
                     raise PermissionDenied(
                         _("You do not have permission to consume timers.")
                     )
+            if instance.pk is None and self.user is not None:
+                if hasattr(instance, "created_by"):
+                    instance.created_by = self.user
             instance.save()
             self.save_m2m()
             if timer is not None:

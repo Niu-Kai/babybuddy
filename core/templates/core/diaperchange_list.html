@@ -30,6 +30,7 @@
                     <th>{% trans "Color" %}</th>
                     <th>{% trans "Amount" %}</th>
                     <th>{% trans "Previous" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -78,11 +79,12 @@
                                     {% endblocktrans %}
                                 {% endif %}
                             </td>
+                            <td>{{ change.created_by_display }}</td>
                             <td>{% include "core/render_tag_list.html" with tags=change.tags.all %}</td>
                         </tr>
                         {% if change.notes %}
                             <tr class="{{ row_class }} row-details">
-                                <td colspan="8">
+                                <td colspan="9">
                                     <i class="icon-note me-2" aria-hidden="true"></i>{{ change.notes }}
                                 </td>
                             </tr>
@@ -90,7 +92,7 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No diaper changes found." %}</th>
+                        <th colspan="{% if not unique_child %}9{% else %}8{% endif %}">{% trans "No diaper changes found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

@@ -94,6 +94,7 @@ class BMIAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 2,
                 "child": 1,
+                "created_by": "",
                 "bmi": 26.5,
                 "date": "2017-11-18",
                 "notes": "before feed",
@@ -196,6 +197,7 @@ class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 2,
                 "child": 1,
+                "created_by": "",
                 "amount": 9.0,
                 "side": None,
                 "start": "2017-11-17T15:03:00-05:00",
@@ -250,6 +252,7 @@ class DiaperChangeAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 3,
                 "child": 1,
+                "created_by": "",
                 "time": "2017-11-18T14:00:00-05:00",
                 "wet": True,
                 "solid": False,
@@ -327,6 +330,7 @@ class FeedingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 3,
                 "child": 1,
+                "created_by": "",
                 "start": "2017-11-18T09:00:00-05:00",
                 "end": "2017-11-18T09:15:00-05:00",
                 "duration": "00:15:00",
@@ -397,6 +401,7 @@ class HeadCircumferenceAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 2,
                 "child": 1,
+                "created_by": "",
                 "head_circumference": 6.5,
                 "date": "2017-11-18",
                 "notes": "before feed",
@@ -447,6 +452,7 @@ class HeightAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 2,
                 "child": 1,
+                "created_by": "",
                 "height": 10.5,
                 "date": "2017-11-18",
                 "notes": "before feed",
@@ -576,6 +582,7 @@ class NoteAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 1,
                 "child": 1,
+                "created_by": "",
                 "note": "Fake note.",
                 "image": None,
                 "time": "2017-11-17T22:45:00-05:00",
@@ -634,6 +641,7 @@ class SleepAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 4,
                 "child": 1,
+                "created_by": "",
                 "start": "2017-11-19T03:00:00-05:00",
                 "end": "2017-11-19T04:30:00-05:00",
                 "duration": "01:30:00",
@@ -746,6 +754,7 @@ class TemperatureAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 1,
                 "child": 1,
+                "created_by": "",
                 "temperature": 98.6,
                 "time": "2017-11-17T12:52:00-05:00",
                 "notes": "tympanic",
@@ -842,6 +851,15 @@ class TimerAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         response = self.client.patch(f"{endpoint}restart/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_created_by_recorded(self):
+        response = self.client.post(
+            reverse("api:note-list"), {"child": 1, "note": "who"}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        note = models.Note.objects.get(pk=response.data["id"])
+        self.assertEqual(note.created_by, get_user_model().objects.first())
+        self.assertEqual(response.data["created_by"], note.created_by_display)
+
     def test_pause_resume_timer(self):
         endpoint = "{}{}/".format(self.endpoint, 1)
         response = self.client.patch(f"{endpoint}pause/")
@@ -865,6 +883,7 @@ class TummyTimeAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 3,
                 "child": 1,
+                "created_by": "",
                 "start": "2017-11-18T15:30:00-05:00",
                 "end": "2017-11-18T15:30:45-05:00",
                 "duration": "00:00:45",
@@ -926,6 +945,7 @@ class WeightAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             {
                 "id": 2,
                 "child": 1,
+                "created_by": "",
                 "weight": 9.5,
                 "date": "2017-11-18",
                 "notes": "before feed",

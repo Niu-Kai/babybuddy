@@ -29,6 +29,7 @@
                     <th>{% trans "Side" %}</th>
                     <th>{% trans "Duration" %}</th>
                     <th>{% trans "Previous" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -70,11 +71,12 @@
                                     {% endblocktrans %}
                                 {% endif %}
                             </td>
+                            <td>{{ pumping.created_by_display }}</td>
                             <td>{% include "core/render_tag_list.html" with tags=pumping.tags.all %}</td>
                         </tr>
                         {% if pumping.notes %}
                             <tr class="{{ row_class }} row-details">
-                                <td colspan="7">
+                                <td colspan="8">
                                     <i class="icon-note me-2" aria-hidden="true"></i>{{ pumping.notes }}
                                 </td>
                             </tr>
@@ -82,7 +84,7 @@
                     {% endwith %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No pumping entries found." %}</th>
+                        <th colspan="{% if not unique_child %}9{% else %}8{% endif %}">{% trans "No pumping entries found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

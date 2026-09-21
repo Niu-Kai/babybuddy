@@ -28,6 +28,7 @@
                     <th>{% trans "Medication Name" %}</th>
                     <th>{% trans "Dosage" %}</th>
                     <th>{% trans "Next Dose Interval" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -74,18 +75,19 @@
                                 <span class="text-muted">{% trans "No interval set" %}</span>
                             {% endif %}
                         </td>
+                        <td>{{ medication.created_by_display }}</td>
                         <td>{% include "core/render_tag_list.html" with tags=medication.tags.all %}</td>
                     </tr>
                     {% if medication.notes %}
                         <tr class="{{ row_class }} row-details">
-                            <td colspan="7">
+                            <td colspan="8">
                                 <i class="icon-note me-2" aria-hidden="true"></i>{{ medication.notes }}
                             </td>
                         </tr>
                     {% endif %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No medication entries found." %}</th>
+                        <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No medication entries found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

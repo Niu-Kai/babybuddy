@@ -175,7 +175,33 @@ class TaggableManager(TaggitTaggableManager):
     pass
 
 
-class BMI(models.Model):
+class CreatedByMixin(models.Model):
+    """
+    Records which user added an entry (babybuddy/babybuddy#900). Set by the
+    forms and the API on creation; never editable afterwards.
+    """
+
+    created_by = models.ForeignKey(
+        "auth.User",
+        blank=True,
+        editable=False,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        verbose_name=_("Added by"),
+    )
+
+    class Meta:
+        abstract = True
+
+    @property
+    def created_by_display(self):
+        if not self.created_by:
+            return ""
+        return self.created_by.get_full_name() or self.created_by.get_username()
+
+
+class BMI(CreatedByMixin):
     model_name = "bmi"
     child = models.ForeignKey(
         "Child", on_delete=models.CASCADE, related_name="bmi", verbose_name=_("Child")
@@ -296,7 +322,7 @@ class Child(models.Model):
         return cache.get_or_set(cls.cache_key_count, Child.objects.count, None)
 
 
-class DiaperChange(models.Model):
+class DiaperChange(CreatedByMixin):
     model_name = "diaperchange"
     settings = DiaperChangeSettings(_("Diaper change settings"))
     child = models.ForeignKey(
@@ -354,7 +380,7 @@ class DiaperChange(models.Model):
         validate_time(self.time, "time")
 
 
-class Feeding(models.Model):
+class Feeding(CreatedByMixin):
     model_name = "feeding"
     child = models.ForeignKey(
         "Child",
@@ -424,7 +450,7 @@ class Feeding(models.Model):
         validate_unique_period(Feeding.objects.filter(child=self.child), self)
 
 
-class HeadCircumference(models.Model):
+class HeadCircumference(CreatedByMixin):
     model_name = "head_circumference"
     child = models.ForeignKey(
         "Child",
@@ -456,7 +482,7 @@ class HeadCircumference(models.Model):
         validate_date(self.date, "date")
 
 
-class Height(models.Model):
+class Height(CreatedByMixin):
     model_name = "height"
     child = models.ForeignKey(
         "Child",
@@ -537,7 +563,7 @@ class HeightPercentile(models.Model):
         ]
 
 
-class Note(models.Model):
+class Note(CreatedByMixin):
     model_name = "note"
     child = models.ForeignKey(
         "Child", on_delete=models.CASCADE, related_name="note", verbose_name=_("Child")
@@ -563,7 +589,7 @@ class Note(models.Model):
         return str(_("Note"))
 
 
-class Pumping(models.Model):
+class Pumping(CreatedByMixin):
     model_name = "pumping"
     child = models.ForeignKey(
         "Child",
@@ -625,7 +651,7 @@ class Pumping(models.Model):
         validate_unique_period(Pumping.objects.filter(child=self.child), self)
 
 
-class Sleep(models.Model):
+class Sleep(CreatedByMixin):
     model_name = "sleep"
     child = models.ForeignKey(
         "Child", on_delete=models.CASCADE, related_name="sleep", verbose_name=_("Child")
@@ -676,7 +702,7 @@ class Sleep(models.Model):
         validate_unique_period(Sleep.objects.filter(child=self.child), self)
 
 
-class Temperature(models.Model):
+class Temperature(CreatedByMixin):
     model_name = "temperature"
     child = models.ForeignKey(
         "Child",
@@ -813,7 +839,7 @@ class Timer(models.Model):
         validate_time(self.start, "start")
 
 
-class TummyTime(models.Model):
+class TummyTime(CreatedByMixin):
     model_name = "tummytime"
     child = models.ForeignKey(
         "Child",
@@ -862,7 +888,7 @@ class TummyTime(models.Model):
         validate_unique_period(TummyTime.objects.filter(child=self.child), self)
 
 
-class Weight(models.Model):
+class Weight(CreatedByMixin):
     model_name = "weight"
     child = models.ForeignKey(
         "Child",
@@ -892,7 +918,7 @@ class Weight(models.Model):
         validate_date(self.date, "date")
 
 
-class Medication(models.Model):
+class Medication(CreatedByMixin):
     model_name = "medication"
 
     child = models.ForeignKey(

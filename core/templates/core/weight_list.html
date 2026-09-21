@@ -26,6 +26,7 @@
                         <th>{% trans "Child" %}</th>
                     {% endif %}
                     <th>{% trans "Weight" %}</th>
+                    <th>{% trans "By" %}</th>
                     <th>{% trans "Tags" %}</th>
                 </tr>
             </thead>
@@ -57,18 +58,19 @@
                             </td>
                         {% endif %}
                         <td>{{ weight.weight }}</td>
+                        <td>{{ weight.created_by_display }}</td>
                         <td>{% include "core/render_tag_list.html" with tags=weight.tags.all %}</td>
                     </tr>
                     {% if weight.notes %}
                         <tr class="{{ row_class }} row-details">
-                            <td colspan="5">
+                            <td colspan="6">
                                 <i class="icon-note me-2" aria-hidden="true"></i>{{ weight.notes }}
                             </td>
                         </tr>
                     {% endif %}
                 {% empty %}
                     <tr>
-                        <th colspan="{% if not unique_child %}5{% else %}4{% endif %}">{% trans "No weight entries found." %}</th>
+                        <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No weight entries found." %}</th>
                     </tr>
                 {% endfor %}
             </tbody>

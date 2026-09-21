@@ -1429,3 +1429,37 @@ class SmallIssuesTestCase(FormsTestCaseBase):
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, "already uses this slug")
         other.delete()
+
+
+class CreatedByTestCase(FormsTestCaseBase):
+    """Entries record who added them (#900)."""
+
+    def test_form_records_user(self):
+        params = {
+            "child": self.child.id,
+            "time": self.localtime_string(),
+            "wet": True,
+            "solid": False,
+        }
+        page = self.c.post("/changes/add/", params, follow=True)
+        self.assertEqual(page.status_code, 200)
+        change = models.DiaperChange.objects.filter(child=self.child).first()
+        self.assertEqual(change.created_by, self.user)
+        page = self.c.get("/changes/")
+        self.assertContains(page, self.user.get_username())
+
+    def test_edit_keeps_creator(self):
+        change = models.DiaperChange.objects.create(
+            child=self.child, time=timezone.localtime(), wet=True, solid=False
+        )
+        self.assertIsNone(change.created_by)
+        params = {
+            "child": self.child.id,
+            "time": self.localtime_string(),
+            "wet": True,
+            "solid": True,
+        }
+        self.c.post("/changes/{}/".format(change.id), params, follow=True)
+        change.refresh_from_db()
+        self.assertTrue(change.solid)
+        self.assertIsNone(change.created_by)
