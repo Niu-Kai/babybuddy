@@ -32,7 +32,6 @@ def height_change(
         name=_("Height"),
         x=measuring_dates,
         y=measured_heights,
-        fill="tozeroy",
         mode="lines+markers",
     )
 

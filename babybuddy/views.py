@@ -94,7 +94,7 @@ class BabyBuddyFilterView(FilterView):
         if self.record_model_name == "headcircumference":
             self.record_model_name = "head-circumference"
         scope = presentation(self.request)
-        if scope["selected_child"]:
+        if scope["selected_child"] and self.model._meta.model_name != "pumping":
             queryset = queryset.filter(child=scope["selected_child"])
         queryset = queryset.select_related("child")
         if "created_by" in fields:
@@ -118,6 +118,14 @@ class BabyBuddyFilterView(FilterView):
             )
             queryset = queryset.annotate(
                 previous_feeding_start=Subquery(previous.values("start")[:1])
+            )
+        if self.model._meta.model_name == "pumping":
+            previous = self.model.objects.filter(
+                Q(start__lt=OuterRef("start"))
+                | Q(start=OuterRef("start"), pk__lt=OuterRef("pk"))
+            ).order_by("-start", "-pk")
+            queryset = queryset.annotate(
+                previous_pumping_start=Subquery(previous.values("start")[:1])
             )
         date_field = next(
             (
@@ -226,7 +234,7 @@ class BabyBuddyFilterView(FilterView):
                 if name != "child"
             )
         context["filter"].form.fields.pop("child", None)
-        if scope["side_by_side"]:
+        if scope["side_by_side"] and self.model._meta.model_name != "pumping":
             panels = []
             for child in scope["scope_children"]:
                 query = self.filterset.qs.filter(child=child)
@@ -534,6 +542,12 @@ class ExportData(StaffOnlyMixin, View):
             core_models.Food,
             core_models.Tag,
         ]
+        # Staff status alone does not authorize reading every model.
+        from django.core.exceptions import PermissionDenied
+
+        required = [f"core.view_{model._meta.model_name}" for model in exported]
+        if not request.user.has_perms(required):
+            raise PermissionDenied
         buffer = io.BytesIO()
         with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
             for model in exported:
@@ -542,7 +556,9 @@ class ExportData(StaffOnlyMixin, View):
                 if resource_class is None:
                     resource_class = modelresource_factory(model)
                 dataset = resource_class().export()
-                archive.writestr(f"{model._meta.model_name}.csv", dataset.csv)
+                from babybuddy.exports import safe_csv
+
+                archive.writestr(f"{model._meta.model_name}.csv", safe_csv(dataset))
         stamp = timezone.localdate().strftime("%Y%m%d")
         response = HttpResponse(buffer.getvalue(), content_type="application/zip")
         response["Content-Disposition"] = (

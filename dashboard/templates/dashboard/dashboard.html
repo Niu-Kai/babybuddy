@@ -9,12 +9,26 @@
         <h1>{% trans "Dashboard" %} <a class="btn btn-sm btn-outline-secondary"
     href="{% url 'dashboard:dashboard-customize' %}">{% trans "Edit dashboard" %}</a></h1>
     </div>
-    <div class="{% if side_by_side %}comparison-grid{% else %}household-dashboard{% endif %}"
-         style="--dashboard-rows: {{ dashboard_sections|length|add:1 }}">
-        {% for child in objects %}
-            <section class="dashboard-child-panel">
-                {% include "dashboard/child_content.html" with object=child %}
-            </section>
-        {% endfor %}
+    <div id="household-dashboard-content">
+        {% include "inventory/reminder.html" %}
+        {% load lactation %}
+        {% household_lactation %}
+        {% include "dashboard/arrange.html" %}
+        <div class="{% if side_by_side %}comparison-grid{% else %}household-dashboard{% endif %}"
+             style="--dashboard-rows: {{ dashboard_sections|length|add:1 }}">
+            {% for child in objects %}
+                <section class="dashboard-child-panel">
+                    {% include "dashboard/child_content.html" with object=child %}
+                </section>
+            {% empty %}
+                {% if perms.core.add_child %}
+                    <p class="text-center"><a class="btn btn-outline-primary"
+   href="{% url 'core:child-add' %}">{% trans "Add a child" %}</a></p>
+                {% endif %}
+            {% endfor %}
+        </div>
     </div>
+{% endblock %}
+{% block javascript %}
+    <script>BabyBuddy.Dashboard.watch("household-dashboard-content", {% if user.settings.dashboard_refresh_rate %}{{ user.settings.dashboard_refresh_rate_milliseconds }}{% else %}false{% endif %});</script>
 {% endblock %}

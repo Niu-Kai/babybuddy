@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
+import math
 import re
 import time
 
 
-def autorangeoptions(dates, padding=10000000):
+def autorangeoptions(dates, padding=43200000):
     """
     Default autorange mix and max for all graphs.
     See: https://github.com/babybuddy/babybuddy/issues/706
@@ -29,6 +30,24 @@ def _to_date(value):
     return value
 
 
+CHART_COLORS = ["#6487a7", "#8f80a7", "#b28e6c", "#71978b", "#ad7e89", "#a29b72"]
+BAR_OUTLINE = {"color": "#a3afbd", "width": 1.2}
+
+
+def count_axis(maximum):
+    """Readable, whole-number counts with at most about seven labeled ticks."""
+    target = max(1, maximum / 6)
+    power = 10 ** math.floor(math.log10(target))
+    step = next(value * power for value in (1, 2, 5, 10) if value * power >= target)
+    return {
+        "tickmode": "linear",
+        "dtick": step,
+        "tick0": 0,
+        "tickformat": ",d",
+        "rangemode": "tozero",
+    }
+
+
 def default_graph_layout_options():
     """
     Default layout options for all graphs.
@@ -37,8 +56,8 @@ def default_graph_layout_options():
     return {
         "height": 480,
         "autosize": True,
-        "paper_bgcolor": "rgb(52, 58, 64)",
-        "plot_bgcolor": "rgb(52, 58, 64)",
+        "paper_bgcolor": "rgba(0,0,0,0)",
+        "plot_bgcolor": "rgba(0,0,0,0)",
         "font": {
             "color": "rgba(255, 255, 255, 1)",
             # Bootstrap 4 font family.
@@ -48,13 +67,35 @@ def default_graph_layout_options():
             '"Segoe UI Symbol"',
             "size": 14,
         },
-        "margin": {"b": 80, "t": 80},
+        "margin": {"l": 68, "r": 24, "b": 100, "t": 32},
+        "colorway": CHART_COLORS,
+        "template": {
+            "data": {"bar": [{"type": "bar", "marker": {"line": BAR_OUTLINE}}]}
+        },
+        "hovermode": "x unified",
+        "hoverlabel": {
+            "bgcolor": "#1b2430",
+            "bordercolor": "#94a3b8",
+            "font": {"color": "#f1f5f9", "size": 15},
+            "align": "left",
+            "namelength": -1,
+        },
+        "bargap": 0.3,
+        "legend": {"orientation": "h", "y": -0.18, "x": 0},
         "xaxis": {
+            "automargin": True,
+            "nticks": 7,
+            "tickfont": {"size": 13},
+            "showgrid": False,
             "title": {"font": {"color": "rgba(255, 255, 255, 0.5)"}},
             "gridcolor": "rgba(0, 0, 0, 0.25)",
             "zerolinecolor": "rgba(0, 0, 0, 0.5)",
         },
         "yaxis": {
+            "automargin": True,
+            "nticks": 7,
+            "tickfont": {"size": 13},
+            "zeroline": False,
             "title": {"font": {"color": "rgba(255, 255, 255, 0.5)"}},
             "gridcolor": "rgba(0, 0, 0, 0.25)",
             "zerolinecolor": "rgba(0, 0, 0, 0.5)",
@@ -110,3 +151,38 @@ def split_graph_output(output):
     scripts = re.findall(r"<script\b[^>]*>.*?</script>", output, flags=re.DOTALL)
     html = re.sub(r"<script\b[^>]*>.*?</script>", "", output, flags=re.DOTALL)
     return html, "\n".join(scripts)
+
+
+def plot_payloads(script):
+    """Read JSON arguments from Plotly's generated calls, without evaluating JS."""
+    import json
+
+    decoder = json.JSONDecoder()
+    plots = []
+    pattern = re.compile(r"Plotly\.newPlot\(\s*")
+    offset = 0
+    while match := pattern.search(script or "", offset):
+        cursor = match.end()
+        arguments = []
+        for index in range(4):
+            while cursor < len(script) and script[cursor].isspace():
+                cursor += 1
+            value, cursor = decoder.raw_decode(script, cursor)
+            arguments.append(value)
+            while cursor < len(script) and script[cursor].isspace():
+                cursor += 1
+            if index < 3:
+                if script[cursor] != ",":
+                    raise ValueError("Invalid Plotly arguments")
+                cursor += 1
+        offset = cursor
+        identifier, data, layout, config = arguments
+        if (
+            not isinstance(identifier, str)
+            or not isinstance(data, list)
+            or not isinstance(layout, dict)
+            or not isinstance(config, dict)
+        ):
+            raise ValueError("Invalid Plotly payload")
+        plots.append(dict(id=identifier, data=data, layout=layout, config=config))
+    return plots

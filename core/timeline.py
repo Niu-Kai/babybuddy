@@ -506,6 +506,8 @@ def _add_foods(min_date, max_date, events, child=None):
 
 
 def _add_pumpings(min_date, max_date, events, child):
+    if child:
+        return
     entries = (
         Pumping.objects.filter(_date_range("start", min_date, max_date))
         .select_related("child")
@@ -517,7 +519,7 @@ def _add_pumpings(min_date, max_date, events, child):
         events.append(
             {
                 "time": timezone.localtime(entry.start),
-                "event": _("Pumping for %(child)s") % {"child": entry.child.first_name},
+                "event": _("Pumping"),
                 "details": [entry_value(entry, "amount")]
                 + ([entry.notes] if entry.notes else []),
                 "duration": duration_string(entry.duration) if entry.duration else None,

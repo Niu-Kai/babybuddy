@@ -70,7 +70,11 @@ def set_initial_values(kwargs, form_type):
             pass
 
     # Set type and method values for Feeding instance based on last feed.
-    if form_type == FeedingForm and "child" in kwargs["initial"]:
+    if (
+        form_type == FeedingForm
+        and "child" in kwargs["initial"]
+        and "method" not in kwargs["initial"]
+    ):
         last_feeding = (
             models.Feeding.objects.filter(child=kwargs["initial"]["child"])
             .order_by("end")
@@ -685,16 +689,15 @@ class MedicationForm(CoreModelForm, TaggableModelForm):
 
 class PumpingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
-        {"fields": ["child", "start", "end"], "layout": "required"},
+        {"fields": ["start", "end"], "layout": "required"},
         {"fields": ["amount", "side"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
     class Meta:
         model = models.Pumping
-        fields = ["child", "start", "end", "amount", "side", "notes", "tags"]
+        fields = ["start", "end", "amount", "side", "notes", "tags"]
         widgets = {
-            "child": ChildRadioSelect,
             "start": DateTimeInput(),
             "end": DateTimeInput(),
             "side": PillRadioSelect(),
@@ -1206,3 +1209,48 @@ class RecordPeriodFilterForm(TimelineFilterForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields.pop("activity")
+
+
+class PumpingReminderForm(forms.Form):
+    hide_field_help = True
+    enabled = forms.BooleanField(label=_("Show a reminder in the app"), required=False)
+    minutes = forms.IntegerField(
+        label=_("Remind me after (minutes)"),
+        required=False,
+        min_value=1,
+        max_value=10080,
+    )
+    basis = forms.ChoiceField(
+        label=_("Count from the end of"),
+        choices=[
+            ("combined", _("Last pumping or nursing session")),
+            ("pumping", _("Last pumping session")),
+        ],
+    )
+
+    def __init__(self, *args, user, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+        self.initial.update(
+            enabled=bool(user.settings.pumping_reminder_minutes),
+            minutes=user.settings.pumping_reminder_minutes,
+            basis=user.settings.pumping_reminder_basis,
+        )
+        if not user.has_perm("core.view_feeding"):
+            self.fields["basis"].choices = [("pumping", _("Last pumping session"))]
+            self.initial["basis"] = "pumping"
+
+    def clean(self):
+        data = super().clean()
+        if data.get("enabled") and not data.get("minutes"):
+            self.add_error("minutes", _("Enter a reminder interval."))
+        return data
+
+    def save(self):
+        self.user.settings.pumping_reminder_minutes = (
+            self.cleaned_data["minutes"] if self.cleaned_data["enabled"] else None
+        )
+        self.user.settings.pumping_reminder_basis = self.cleaned_data["basis"]
+        self.user.settings.save(
+            update_fields=["pumping_reminder_minutes", "pumping_reminder_basis"]
+        )

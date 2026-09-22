@@ -1,0 +1,6 @@
+<div id="view-{{ request.resolver_match.view_name }}"
+     class="container-fluid"
+     data-report-page>
+    {% if selected_child and not household_page %}<div class="page-child-context text-body-secondary">{{ selected_child }}</div>{% endif %}
+    {% block content %}{% endblock %}
+</div>

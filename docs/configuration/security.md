@@ -131,3 +131,49 @@ If this is set to `True`, the browser session cookie will be marked as "secure",
 **See also**
 
 - [Django's documentation on the `SESSION_COOKIE_SECURE` setting](https://docs.djangoproject.com/en/5.0/ref/settings/#session-cookie-secure)
+
+## Local development and private uploads
+
+Development installations generate a private `.development-secret-key` when
+`SECRET_KEY` is not supplied. This file is ignored by Git. Keep it between restarts;
+replacing it invalidates signed data and sessions. Production still requires an
+explicit, strong `SECRET_KEY`, HTTPS, secure cookies, and `DEBUG=False`.
+
+Local `/media/` requests are checked by Django: child pictures require
+`core.view_child`, and note images require `core.view_note`. Thumbnails use the
+same permission boundary. Session authentication and API token authentication are
+supported; private media responses are not cached. Reverse proxies must forward
+`/media/` to Django rather than expose `MEDIA_ROOT` directly. If using external
+object storage, configure private storage and signed URLs; a public bucket bypasses
+Django's access checks.
+
+## Calendar subscriptions
+
+Calendar URLs contain a read-only credential scoped to one child's appointments,
+not the user's API key. Access is checked against the user's current permissions,
+active status, and access expiration on each request. Regenerating the API key
+revokes existing calendar links. After upgrading from API-key-based calendar
+links, copy the new URLs from Appointments into subscribed calendar apps; old
+links are rejected. Keep calendar links private and redact query strings from
+proxy/access logs.
+
+## Spreadsheet exports
+
+Full-household exports require view permission for every exported record type in
+addition to staff access. CSV and TSV exports escape formula-like text so a name
+or note is not interpreted as a spreadsheet formula. Stored records are unchanged.
+
+## API and outgoing webhooks
+
+API list responses default to 100 records and cap `limit` at 1,000. Follow the
+returned `next` URL to retrieve more records.
+
+Webhook destinations must be HTTP(S) URLs without embedded usernames/passwords.
+Use the final receiver URL: redirects are rejected. Query-string tokens are
+supported and are not written to failure logs. Configure only trusted receivers;
+private-network addresses remain available for Home Assistant integrations.
+
+Events are dispatched after a database transaction commits. Delivery uses up to
+four workers and 64 pending/running jobs. When full, the app logs a warning and
+drops additional events instead of growing memory and threads without a limit.
+Webhook delivery is best effort and is not a durable background queue.

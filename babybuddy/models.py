@@ -43,7 +43,7 @@ DASHBOARD_CARDS = [
     ("feeding_last", _("Last Feeding")),
     ("diaperchange_last", _("Last Diaper Change")),
     ("sleep_last", _("Last Sleep")),
-    ("pumping_last", _("Last Pumping")),
+    ("pumping_overview", _("Pumping & nursing")),
     ("medication_last", _("Last Medication")),
     ("sleep_naps_day", _("Today's Naps")),
     ("tummytime_day", _("Today's Tummy Time")),
@@ -51,7 +51,6 @@ DASHBOARD_CARDS = [
     ("feeding_recent", _("Recent Feedings")),
     ("feeding_last_method", _("Last Feeding Method")),
     ("sleep_recent", _("Recent Sleep")),
-    ("pumping_recent", _("Recent Pumpings")),
     ("statistics", _("Statistics")),
     ("diaperchange_types", _("Diaper Changes")),
     ("breastfeeding", _("Breastfeeding")),
@@ -72,6 +71,7 @@ DASHBOARD_CARDS += [
     ("measurement_temperature", _("Latest temperature")),
 ]
 DEFAULT_DASHBOARD_CARDS = {
+    "pumping_overview",
     "feeding_last",
     "diaperchange_last",
     "sleep_last",
@@ -88,6 +88,12 @@ def default_hidden_dashboard_cards():
 
 class Settings(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    pumping_reminder_minutes = models.PositiveIntegerField(null=True, blank=True)
+    pumping_reminder_basis = models.CharField(
+        max_length=20,
+        default="combined",
+        choices=[("combined", _("Pumping or nursing")), ("pumping", _("Pumping only"))],
+    )
     dashboard_refresh_rate = models.DurationField(
         verbose_name=_("Refresh rate"),
         help_text=_(
@@ -256,6 +262,7 @@ class Settings(models.Model):
         default=default_hidden_dashboard_cards,
         verbose_name=_("Hidden dashboard cards"),
     )
+    dashboard_card_order = models.JSONField(blank=True, default=list)
     access_expires = models.DateTimeField(
         blank=True,
         null=True,

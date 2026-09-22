@@ -46,3 +46,5 @@ devenv.local.nix
 .pre-commit-config.yaml
 
 .vscode
+# Private per-installation development signing key.
+.development-secret-key

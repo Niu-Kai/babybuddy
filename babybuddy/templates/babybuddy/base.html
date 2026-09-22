@@ -9,6 +9,10 @@
       dir="{{ LANGUAGE_BIDI|yesno:"rtl,ltr" }}">
     <head>
         <meta charset="utf-8" />
+        <style>
+            html { color-scheme: dark; background: #0d1117; }
+            html[data-bs-theme="light"] { color-scheme: light; background: #f4f6fa; }
+        </style>
         {% if user.is_authenticated and user.settings.theme == "auto" %}
             {% comment %}Follow the device theme, before the stylesheet paints.{% endcomment %}
             <script>
@@ -58,7 +62,8 @@
               color="#37abe9" />
         <link rel="shortcut icon"
               href="{% static "babybuddy/root/favicon.ico" %}?v=20211218" />
-        <link rel="stylesheet" href="{% static "babybuddy/css/app.css" %}" />
+        <link rel="stylesheet"
+              href="{% static "babybuddy/css/app.css" %}?v=20260921-shared-inventory" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-title" content="Baby Buddy" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black" />
@@ -76,7 +81,7 @@
         {% block breadcrumb_nav %}{% endblock %}
         {% block page %}{% endblock %}
         <script src="{% static "babybuddy/js/vendor.js" %}"></script>
-        <script src="{% static "babybuddy/js/app.js" %}"></script>
+        <script src="{% static "babybuddy/js/app.js" %}?v=20260921-shared-inventory"></script>
         {% if user.is_authenticated %}<script>BabyBuddy.PullToRefresh.init()</script>{% endif %}
         <script>
             if ("serviceWorker" in navigator) {

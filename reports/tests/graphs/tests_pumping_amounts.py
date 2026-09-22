@@ -81,5 +81,8 @@ class PumpingAmountsTestCase(TestCase):
             )
 
         html, js = pumping_amounts(models.Pumping.objects.filter(child=c))
-        annotations = _layout(js)["annotations"]
-        self.assertEqual([a["text"] for a in annotations], ["0.3"])
+        decoder = json.JSONDecoder()
+        position = js.index(",", js.index("Plotly.newPlot(")) + 1
+        traces, _ = decoder.raw_decode(js, js.index("[", position))
+        self.assertEqual(traces[0]["y"], [0.3])
+        self.assertNotIn("annotations", _layout(js))

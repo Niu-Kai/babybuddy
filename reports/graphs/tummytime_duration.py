@@ -33,19 +33,10 @@ def tummytime_duration(instances):
     trace_avg = go.Bar(
         name=_("Total duration"),
         x=list(totals.values_list("date", flat=True)),
-        y=[td.seconds / 60 for td in sums],
+        y=[td.total_seconds() / 60 for td in sums],
         hoverinfo="text",
         text=[_duration_string_ms(td) for td in sums],
     )
-    trace_count = go.Scatter(
-        name=_("Number of sessions"),
-        mode="markers",
-        x=list(totals.values_list("date", flat=True)),
-        y=list(totals.values_list("count", flat=True)),
-        yaxis="y2",
-        hoverinfo="y",
-    )
-
     layout_args = utils.default_graph_layout_options()
     layout_args["title"] = "<b>" + _("Total Tummy Time Durations") + "</b>"
     layout_args["xaxis"]["title"] = _("Date")
@@ -56,14 +47,7 @@ def tummytime_duration(instances):
     )
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
     layout_args["yaxis"]["title"] = _("Total duration (minutes)")
-    layout_args["yaxis2"] = dict(layout_args["yaxis"])
-    layout_args["yaxis2"]["title"] = _("Number of sessions")
-    layout_args["yaxis2"]["overlaying"] = "y"
-    layout_args["yaxis2"]["side"] = "right"
-
-    fig = go.Figure(
-        {"data": [trace_avg, trace_count], "layout": go.Layout(**layout_args)}
-    )
+    fig = go.Figure({"data": [trace_avg], "layout": go.Layout(**layout_args)})
     output = plotly.plot(fig, output_type="div", include_plotlyjs=False)
     return utils.split_graph_output(output)
 

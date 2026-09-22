@@ -32,7 +32,6 @@ def weight_change(
         name=_("Weight"),
         x=weighing_dates,
         y=measured_weights,
-        fill="tozeroy",
         mode="lines+markers",
     )
 

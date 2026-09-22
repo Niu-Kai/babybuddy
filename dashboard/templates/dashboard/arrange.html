@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="dashboard-arrange"
+     data-dashboard-arrange
+     data-save-url="{% url 'dashboard:dashboard-customize' %}">
+    {% csrf_token %}
+    <button type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-arrange-start>{% trans "Arrange panels" %}</button>
+    <button type="button" class="btn btn-sm btn-primary" data-arrange-save hidden>{% trans "Save order" %}</button>
+    <button type="button"
+            class="btn btn-sm btn-outline-secondary"
+            data-arrange-cancel
+            hidden>{% trans "Cancel" %}</button>
+    <span role="status"
+          aria-live="polite"
+          data-arrange-status
+          data-error="{% trans 'Unable to save. Please try again.' %}"></span>
+</div>

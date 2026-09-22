@@ -1,0 +1,10 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n %}
+{% block title %}
+    {% trans "Pumping & nursing reminder" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Pumping & nursing reminder" %}</h1>
+    <p class="text-center text-body-secondary">{% trans "Optional reminder shown in the app. Choose a routine that works for you; this is not a mastitis risk indicator." %}</p>
+    {% include "babybuddy/form.html" %}
+{% endblock %}

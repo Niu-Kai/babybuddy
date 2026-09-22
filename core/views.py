@@ -1,3 +1,6 @@
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
+
 # -*- coding: utf-8 -*-
 import datetime
 
@@ -199,14 +202,25 @@ class DiaperChangeList(
     filterset_class = filters.DiaperChangeFilter
 
 
-class DiaperChangeAdd(CoreAddView):
+class DiaperStockMessageMixin:
+    def form_valid(self, form):
+        from inventory.diapers import notify
+
+        form.instance._inventory_actor_id = self.request.user.pk
+        response = super().form_valid(form)
+        if response.status_code == 302:
+            notify(self.request, self.object)
+        return response
+
+
+class DiaperChangeAdd(DiaperStockMessageMixin, CoreAddView):
     model = models.DiaperChange
     permission_required = ("core.add_diaperchange",)
     form_class = forms.DiaperChangeForm
     success_url = reverse_lazy("core:diaperchange-list")
 
 
-class DiaperChangeUpdate(CoreUpdateView):
+class DiaperChangeUpdate(DiaperStockMessageMixin, CoreUpdateView):
     model = models.DiaperChange
     permission_required = ("core.change_diaperchange",)
     form_class = forms.DiaperChangeForm
@@ -217,6 +231,10 @@ class DiaperChangeDelete(CoreDeleteView):
     model = models.DiaperChange
     permission_required = ("core.delete_diaperchange",)
     success_url = reverse_lazy("core:diaperchange-list")
+
+    def form_valid(self, form):
+        self.object._inventory_actor_id = self.request.user.pk
+        return super().form_valid(form)
 
 
 class FeedingList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilterView):
@@ -231,6 +249,16 @@ class FeedingAdd(CoreAddView):
     permission_required = ("core.add_feeding",)
     form_class = forms.FeedingForm
     success_url = reverse_lazy("core:feeding-list")
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.request.GET.get("method") in {
+            "left breast",
+            "right breast",
+            "both breasts",
+        }:
+            initial.update(method=self.request.GET["method"], type="breast milk")
+        return initial
 
 
 class BottleFeedingAdd(CoreAddView):
@@ -601,34 +629,31 @@ class AppointmentDelete(CoreDeleteView):
     success_url = reverse_lazy("core:appointment-list")
 
 
+@method_decorator(never_cache, name="dispatch")
 class AppointmentFeed(View):
-    """
-    iCalendar feed of a child's appointments for calendar apps such as
-    Google Calendar ("From URL"). Authenticated by the user's API key in
-    `?token=`, since calendar apps cannot log in.
-    """
+    """Read-only calendar subscription authenticated by a child-scoped token."""
 
     def get(self, request, slug):
         from django.http import HttpResponse, HttpResponseForbidden
-        from rest_framework.authtoken.models import Token
+        from core.calendar_tokens import feed_user
 
-        token = Token.objects.filter(key=request.GET.get("token", "")).first()
-        user = token.user if token else None
-        if (
-            user is None
-            or not user.is_active
-            or user.settings.access_expired
-            or not user.has_perm("core.view_appointment")
-        ):
-            return HttpResponseForbidden("Invalid token.")
-        child = get_object_or_404(models.Child, slug=slug)
+        child = models.Child.objects.filter(slug=slug).first()
+        if child is None or feed_user(request.GET.get("token", ""), child) is None:
+            return HttpResponseForbidden("Invalid calendar token.")
         lines = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
             "PRODID:-//Baby Buddy//Appointments//EN",
             "CALSCALE:GREGORIAN",
             "METHOD:PUBLISH",
-            f"X-WR-CALNAME:{child} - Baby Buddy",
+            "X-WR-CALNAME:"
+            + str(child)
+            .replace("\\", "\\\\")
+            .replace("\r", "")
+            .replace("\n", "\\n")
+            .replace(";", "\\;")
+            .replace(",", "\\,")
+            + " - Baby Buddy",
         ]
         for appointment in models.Appointment.objects.filter(child=child):
             lines.extend(appointment.ical_event())
@@ -1189,3 +1214,20 @@ class FoodDelete(CoreDeleteView):
     model = models.Food
     permission_required = ("core.delete_food",)
     success_url = reverse_lazy("core:food-list")
+
+
+class PumpingReminders(PermissionRequiredMixin, FormView):
+    permission_required = ("core.view_pumping",)
+    template_name = "core/pumping_reminders.html"
+    form_class = forms.PumpingReminderForm
+    success_url = reverse_lazy("core:pumping-list")
+
+    def get_context_data(self, **kwargs):
+        return {**super().get_context_data(**kwargs), "cancel_url": self.success_url}
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "user": self.request.user}
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)

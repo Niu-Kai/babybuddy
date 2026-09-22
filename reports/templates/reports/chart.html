@@ -1,8 +1,11 @@
 {% load i18n %}
-{% if html %}
-    {{ html|safe }}
-{% else %}
-    <div class="report-empty-state">
-        <div class="container-fluid">{% trans "There is not enough data to generate this report." %}</div>
-    </div>
-{% endif %}
+<div class="report-chart-card">
+    {% if unknown_unit_count %}<p class="report-data-notice">{% blocktrans count count=unknown_unit_count %}{{ count }} entry has no recorded unit and is excluded.{% plural %}{{ count }} entries have no recorded unit and are excluded.{% endblocktrans %}</p>{% endif %}
+    {% if html %}
+        {{ html|safe }}
+    {% else %}
+        <div class="report-empty-state">
+            <div class="container-fluid">{% trans "There is not enough data to generate this report." %}</div>
+        </div>
+    {% endif %}
+</div>

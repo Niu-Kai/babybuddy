@@ -7,6 +7,10 @@
 {% block content %}
     <h1>{% trans "Dashboard" %} <a class="btn btn-sm btn-outline-secondary"
     href="{% url 'dashboard:dashboard-customize' %}">{% trans "Edit dashboard" %}</a></h1>
+    {% include "inventory/reminder.html" %}
+    {% load lactation %}
+    {% household_lactation %}
+    {% include "dashboard/arrange.html" %}
     {% include "dashboard/child_content.html" %}
 {% endblock %}
 {% block javascript %}

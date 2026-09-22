@@ -213,8 +213,8 @@ class PercentileSwitchTestCase(TestCase):
         ):
             page = c.get("/children/{}/reports/{}/".format(child.slug, path))
             self.assertEqual(page.status_code, 200)
-            self.assertContains(page, "WHO percentiles: boys")
-            self.assertContains(page, "Measurements only")
+            self.assertContains(page, "WHO median")
+            self.assertContains(page, "data-growth-reference", count=2)
 
 
 class ActivityPatternTestCase(TestCase):

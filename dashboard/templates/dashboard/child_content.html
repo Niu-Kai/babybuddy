@@ -73,7 +73,23 @@
                             class="dash-section-title">{{ section.label }}</h2>
                         <div class="dash-grid dash-grid-{{ section.key }}">
                             {% for panel in section.panels %}
-                                <div class="dash-cell" data-dashboard-panel="{{ panel }}">{% include "dashboard/card_slot.html" %}</div>
+                                <div class="dash-cell" data-dashboard-panel="{{ panel }}">
+                                    <div class="panel-move-controls" hidden>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary panel-drag"
+                                                aria-label="{% trans 'Drag panel' %}"
+                                                title="{% trans 'Drag panel' %}">⠿</button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-panel-move="-1"
+                                                aria-label="{% trans 'Move panel earlier' %}">↑</button>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-secondary"
+                                                data-panel-move="1"
+                                                aria-label="{% trans 'Move panel later' %}">↓</button>
+                                    </div>
+                                    {% include "dashboard/card_slot.html" %}
+                                </div>
                             {% endfor %}
                         </div>
                     </section>

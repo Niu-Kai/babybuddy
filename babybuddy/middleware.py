@@ -68,24 +68,23 @@ class UserTimezoneMiddleware:
 
     def __call__(self, request):
         user = request.user
+        name = settings.TIME_ZONE
         if hasattr(user, "settings"):
-            name = user.settings.timezone
+            name = user.settings.timezone or name
             if user.settings.timezone_follow_device:
-                # The device's zone, reported by a cookie the page sets (#611).
                 name = request.COOKIES.get(self.DEVICE_TZ_COOKIE) or name
-            if name:
-                try:
-                    timezone.activate(name)
-                except (ValueError, KeyError):
-                    # An unknown zone (e.g. tzdata differs from the host that
-                    # set it) must not make every request fail; fall back to
-                    # the default zone. ZoneInfoNotFoundError is a KeyError.
-                    timezone.deactivate()
             preferences.set_time_format(
                 "H:i" if user.settings.use_24_hour_time else None
             )
+        from zoneinfo import ZoneInfo
+
         try:
-            return self.get_response(request)
+            zone = ZoneInfo(name)
+        except (ValueError, KeyError):
+            zone = timezone.get_default_timezone()
+        try:
+            with timezone.override(zone):
+                return self.get_response(request)
         finally:
             preferences.set_time_format(None)
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import TemplateView
 from django.utils import timezone
@@ -28,9 +28,7 @@ class Dashboard(LoginRequiredMixin, TemplateView):
                 )
             )
         children = len(scope["scope_children"])
-        if children == 0:
-            return HttpResponseRedirect(reverse("babybuddy:welcome"))
-        elif children == 1:
+        if children == 1:
             return HttpResponseRedirect(
                 reverse(
                     "dashboard:dashboard-child", args=[scope["scope_children"][0].slug]
@@ -102,12 +100,31 @@ class DashboardCustomize(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
     def post(self, request, *args, **kwargs):
+        if request.POST.get("action") == "reorder":
+            from dashboard.layout import GLANCE, TRENDS, allowed
+
+            order = request.POST.getlist("order")
+            available = [key for key in GLANCE + TRENDS if allowed(request.user, key)]
+            if (
+                not order
+                or len(order) != len(set(order))
+                or any(key not in available for key in order)
+            ):
+                return JsonResponse({"error": "Invalid panel order."}, status=400)
+            request.user.settings.dashboard_card_order = order + [
+                key for key in available if key not in order
+            ]
+            request.user.settings.save(update_fields=["dashboard_card_order"])
+            return JsonResponse({"saved": True})
         if request.POST.get("action") == "reset":
             from babybuddy.models import default_hidden_dashboard_cards
 
             request.user.settings.dashboard_hidden_cards = (
                 default_hidden_dashboard_cards()
             )
-            request.user.settings.save(update_fields=["dashboard_hidden_cards"])
+            request.user.settings.dashboard_card_order = []
+            request.user.settings.save(
+                update_fields=["dashboard_hidden_cards", "dashboard_card_order"]
+            )
             return HttpResponseRedirect(self.success_url)
         return super().post(request, *args, **kwargs)

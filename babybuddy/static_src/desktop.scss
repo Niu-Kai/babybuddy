@@ -269,3 +269,136 @@ div[id^='view-'].container-fluid {
 
 .auth-page { max-width: 30rem; padding-top: 4vh; }
 .auth-card { margin-top: 1.5rem; background: var(--dash-surface); border: 1px solid var(--bs-border-color); border-radius: .85rem; }
+
+// Shared chart surfaces and compact, direct report controls.
+.report-chart-card { border: 2px solid var(--report-frame, #53677d); border-radius: 1rem; padding: .65rem; background: var(--dash-surface); overflow: hidden; min-width: 0; box-shadow: 0 3px 12px rgb(0 0 0 / 12%); }
+.report-chart-card .report-empty-state { border: 0; }
+.report-data-notice { color: var(--bs-secondary-color); font-size: .85rem; margin: .5rem .75rem; }
+.growth-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
+.growth-references { border: 0; display: flex; gap: 1rem; margin: 0; padding: 0; }
+.growth-references legend { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: .5rem; }
+.growth-references label { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.3rem; }
+.growth-references input { accent-color: var(--bs-primary); }
+.growth-source { font-size: .8rem; color: var(--bs-secondary-color); margin: 1rem .5rem; }
+.dashboard-arrange { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.panel-move-controls { display: flex; gap: .35rem; padding: .5rem; border: 1px dashed var(--bs-border-color); border-radius: .75rem .75rem 0 0; }
+.panel-move-controls[hidden], .dashboard-arrange [hidden], .arranging-panels .dash-section[hidden] { display: none; }
+.panel-drag { cursor: grab; }
+.panel-dragging { opacity: .45; }
+.arranging-panels .dash-cell { display: flex; flex-direction: column; }
+.arranging-panels .dash-cell > .card { flex: 1; }
+
+.arranging-panels .dash-cell:not(:has(.card)) { display: none; }
+
+[data-bs-theme="light"] { --report-frame: #91a2b4; }
+
+.sleep-comparison-scroll { overflow-x: auto; margin-inline: auto; scrollbar-width: thin; }
+
+.inventory-reminder { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem; margin-bottom: 1rem; background: var(--dash-surface); border: 1px solid var(--bs-border-color); border-radius: .8rem; }
+.inventory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1rem; }
+.inventory-card { padding: 1.25rem; border: 1px solid var(--bs-border-color); border-radius: 1rem; background: var(--dash-surface); min-width: 0; }
+.inventory-card h3 { font-size: 1.15rem; margin-top: .4rem; }
+.inventory-card h2, .inventory-section h2 { font-size: 1.25rem; }
+.inventory-status { align-self: start; font-size: .8rem; color: var(--bs-warning); border: 1px solid var(--bs-warning); padding: .2rem .5rem; border-radius: 1rem; white-space: nowrap; }
+.inventory-quantity { font-size: 1.8rem; font-weight: 700; margin-bottom: .5rem; }
+.inventory-quantity span { font-size: 1rem; font-weight: 400; }
+.inventory-card-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.inventory-detail { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 1rem; }
+
+.inventory-form-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem 1.5rem; }
+
+
+
+.report-staging {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.report-navigation-status {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1080;
+  padding: 0.6rem 1rem;
+  color: var(--bs-body-color);
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.65rem;
+  box-shadow: 0 4px 16px #0002;
+}
+
+
+.lactation-panel {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+  background: var(--dash-surface);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.lactation-header, .lactation-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.lactation-header h2 { font-size: 1.25rem; margin: .25rem 0 0; }
+.lactation-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+.lactation-stats > div { display: flex; flex-direction: column; gap: .3rem; }
+.lactation-stats strong { font-size: 1.15rem; }
+.lactation-stats span, .lactation-footer { font-size: .875rem; }
+.lactation-side { border: 1px solid var(--bs-border-color); border-radius: 2rem; padding: .3rem .7rem; }
+
+
+// Keep the outgoing document visible until the next page is ready. Ordinary
+// links, redirects, forms, and history retain their native browser behavior.
+// https://developer.chrome.com/docs/web-platform/view-transitions/cross-document
+@view-transition {
+  navigation: auto;
+}
+
+.desktop-nav {
+  view-transition-name: app-navigation;
+}
+
+::view-transition-group(root),
+::view-transition-group(app-navigation) {
+  animation-duration: 120ms;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(root),
+::view-transition-old(app-navigation) {
+  animation: none;
+}
+
+::view-transition-new(root) {
+  animation: page-reveal 120ms ease-out both;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(app-navigation) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@keyframes page-reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

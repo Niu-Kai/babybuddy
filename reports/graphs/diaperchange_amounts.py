@@ -1,43 +1,36 @@
-# -*- coding: utf-8 -*-
-from django.utils import timezone
+"""Actual diaper changes per local calendar day."""
+
+from django.db.models import Count
+from django.db.models.functions import TruncDate
 from django.utils.translation import gettext as _
-
+import plotly.graph_objects as go
 import plotly.offline as plotly
-import plotly.graph_objs as go
-
 from reports import utils
 
 
 def diaperchange_amounts(instances):
-    """
-    Create a graph showing daily diaper change amounts over time.
-    :param instances: a QuerySet of DiaperChange instances.
-    :returns: a tuple of the graph's html and javascript.
-    """
-    totals = {}
-    for instance in instances:
-        time_local = timezone.localtime(instance.time)
-        date = time_local.date()
-        if date not in totals.keys():
-            totals[date] = 0
-        totals[date] += instance.amount or 0
-
-    amounts = [round(amount, 2) for amount in totals.values()]
-    trace = go.Bar(
-        name=_("Diaper change amount"),
-        x=list(totals.keys()),
-        y=amounts,
-        hoverinfo="text",
-        textposition="outside",
-        text=amounts,
+    totals = list(
+        instances.annotate(day=TruncDate("time"))
+        .values("day")
+        .annotate(total=Count("pk"))
+        .order_by("day")
     )
-
-    layout_args = utils.default_graph_layout_options()
-    layout_args["title"] = "<b>" + _("Diaper Change Amounts") + "</b>"
-    layout_args["xaxis"]["title"] = _("Date")
-    layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Change amount")
-
-    fig = go.Figure({"data": [trace], "layout": go.Layout(**layout_args)})
-    output = plotly.plot(fig, output_type="div", include_plotlyjs=False)
-    return utils.split_graph_output(output)
+    trace = go.Bar(
+        name=_("Diaper changes"),
+        x=[row["day"] for row in totals],
+        y=[row["total"] for row in totals],
+        hovertemplate="%{x|%b %d, %Y}<br>%{y:.0f} diapers<extra></extra>",
+    )
+    layout = utils.default_graph_layout_options()
+    layout["xaxis"].update(title=_("Date"), type="date")
+    layout["yaxis"].update(
+        title=_("Diaper changes"),
+        **utils.count_axis(max((row["total"] for row in totals), default=0))
+    )
+    return utils.split_graph_output(
+        plotly.plot(
+            go.Figure(data=[trace], layout=layout),
+            output_type="div",
+            include_plotlyjs=False,
+        )
+    )

@@ -599,7 +599,7 @@ class PumpingFormsTestCase(FormsTestCaseBase):
 
         page = self.c.post("/pumping/add/", params, follow=True)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
+        self.assertContains(page, "Pumping entry added")
 
     def test_edit(self):
         params = {
@@ -612,9 +612,7 @@ class PumpingFormsTestCase(FormsTestCaseBase):
         self.assertEqual(page.status_code, 200)
         self.bp.refresh_from_db()
         self.assertEqual(self.bp.amount, params["amount"])
-        self.assertContains(
-            page, "Pumping entry for {} updated".format(str(self.bp.child))
-        )
+        self.assertContains(page, "Pumping entry updated")
 
     def test_delete(self):
         page = self.c.post("/pumping/{}/delete/".format(self.bp.id), follow=True)
@@ -1324,8 +1322,8 @@ class PumpingSideTestCase(FormsTestCaseBase):
         }
         page = self.c.post("/pumping/add/", params, follow=True)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
-        pumping = models.Pumping.objects.filter(child=self.child).first()
+        self.assertContains(page, "Pumping entry added")
+        pumping = models.Pumping.objects.first()
         self.assertEqual(pumping.side, "left")
         page = self.c.get("/pumping/")
         self.assertContains(page, "Left")
@@ -1339,8 +1337,8 @@ class PumpingSideTestCase(FormsTestCaseBase):
             "amount": 90,
         }
         page = self.c.post("/pumping/add/", params, follow=True)
-        self.assertContains(page, "Pumping entry for {} added".format(str(self.child)))
-        self.assertIsNone(models.Pumping.objects.filter(child=self.child).first().side)
+        self.assertContains(page, "Pumping entry added")
+        self.assertIsNone(models.Pumping.objects.first().side)
 
 
 class SmallIssuesTestCase(FormsTestCaseBase):
@@ -1530,7 +1528,9 @@ class AppointmentTestCase(FormsTestCaseBase):
 
     def test_ical_feed(self):
         self._add()
-        token = self.user.settings.api_key().key
+        from core.calendar_tokens import feed_token
+
+        token = feed_token(self.user, self.child)
         url = "/children/{}/appointments.ics".format(self.child.slug)
         page = HttpClient().get(url + "?token=" + token)
         self.assertEqual(page.status_code, 200)

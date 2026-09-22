@@ -14,11 +14,12 @@
          data-range-end="{{ report_range_end|date:'Y-m-d' }}">
         {% block toolbar %}{% endblock %}
         {% include "reports/filters.html" %}
-        {% if report_panels %}<div class="comparison-grid report-comparison">{% for panel in report_panels %}<section class="report-panel"><h2>{{ panel.object }}</h2>{% include "reports/chart.html" with html=panel.html only %}</section>{% endfor %}</div>{% else %}{% include "reports/chart.html" %}{% endif %}
+        {% if report_panels %}<div class="comparison-grid report-comparison">{% for panel in report_panels %}<section class="report-panel"><h2>{{ panel.object }}</h2>{% include "reports/chart.html" with html=panel.html unknown_unit_count=panel.unknown_unit_count only %}</section>{% endfor %}</div>{% else %}{% include "reports/chart.html" %}{% endif %}
+        {% block report_footer %}{% endblock %}
     </div>
 {% endblock %}
 {% block javascript %}
-    <script src="{% static "babybuddy/js/graph.js" %}"></script>
+    <script src="{% static "babybuddy/js/graph.js" %}?v=20260921-security"></script>
     <script>Plotly.setPlotConfig({locale: '{{ LOCALE }}'})</script>
     {% if report_panels %}{% for panel in report_panels %}{{ panel.js|safe }}{% endfor %}{% else %}{{ js|safe }}{% endif %}
 {% endblock %}

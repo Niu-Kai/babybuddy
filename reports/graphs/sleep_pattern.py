@@ -1,254 +1,167 @@
-# -*- coding: utf-8 -*-
-from collections import OrderedDict
+"""Recorded sleep on a local-time day grid; gaps are not inferred awake time."""
 
-from django.utils import timezone, formats
+from collections import defaultdict
+from datetime import datetime, time, timedelta, timezone as utc_timezone
+
+from django.utils import timezone
 from django.utils.translation import gettext as _
-
+import plotly.graph_objects as go
 import plotly.offline as plotly
-import plotly.graph_objs as go
-import plotly.colors as colors
 
 from core.utils import duration_string
-
 from reports import utils
+from reports.graphs.activity_pattern import _split_by_day
 
-from datetime import timedelta
-
-ASLEEP_COLOR = "rgb(35, 110, 150)"
-AWAKE_COLOR = colors.DEFAULT_PLOTLY_COLORS[2]
+ASLEEP_COLOR = "#6487a7"
+NAP_COLOR = "#8f80a7"
 
 
-def sleep_pattern(sleeps):
-    """
-    Create a graph showing blocked out periods of sleep during each day.
-    :param sleeps: a QuerySet of Sleep instances.
-    :returns: a tuple of the graph's html and javascript.
-    """
-    last_end_time = None
-    adjustment = None
+def sleep_pattern(sleeps, first_day=None, last_day=None, use_24_hour=False):
+    sleeps = list(sleeps.order_by("start"))
+    if not sleeps:
+        return None, None
+    first_day = first_day or timezone.localtime(sleeps[0].start).date()
+    last_day = last_day or max(timezone.localtime(entry.end).date() for entry in sleeps)
+    days = [
+        first_day + timedelta(days=index)
+        for index in range((last_day - first_day).days + 1)
+    ]
+    if not days:
+        return None, None
+    dates = [day.isoformat() for day in days]
+    width = 0.72 if len(days) > 1 else 0.35
+    recorded = defaultdict(list)
+    traces = [
+        go.Bar(
+            name=_("No sleep recorded"),
+            x=dates,
+            y=[1440] * len(days),
+            base=0,
+            width=width,
+            marker={
+                "color": "rgba(135,151,171,0.12)",
+                "line": {"color": "rgba(135,151,171,0.4)", "width": 1},
+            },
+            hoverinfo="skip",
+        )
+    ]
 
-    first_day = timezone.localtime(sleeps.first().start)
-    last_day = timezone.localtime(sleeps.last().end)
-    days = _init_days(first_day, last_day)
+    def clock(moment):
+        return (
+            moment.strftime("%H:%M" if use_24_hour else "%I:%M %p").lstrip("0")
+            if not use_24_hour
+            else moment.strftime("%H:%M")
+        )
 
-    for sleep in sleeps:
-        start_time = timezone.localtime(sleep.start)
-        end_time = timezone.localtime(sleep.end)
-        start_date = start_time.date().isoformat()
-        end_date = end_time.date().isoformat()
-        duration = sleep.duration
-
-        # Check if the previous entry crossed midnight (see below).
-        if adjustment:
-            _add_adjustment(adjustment, days)
-            last_end_time = timezone.localtime(adjustment["end_time"])
-            adjustment = None
-
-        # If the dates do not match, set up an adjustment for the next day.
-        if end_time.date() != start_time.date():
-            adj_start_time = end_time.replace(hour=0, minute=0, second=0)
-            adjustment = {
-                "column": end_date,
-                "start_time": adj_start_time,
-                "end_time": end_time,
-                "duration": end_time - adj_start_time,
-            }
-
-            # Adjust end_time for the current entry.
-            end_time = end_time.replace(
-                year=start_time.year,
-                month=start_time.month,
-                day=start_time.day,
-                hour=23,
-                minute=59,
-                second=0,
-            )
-            duration = end_time - start_time
-
-        if last_end_time:
-            if last_end_time.date() < start_time.date():
-                # Awake across midnight
-                days[last_end_time.date().isoformat()].append(
-                    _awake_event(
-                        last_end_time,
-                        last_end_time.replace(
-                            hour=23,
-                            minute=59,
-                            second=0,
-                        ),
+    for nap, name, color in (
+        (False, _("Sleep"), ASLEEP_COLOR),
+        (True, _("Nap"), NAP_COLOR),
+    ):
+        xs, bases, lengths, labels = [], [], [], []
+        for entry in sleeps:
+            if entry.nap != nap:
+                continue
+            for day, start, end in _split_by_day(entry.start, entry.end):
+                if not first_day <= day <= last_day:
+                    continue
+                if end.astimezone(utc_timezone.utc) <= start.astimezone(
+                    utc_timezone.utc
+                ):
+                    continue
+                start_minute = start.hour * 60 + start.minute + start.second / 60
+                end_minute = (
+                    1440
+                    if end.date() > day
+                    else end.hour * 60 + end.minute + end.second / 60
+                )
+                duration = end.astimezone(utc_timezone.utc) - start.astimezone(
+                    utc_timezone.utc
+                )
+                # A repeated clock hour can end before it starts on the wall-time
+                # axis. Display its covered clock span; hover retains real duration.
+                base, finish = sorted((start_minute, end_minute))
+                xs.append(day.isoformat())
+                recorded[day].append(
+                    (
+                        start.astimezone(utc_timezone.utc),
+                        end.astimezone(utc_timezone.utc),
                     )
                 )
-
-                last_end_time = start_time.replace(hour=0, minute=0, second=0)
-
-        if not last_end_time:
-            last_end_time = start_time.replace(hour=0, minute=0, second=0)
-
-        # Awake time.
-        days[start_date].append(_awake_event(last_end_time, start_time))
-
-        # Asleep time.
-        days[start_date].append(
-            {
-                "time": duration.seconds / 60,
-                "label": _format_asleep_label(duration, start_time, end_time),
-            }
-        )
-
-        # Update the previous entry duration if an offset change occurred.
-        # This can happen when an entry crosses a daylight savings time change.
-        if start_time.utcoffset() != end_time.utcoffset():
-            diff = start_time.utcoffset() - end_time.utcoffset()
-            duration -= timezone.timedelta(seconds=diff.seconds)
-            yesterday = end_time - timezone.timedelta(days=1)
-            yesterday = yesterday.date().isoformat()
-            days[yesterday][len(days[yesterday]) - 1] = {
-                "time": duration.seconds / 60,
-                "label": _format_asleep_label(duration, start_time, end_time),
-            }
-
-        last_end_time = end_time
-
-    # Handle any left over adjustment (if the last entry crossed midnight).
-    if adjustment:
-        _add_adjustment(adjustment, days)
-
-    # Create dates for x-axis using a 12:00:00 time to ensure correct
-    # positioning of bars (covering entire day).
-    dates = []
-    for time in list(days.keys()):
-        dates.append("{} 12:00:00".format(time))
-
-    traces = []
-    color = AWAKE_COLOR
-
-    # Set iterator and determine maximum iteration for dates.
-    i = 0
-    max_i = 0
-    for date_times in days.values():
-        max_i = max(len(date_times), max_i)
-    while i < max_i:
-        y = {}
-        text = {}
-        for date in days.keys():
-            try:
-                y[date] = days[date][i]["time"]
-                text[date] = days[date][i]["label"]
-            except IndexError:
-                y[date] = None
-                text[date] = None
-        i += 1
-        traces.append(
-            go.Bar(
-                x=dates,
-                y=list(y.values()),
-                hovertext=list(text.values()),
-                # `hoverinfo` is deprecated but if we use the new `hovertemplate`
-                # the "filler" areas for awake time get a hover that says "null"
-                # and there is no way to prevent this currently with Plotly.
-                hoverinfo="text",
-                marker={"color": color},
-                showlegend=False,
+                bases.append(base)
+                lengths.append(max(finish - base, 0.5))
+                labels.append(
+                    f"{day:%b %d, %Y}<br>{name}: {clock(start)} - {clock(end)}<br>{duration_string(duration)}"
+                )
+        if xs:
+            traces.append(
+                go.Bar(
+                    name=name,
+                    x=xs,
+                    y=lengths,
+                    base=bases,
+                    width=width,
+                    marker={"color": color, "line": {"color": "#a3afbd", "width": 1.5}},
+                    hovertext=labels,
+                    hovertemplate="%{hovertext}<extra></extra>",
+                )
             )
+    # Merge overlapping entries so daily totals count actual recorded time once.
+    daily_labels = []
+    for day in days:
+        merged = []
+        for start, end in sorted(recorded[day]):
+            if merged and start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+            else:
+                merged.append((start, end))
+        minutes = round(
+            sum((end - start).total_seconds() for start, end in merged) / 60
         )
-        if color == AWAKE_COLOR:
-            color = ASLEEP_COLOR
-        else:
-            color = AWAKE_COLOR
-
-    layout_args = utils.default_graph_layout_options()
-    layout_args["margin"]["b"] = 100
-
-    layout_args["barmode"] = "stack"
-    layout_args["bargap"] = 0
-    layout_args["hovermode"] = "closest"
-    layout_args["title"] = "<b>" + _("Sleep Pattern") + "</b>"
-    layout_args["height"] = 800
-
-    layout_args["xaxis"]["title"] = _("Date")
-    layout_args["xaxis"]["tickangle"] = -65
-    layout_args["xaxis"]["tickformat"] = "%b %e\n%Y"
-    layout_args["xaxis"]["ticklabelmode"] = "period"
-    layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-
-    start = timezone.localtime().strptime("12:00 AM", "%I:%M %p")
-    ticks = OrderedDict()
-    ticks[0] = start.strftime("%I:%M %p")
-    for i in range(0, 60 * 24, 30):
-        ticks[i] = formats.time_format(
-            start + timezone.timedelta(minutes=i), "TIME_FORMAT"
+        total = _("No entries")
+        if merged:
+            hours, remainder = divmod(minutes, 60)
+            total = f"{hours}h {remainder:02d}m"
+        daily_labels.append(f"{day:%a}<br>{day:%b %d}<br><b>{total}</b>")
+    layout = utils.default_graph_layout_options()
+    layout["margin"]["b"] = 150
+    layout["legend"].update(y=-0.25)
+    layout.update(height=640, barmode="overlay", bargap=0.2, hovermode="closest")
+    layout["xaxis"].update(
+        title=_("Recorded sleep per day"),
+        type="category",
+        categoryorder="array",
+        categoryarray=dates,
+        tickmode="array",
+        tickvals=dates,
+        ticktext=daily_labels,
+        tickangle=0,
+        range=[-0.5, len(days) - 0.5],
+        fixedrange=True,
+    )
+    ticks = list(range(0, 1441, 180))
+    origin = datetime.combine(first_day, time())
+    labels = [clock(origin + timedelta(minutes=minute)) for minute in ticks]
+    layout["yaxis"].update(
+        title=_("Time of day"),
+        range=[1440, 0],
+        tickmode="array",
+        tickvals=ticks,
+        ticktext=labels,
+        showgrid=True,
+    )
+    html, js = utils.split_graph_output(
+        plotly.plot(
+            go.Figure(data=traces, layout=layout),
+            output_type="div",
+            include_plotlyjs=False,
         )
-
-    layout_args["yaxis"]["title"] = _("Time of day")
-    layout_args["yaxis"]["range"] = [24 * 60, 0]
-    layout_args["yaxis"]["tickmode"] = "array"
-    layout_args["yaxis"]["tickvals"] = list(ticks.keys())
-    layout_args["yaxis"]["ticktext"] = list(ticks.values())
-    layout_args["yaxis"]["tickfont"] = {"size": 10}
-
-    fig = go.Figure({"data": traces, "layout": go.Layout(**layout_args)})
-    output = plotly.plot(fig, output_type="div", include_plotlyjs=False)
-    return utils.split_graph_output(output)
-
-
-def _init_days(first_day, last_day):
-    period = (last_day.date() - first_day.date()).days + 1
-
-    def new_day(d):
-        return (first_day + timedelta(days=d)).date().isoformat()
-
-    return {new_day(day): [] for day in range(period)}
-
-
-def _add_adjustment(adjustment, days):
-    """
-    Adds "adjustment" data for entries that cross midnight.
-    :param adjustment: Column, start time, end time, and duration of entry.
-    :param blocks: List of days
-    """
-    column = adjustment.pop("column")
-    if not column in days:
-        days[column] = []
-    # Fake (0) entry to keep the color switching logic working.
-    days[column].append({"time": 0, "label": 0})
-
-    # Real adjustment entry.
-    days[column].append(
-        {
-            "time": adjustment["duration"].seconds / 60,
-            "label": _format_asleep_label(**adjustment),
-        }
     )
 
-
-def _awake_event(last_end_time, next_start_time):
-    awake_duration = next_start_time - last_end_time
-    return {
-        "time": awake_duration.seconds / 60,
-        "label": _format_awake_label(awake_duration, last_end_time, next_start_time),
-    }
-
-
-def _format_asleep_label(duration, start_time, end_time):
-    return _format_label("Asleep", duration, start_time, end_time)
-
-
-def _format_awake_label(duration, start_time, end_time):
-    return _format_label("Awake", duration, start_time, end_time)
-
-
-def _format_label(state, duration, start_time, end_time):
-    """
-    Formats a time block label.
-    :param state: Asleep or awake
-    :param duration: Duration.
-    :param start_time: Start time.
-    :param end_time: End time.
-    :return: Formatted string with duration, start, and end time.
-    """
-    return "{} {} ({} to {})".format(
-        state,
-        duration_string(duration),
-        formats.time_format(start_time, "TIME_FORMAT"),
-        formats.time_format(end_time, "TIME_FORMAT"),
+    # Keep day columns readable in longer periods, and a lone day compact.
+    chart_width = max(360, len(days) * 82 + 120)
+    html = (
+        f'<div class="sleep-comparison-scroll" style="max-width:{chart_width}px" '
+        f'tabindex="0" role="region" aria-label="{_("Daily sleep comparison")}">'
+        f'<div style="min-width:{chart_width}px">{html}</div></div>'
     )
+    return html, js

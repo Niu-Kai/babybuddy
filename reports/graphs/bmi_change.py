@@ -16,10 +16,10 @@ def bmi_change(objects):
     objects = objects.order_by("-date")
 
     trace = go.Scatter(
+        mode="lines+markers",
         name=_("BMI"),
         x=list(objects.values_list("date", flat=True)),
         y=list(objects.values_list("bmi", flat=True)),
-        fill="tozeroy",
     )
 
     layout_args = utils.default_graph_layout_options()

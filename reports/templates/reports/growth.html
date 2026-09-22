@@ -1,0 +1,18 @@
+{% extends "reports/report_base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Growth" %} · {{ growth_label }}{% endblock %}
+{% block report_heading %}{% trans "Growth" %} · {{ growth_label }}{% endblock %}
+{% block toolbar %}
+    <nav class="growth-tabs" aria-label="{% trans 'Growth measurements' %}">
+        {% for key, label, query in growth_links %}
+            <a class="btn {% if key == growth_metric %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+               {% if key == growth_metric %}aria-current="page"{% endif %}
+               href="?{{ query }}">{{ label }}</a>
+        {% endfor %}
+    </nav>
+{% endblock %}
+{% block report_footer %}
+    <p class="growth-source"><a href="https://www.who.int/toolkits/child-growth-standards"
+   target="_blank"
+   rel="noopener">{% trans "WHO median (50th percentile) · birth to age 5" %}</a>{% if corrected_age %} · {% trans "Corrected age" %}{% endif %}</p>
+{% endblock %}

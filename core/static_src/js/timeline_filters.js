@@ -1,5 +1,7 @@
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll("[data-timeline-filters]").forEach(function (form) {
+function initializeTimelineFilters(event) {
+  const root =
+    event && event.detail && event.detail.root ? event.detail.root : document;
+  root.querySelectorAll("[data-timeline-filters]").forEach(function (form) {
     const period = form.elements.namedItem("period");
     const date = form.elements.namedItem("date");
     const picker = form.querySelector("[data-date-picker]");
@@ -226,10 +228,14 @@ document.addEventListener("DOMContentLoaded", function () {
         summary.focus();
       }
     });
-    document.addEventListener("click", function (event) {
+    const closePicker = function (event) {
       if (!picker.contains(event.target) && event.target !== period)
         picker.open = false;
-    });
+    };
+    document.addEventListener("click", closePicker);
+    form.periodCleanup = function () {
+      document.removeEventListener("click", closePicker);
+    };
     period.addEventListener("change", function () {
       if (!date.value) date.value = iso(selected);
       updateSummary();
@@ -242,4 +248,6 @@ document.addEventListener("DOMContentLoaded", function () {
     updateSummary();
     render();
   });
-});
+}
+document.addEventListener("DOMContentLoaded", initializeTimelineFilters);
+document.addEventListener("babybuddy:reports-ready", initializeTimelineFilters);

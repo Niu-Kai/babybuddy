@@ -118,3 +118,20 @@ _Some of the links below use referral codes -- all referral proceeds are treated
 [![DigitalOcean Referral Badge](https://web-platforms.sfo2.cdn.digitaloceanspaces.com/WWW/Badge%203.svg)](https://www.digitalocean.com/?refcode=dd79e4cfd7b6&utm_campaign=Referral_Invite&utm_medium=Referral_Program&utm_source=badge)
 [<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="100" alt="JetBrains Logo (Main) logo.">](https://www.jetbrains.com/community/opensource/)
 [![POEditor](https://poeditor.com/public/images/ui/logos/logo_dark.svg)](https://poeditor.com/)
+
+## Inventory and diaper changes
+
+Inventory tracks shared or child-specific supplies, sizes, stock history, and in-app
+restock reminders. Under **Inventory → Sizes & diaper supply**, set each child's
+current size and optionally select the exact diaper supply to use. Automatic selection
+uses a single matching supply assigned to that child; shared supplies require an
+explicit selection and a matching size. Track diapers individually, not as packs.
+
+Each new diaper-change entry deducts one diaper, including entries marked both wet
+and solid. Editing the same child's entry never deducts twice. Reassigning an entry
+to another child returns the original diaper and uses the new child's supply;
+deleting an entry reverses its deduction. Removing a child's entire history does
+not replenish consumed stock. Existing entries are not charged retroactively.
+If stock is missing, ambiguous, unavailable, or empty, the care entry still saves
+and the web form shows a warning. Restocking later does not retroactively charge
+previously skipped entries. Automatic deduction can be turned off per child.

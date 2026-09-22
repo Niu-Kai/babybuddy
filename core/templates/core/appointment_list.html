@@ -1,5 +1,5 @@
 {% extends "babybuddy/page.html" %}
-{% load datetime i18n widget_tweaks %}
+{% load calendar_feeds datetime i18n widget_tweaks %}
 {% block title %}
     {% trans "Appointments" %}
 {% endblock %}
@@ -34,16 +34,15 @@
             <h2 class="h5">{% trans "Subscribe from a calendar app" %}</h2>
             <p class="text-body-secondary small mb-2">
                 {% blocktrans trimmed %}
-                    Add a feed URL below in Google Calendar (Other calendars â†’ From URL),
-                    Apple Calendar or Outlook to see appointments there. The URL contains
-                    your API key: treat it like a password.
+                    Add a feed URL in your calendar app to subscribe. Each link grants
+                    read-only access to that child's appointments. Keep it private.
                 {% endblocktrans %}
             </p>
             <ul class="list-unstyled mb-0">
                 {% for child in children %}
                     <li>
                         <strong>{{ child }}</strong>:
-                        <code>{{ request.scheme }}://{{ request.get_host }}{% url 'core:appointment-feed' child.slug %}?token={{ user.settings.api_key }}</code>
+                        <code>{{ request.scheme }}://{{ request.get_host }}{% url 'core:appointment-feed' child.slug %}?token={% calendar_feed_token user child %}</code>
                     </li>
                 {% endfor %}
             </ul>

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls.static import static
-from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, reverse_lazy
 
 from . import views
+from .media import PrivateMedia
 
 app_patterns = [
     path("login/", auth_views.LoginView.as_view(), name="login"),
@@ -47,6 +46,7 @@ app_patterns = [
     path("settings/", include("dbsettings.urls")),
     path("export/", views.ExportData.as_view(), name="export"),
     path("sw.js", views.ServiceWorker.as_view(), name="service-worker"),
+    path("media/<path:path>", PrivateMedia.as_view(), name="private-media"),
 ]
 
 urlpatterns = [
@@ -57,7 +57,5 @@ urlpatterns = [
     path("", include("core.urls", namespace="core")),
     path("", include("dashboard.urls", namespace="dashboard")),
     path("", include("reports.urls", namespace="reports")),
+    path("inventory/", include("inventory.urls", namespace="inventory")),
 ]
-
-if settings.DEBUG:  # pragma: no cover
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

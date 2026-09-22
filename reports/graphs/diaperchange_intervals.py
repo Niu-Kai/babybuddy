@@ -1,106 +1,52 @@
-# -*- coding: utf-8 -*-
-from django.db.models import Count, Case, When
-from django.db.models.functions import TruncDate
+"""Elapsed time since the preceding diaper change, regardless of type."""
+
+from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.utils.translation import get_language
-
+import plotly.graph_objects as go
 import plotly.offline as plotly
-import plotly.graph_objs as go
-
-from core.utils import duration_parts
-
+from core.utils import duration_string
 from reports import utils
 
 
 def diaperchange_intervals(changes):
-    """
-    Create a graph showing intervals of diaper changes.
-    :param changes: a QuerySet of Diaper Change instances.
-    :returns: a tuple of the graph's html and javascript.
-    """
-
-    changes = changes.order_by("time")
-    change_times = list(changes.values_list("time", flat=True))[1:]
-    times = []
-    times_solid = []
-    times_wet = []
-    intervals = []
-    intervals_solid = []
-    intervals_wet = []
-    last_change = changes.first()
-    for change in changes[1:]:
-        interval = change.time - last_change.time
-        if interval.total_seconds() > 0:
-            times.append(change.time)
-            intervals.append(interval)
-            if change.solid:
-                times_solid.append(change.time)
-                intervals_solid.append(interval)
-            if change.wet:
-                times_wet.append(change.time)
-                intervals_wet.append(interval)
-        last_change = change
-
-    if not intervals:
+    changes = list(changes.order_by("time", "pk"))
+    times, hours, details = [], [], []
+    for previous, current in zip(changes, changes[1:]):
+        duration = current.time - previous.time
+        if duration.total_seconds() <= 0:
+            continue
+        kind = (
+            _("Wet + solid")
+            if current.wet and current.solid
+            else (
+                _("Wet") if current.wet else _("Solid") if current.solid else _("Other")
+            )
+        )
+        times.append(timezone.localtime(current.time))
+        hours.append(duration.total_seconds() / 3600)
+        details.append(str(kind) + "<br>" + duration_string(duration))
+    if not times:
         return None, None
-
-    trace_solid = go.Scatter(
-        name=_("Solid"),
-        line=dict(shape="spline"),
-        x=times_solid,
-        y=[i.total_seconds() / 3600 for i in intervals_solid],
-        hoverinfo="text",
-        text=[_duration_string_hms(i) for i in intervals_solid],
-    )
-
-    trace_wet = go.Scatter(
-        name=_("Wet"),
-        line=dict(shape="spline"),
-        x=times_wet,
-        y=[i.total_seconds() / 3600 for i in intervals_wet],
-        hoverinfo="text",
-        text=[_duration_string_hms(i) for i in intervals_wet],
-    )
-
-    trace_total = go.Scatter(
-        name=_("Total"),
-        line=dict(shape="spline"),
+    trace = go.Scatter(
+        name=_("Time between changes"),
         x=times,
-        y=[i.total_seconds() / 3600 for i in intervals],
-        hoverinfo="text",
-        text=[_duration_string_hms(i) for i in intervals],
+        y=hours,
+        customdata=details,
+        mode="lines+markers",
+        line={"width": 2, "shape": "linear"},
+        marker={"size": 6},
+        hovertemplate="%{x|%b %d, %Y %H:%M}<br>%{customdata}<extra></extra>",
     )
-
-    layout_args = utils.default_graph_layout_options()
-    layout_args["barmode"] = "stack"
-    layout_args["title"] = "<b>" + _("Diaper Change Intervals") + "</b>"
-    layout_args["xaxis"]["title"] = _("Date")
-    layout_args["xaxis"]["type"] = "date"
-    layout_args["xaxis"]["autorange"] = True
-    layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(change_times)
-    layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Interval (hours)")
-
-    fig = go.Figure(
-        {
-            "data": [trace_solid, trace_wet, trace_total],
-            "layout": go.Layout(**layout_args),
-        }
+    layout = utils.default_graph_layout_options()
+    layout.update(showlegend=False)
+    layout["xaxis"].update(title=_("Date"), type="date")
+    layout["yaxis"].update(
+        title=_("Time since previous change (hours)"), rangemode="tozero"
     )
-    output = plotly.plot(
-        fig,
-        output_type="div",
-        include_plotlyjs=False,
-        config={"locale": get_language()},
+    return utils.split_graph_output(
+        plotly.plot(
+            go.Figure(data=[trace], layout=layout),
+            output_type="div",
+            include_plotlyjs=False,
+        )
     )
-    return utils.split_graph_output(output)
-
-
-def _duration_string_hms(duration):
-    """
-    Format a duration string with hours, minutes and seconds. This is
-    intended to fit better in smaller spaces on a graph.
-    :returns: a string of the form Xm.
-    """
-    h, m, s = duration_parts(duration)
-    return "{}h{}m{}s".format(h, m, s)

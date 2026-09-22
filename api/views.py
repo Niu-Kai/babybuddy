@@ -12,7 +12,18 @@ from babybuddy import models as babybuddy_models
 from . import serializers, filters
 
 
-class BMIViewSet(viewsets.ReadOnlyModelViewSet):
+class RelatedDataMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        fields = {field.name for field in queryset.model._meta.get_fields()}
+        if "created_by" in fields:
+            queryset = queryset.select_related("created_by")
+        if "tags" in fields and self.action in {"list", "retrieve"}:
+            queryset = queryset.prefetch_related("tags")
+        return queryset
+
+
+class BMIViewSet(RelatedDataMixin, viewsets.ReadOnlyModelViewSet):
     queryset = models.BMI.objects.filter(
         source_weight__isnull=False, source_height__isnull=False
     )
@@ -31,7 +42,7 @@ class BMIViewSet(viewsets.ReadOnlyModelViewSet):
         return name
 
 
-class ChildViewSet(viewsets.ModelViewSet):
+class ChildViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Child.objects.all()
     serializer_class = serializers.ChildSerializer
     lookup_field = "slug"
@@ -47,15 +58,23 @@ class ChildViewSet(viewsets.ModelViewSet):
     ordering = ["-birth_date", "-birth_time"]
 
 
-class DiaperChangeViewSet(viewsets.ModelViewSet):
+class DiaperChangeViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.DiaperChange.objects.all()
     serializer_class = serializers.DiaperChangeSerializer
     filterset_class = filters.DiaperChangeFilter
     ordering_fields = ("amount", "time")
     ordering = "-time"
 
+    def perform_update(self, serializer):
+        serializer.instance._inventory_actor_id = self.request.user.pk
+        super().perform_update(serializer)
 
-class FeedingViewSet(viewsets.ModelViewSet):
+    def perform_destroy(self, instance):
+        instance._inventory_actor_id = self.request.user.pk
+        super().perform_destroy(instance)
+
+
+class FeedingViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Feeding.objects.all()
     serializer_class = serializers.FeedingSerializer
     filterset_class = filters.FeedingFilter
@@ -63,7 +82,7 @@ class FeedingViewSet(viewsets.ModelViewSet):
     ordering = "-end"
 
 
-class HeadCircumferenceViewSet(viewsets.ModelViewSet):
+class HeadCircumferenceViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.HeadCircumference.objects.all()
     serializer_class = serializers.HeadCircumferenceSerializer
     filterset_fields = ("child", "date")
@@ -71,7 +90,7 @@ class HeadCircumferenceViewSet(viewsets.ModelViewSet):
     ordering = "-date"
 
 
-class HeightViewSet(viewsets.ModelViewSet):
+class HeightViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Height.objects.all()
     serializer_class = serializers.HeightSerializer
     filterset_fields = ("child", "date")
@@ -79,7 +98,7 @@ class HeightViewSet(viewsets.ModelViewSet):
     ordering = "-date"
 
 
-class MedicationViewSet(viewsets.ModelViewSet):
+class MedicationViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Medication.objects.all()
     serializer_class = serializers.MedicationSerializer
     filterset_class = filters.MedicationFilter
@@ -95,7 +114,7 @@ class MedicationViewSet(viewsets.ModelViewSet):
         return name
 
 
-class AppointmentViewSet(viewsets.ModelViewSet):
+class AppointmentViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Appointment.objects.all()
     serializer_class = serializers.AppointmentSerializer
     filterset_class = filters.AppointmentFilter
@@ -103,7 +122,7 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     ordering = "start"
 
 
-class NoteViewSet(viewsets.ModelViewSet):
+class NoteViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Note.objects.all()
     serializer_class = serializers.NoteSerializer
     filterset_class = filters.NoteFilter
@@ -111,7 +130,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     ordering = "-time"
 
 
-class PumpingViewSet(viewsets.ModelViewSet):
+class PumpingViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Pumping.objects.all()
     serializer_class = serializers.PumpingSerializer
     filterset_class = filters.PumpingFilter
@@ -119,7 +138,7 @@ class PumpingViewSet(viewsets.ModelViewSet):
     ordering = "-end"
 
 
-class SleepViewSet(viewsets.ModelViewSet):
+class SleepViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Sleep.objects.all()
     serializer_class = serializers.SleepSerializer
     filterset_class = filters.SleepFilter
@@ -127,7 +146,7 @@ class SleepViewSet(viewsets.ModelViewSet):
     ordering = "-end"
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
     lookup_field = "slug"
@@ -136,7 +155,7 @@ class TagViewSet(viewsets.ModelViewSet):
     ordering = "name"
 
 
-class TemperatureViewSet(viewsets.ModelViewSet):
+class TemperatureViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Temperature.objects.all()
     serializer_class = serializers.TemperatureSerializer
     filterset_class = filters.TemperatureFilter
@@ -144,7 +163,7 @@ class TemperatureViewSet(viewsets.ModelViewSet):
     ordering = "-time"
 
 
-class TimerViewSet(viewsets.ModelViewSet):
+class TimerViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Timer.objects.all()
     serializer_class = serializers.TimerSerializer
     filterset_class = filters.TimerFilter
@@ -170,7 +189,7 @@ class TimerViewSet(viewsets.ModelViewSet):
         return Response(self.serializer_class(timer).data)
 
 
-class TummyTimeViewSet(viewsets.ModelViewSet):
+class TummyTimeViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.TummyTime.objects.all()
     serializer_class = serializers.TummyTimeSerializer
     filterset_class = filters.TummyTimeFilter
@@ -178,7 +197,7 @@ class TummyTimeViewSet(viewsets.ModelViewSet):
     ordering = "-start"
 
 
-class WeightViewSet(viewsets.ModelViewSet):
+class WeightViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Weight.objects.all()
     serializer_class = serializers.WeightSerializer
     filterset_fields = ("child", "date")
@@ -203,7 +222,7 @@ class ProfileView(views.APIView):
         return Response(serializer.data)
 
 
-class BathTimeViewSet(viewsets.ModelViewSet):
+class BathTimeViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.BathTime.objects.all()
     serializer_class = serializers.BathTimeSerializer
     filterset_class = filters.BathTimeFilter
@@ -211,7 +230,7 @@ class BathTimeViewSet(viewsets.ModelViewSet):
     ordering = "-start"
 
 
-class RefluxViewSet(viewsets.ModelViewSet):
+class RefluxViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Reflux.objects.all()
     serializer_class = serializers.RefluxSerializer
     filterset_class = filters.RefluxFilter
@@ -219,7 +238,7 @@ class RefluxViewSet(viewsets.ModelViewSet):
     ordering = "-time"
 
 
-class FoodViewSet(viewsets.ModelViewSet):
+class FoodViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     queryset = models.Food.objects.all()
     serializer_class = serializers.FoodSerializer
     filterset_class = filters.FoodFilter

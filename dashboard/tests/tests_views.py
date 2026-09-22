@@ -33,7 +33,8 @@ class ViewsTestCase(TestCase):
 
     def test_dashboard_views(self):
         page = self.c.get("/dashboard/")
-        self.assertEqual(page.url, "/welcome/")
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, "Pumping & nursing")
 
         call_command("fake", verbosity=0, children=1, days=1)
         child = Child.objects.first()

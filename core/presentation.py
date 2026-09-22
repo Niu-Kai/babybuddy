@@ -115,6 +115,16 @@ def navigation(request):
     if not request.user.is_authenticated:
         return {}
     context = presentation(request).copy()
+    match = request.resolver_match
+    household_page = bool(
+        match
+        and (
+            (match.url_name or "").startswith("pumping")
+            or match.url_name == "report-pumping-amounts-child"
+            or match.namespace == "inventory"
+        )
+    )
+    context["household_page"] = household_page
     user = request.user
 
     def groups(definitions, action):
@@ -128,7 +138,7 @@ def navigation(request):
                 if user.has_perm(f"core.{action}_{model}"):
                     url = reverse(f"core:{key}-{'list' if action == 'view' else 'add'}")
                     child = context["selected_child"]
-                    if action == "add" and child:
+                    if action == "add" and child and key != "pumping":
                         from urllib.parse import urlencode
 
                         url += "?" + urlencode({"child": child.slug})
@@ -174,6 +184,9 @@ def navigation(request):
         if user.has_perm("core.view_timer")
         else []
     )
+    from inventory.views import reminders
+
+    context["inventory_reminders"] = reminders(request)
     context["nav_reports_url"] = reverse("reports:home")
     if context["selected_child"]:
         context["nav_reports_url"] = reverse(

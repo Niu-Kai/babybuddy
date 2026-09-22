@@ -53,6 +53,13 @@ class ReadOnlyGroupPermissionsTestCase(TestCase):
 
 
 class CaregiverGroupPermissionsTestCase(TestCase):
+    inventory_codenames = {
+        "view_stockitem",
+        "add_stockitem",
+        "change_stockitem",
+        "view_stockmovement",
+        "view_childsupplyprofile",
+    }
     expected_codenames = {
         "view_child",
         "view_timer",
@@ -100,14 +107,15 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         self.group = Group.objects.get(name=settings.BABY_BUDDY["CAREGIVER_GROUP_NAME"])
 
     def test_fresh_group_has_exact_default_permissions(self):
-        self.assertEqual(self.group.permissions.count(), 40)
+        self.assertEqual(self.group.permissions.count(), 45)
         self.assertEqual(
             set(
                 self.group.permissions.values_list(
                     "content_type__app_label", "codename"
                 )
             ),
-            {("core", codename) for codename in self.expected_codenames},
+            {("core", codename) for codename in self.expected_codenames}
+            | {("inventory", codename) for codename in self.inventory_codenames},
         )
 
     def test_foreign_app_codename_collision_is_ignored(self):
@@ -136,7 +144,7 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         self.assertEqual(
             set(self.group.permissions.values_list("pk", flat=True)), original_ids
         )
-        self.assertEqual(self.group.permissions.count(), 40)
+        self.assertEqual(self.group.permissions.count(), 45)
 
     def test_missing_early_permission_is_skipped_until_next_sync(self):
         permission = Permission.objects.get(
@@ -174,7 +182,7 @@ class CaregiverGroupPermissionsTestCase(TestCase):
 
         self.assertEqual(
             set(self.group.permissions.values_list("codename", flat=True)),
-            self.expected_codenames | {"delete_feeding"},
+            self.expected_codenames | self.inventory_codenames | {"delete_feeding"},
         )
 
     def test_existing_member_receives_sync_updates_after_refetch(self):

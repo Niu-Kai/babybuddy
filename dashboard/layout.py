@@ -5,7 +5,7 @@ PERMISSIONS = {
     "feeding_last": "feeding",
     "diaperchange_last": "diaperchange",
     "sleep_last": "sleep",
-    "pumping_last": "pumping",
+    "pumping_overview": "pumping",
     "medication_last": "medication",
     "sleep_naps_day": "sleep",
     "tummytime_day": "tummytime",
@@ -13,7 +13,6 @@ PERMISSIONS = {
     "feeding_recent": "feeding",
     "feeding_last_method": "feeding",
     "sleep_recent": "sleep",
-    "pumping_recent": "pumping",
     "diaperchange_types": "diaperchange",
     "breastfeeding": "feeding",
     "notes_recent": "note",
@@ -35,7 +34,6 @@ GLANCE = [
     "sleep_last",
     "timer_list",
     "appointments_upcoming",
-    "pumping_last",
     "medication_last",
     "sleep_naps_day",
     "tummytime_day",
@@ -48,7 +46,6 @@ TRENDS = [
     "feeding_recent",
     "feeding_last_method",
     "sleep_recent",
-    "pumping_recent",
     "statistics",
     "diaperchange_types",
     "breastfeeding",
@@ -58,11 +55,26 @@ MEASUREMENTS = [key for key, label in DASHBOARD_CARDS if key.startswith("measure
 
 
 def allowed(user, key):
+    if key == "pumping_overview":
+        return user.has_perm("core.view_pumping") or user.has_perm("core.view_feeding")
     return user.has_perm("core.view_" + PERMISSIONS[key])
 
 
 def sections(user):
     hidden = set(user.settings.dashboard_hidden_cards or [])
+    saved = user.settings.dashboard_card_order or []
+    if saved:
+        keys = list(dict.fromkeys(saved + GLANCE + TRENDS))
+        panels = [
+            key
+            for key in keys
+            if key in GLANCE + TRENDS and key not in hidden and allowed(user, key)
+        ]
+        return (
+            [{"key": "glance", "label": _("Care overview"), "panels": panels}]
+            if panels
+            else []
+        )
     return [
         {"key": key, "label": label, "panels": selected}
         for key, label, keys in (

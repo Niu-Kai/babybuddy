@@ -93,7 +93,7 @@ class CoreModelWithDurationSerializer(CoreModelSerializer):
             if not timer.can_be_consumed_by(self.context["request"].user):
                 raise PermissionDenied("You do not have permission to consume timers.")
 
-            if timer.child:
+            if timer.child and self.Meta.model is not models.Pumping:
                 attrs["child"] = timer.child
 
             # Overwrites values provided directly!
@@ -105,7 +105,11 @@ class CoreModelWithDurationSerializer(CoreModelSerializer):
         # required fields at the model level.
         if not self.partial:
             errors = {}
-            for field in ["child", "start", "end"]:
+            for field in (
+                ["start", "end"]
+                if self.Meta.model is models.Pumping
+                else ["child", "start", "end"]
+            ):
                 if field not in attrs or not attrs[field]:
                     errors[field] = "This field is required."
             if len(errors) > 0:
@@ -154,6 +158,9 @@ class BMISerializer(CoreModelSerializer, TaggableSerializer):
 
 
 class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
+    # Retained for older API clients; new sessions belong to the household.
+    child = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Pumping
         fields = (

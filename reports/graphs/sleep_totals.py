@@ -49,7 +49,7 @@ def sleep_totals(instances):
         x=list(totals.keys()),
         y=[td.seconds / 3600 for td in totals.values()],
         hoverinfo="text",
-        textposition="outside",
+        textposition="none",
         text=[_duration_string_short(td) for td in totals.values()],
     )
 

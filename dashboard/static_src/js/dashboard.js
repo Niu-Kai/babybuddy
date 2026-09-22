@@ -62,7 +62,7 @@ BabyBuddy.Dashboard = (function ($) {
     },
 
     update: function () {
-      if (updating) {
+      if (updating || document.body.classList.contains("arranging-panels")) {
         return;
       }
       updating = true;
@@ -87,6 +87,11 @@ BabyBuddy.Dashboard = (function ($) {
             return;
           }
           dashboardElement.html(fresh.innerHTML);
+          var household = new DOMParser()
+            .parseFromString(html, "text/html")
+            .getElementById("household-lactation");
+          var current = document.getElementById("household-lactation");
+          if (household && current) current.replaceWith(household);
         })
         .catch(function () {
           window.location.reload();

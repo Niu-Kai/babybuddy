@@ -11,6 +11,7 @@ class DashboardLayoutForm(forms.Form):
         hidden = set(user.settings.dashboard_hidden_cards or [])
         labels = dict(DASHBOARD_CARDS)
         for name, title, keys in (
+            ("household", _("Household"), ["pumping_overview"]),
             ("measurements", _("Beside the child's name"), MEASUREMENTS),
             ("care", _("Care panels"), GLANCE),
             ("trends", _("Trends and history"), TRENDS),

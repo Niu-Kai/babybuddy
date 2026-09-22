@@ -1,13 +1,13 @@
 {% extends "reports/report_base.html" %}
 {% load i18n %}
 {% block title %}
-    {% trans "Diaper Amounts" %} - {{ object }}
+    {% trans "Diaper Changes per Day" %} - {{ object }}
 {% endblock %}
 {% block breadcrumbs %}
     {{ block.super }}
     {% include "reports/breadcrumb_common_chunk.html" with target_url="reports:report-diaperchange-amounts-child" %}
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Diaper Amounts" %}</li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Diaper Changes per Day" %}</li>
 {% endblock %}
 {% block report_heading %}
-    {% trans "Diaper Amounts" %}
+    {% trans "Diaper Changes per Day" %}
 {% endblock %}

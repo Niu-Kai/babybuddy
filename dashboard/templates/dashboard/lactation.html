@@ -1,0 +1,37 @@
+{% load i18n datetime %}
+{% if visible %}
+    <section class="lactation-panel"
+             id="household-lactation"
+             aria-labelledby="lactation-heading">
+        <header class="lactation-header">
+            <div>
+                <span class="text-body-secondary small">{% trans "Household" %}</span>
+                <h2 id="lactation-heading">{% trans "Pumping & nursing" %}</h2>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% if perms.core.add_pumping %}
+                    <a class="btn btn-primary btn-sm" href="{% url 'core:pumping-add' %}">{% trans "Log pumping" %}</a>
+                {% endif %}
+                {% if perms.core.add_feeding %}
+                    <a class="btn btn-outline-primary btn-sm"
+                       href="{% url 'core:feeding-add' %}?method=both%20breasts">{% trans "Log nursing" %}</a>
+                {% endif %}
+                {% if perms.core.view_pumping %}
+                    <a class="btn btn-outline-secondary btn-sm"
+                       href="{% url 'reports:pumping' %}?period=week">{% trans "History & reports" %}</a><a class="btn btn-outline-secondary btn-sm"
+   href="{% url 'core:pumping-reminders' %}">{% trans "Reminder" %}</a>
+                {% endif %}
+            </div>
+        </header>
+        <div class="lactation-stats">
+            <div><span class="text-body-secondary">{% trans "Last session ended" %}</span><strong>{% if latest_session %}{{ latest_session.end|timesince }} {% trans "ago" %}{% else %}{% trans "No sessions yet" %}{% endif %}</strong>{% if latest_session %}<span>{{ latest_kind }} · {{ latest_session.end|datetime_short }}</span>{% endif %}</div>
+            {% if perms.core.view_pumping %}<div><span class="text-body-secondary">{% trans "Last pumping" %}</span><strong>{% if last_pump %}{{ last_pump.end|datetime_short }}{% else %}—{% endif %}</strong><span>{{ pumping_count }} {% trans "sessions today" %}</span></div>
+            <div><span class="text-body-secondary">{% trans "Pumped today" %}</span><strong>{{ pumped_amount|floatformat:1 }} {{ pumped_unit }}</strong>{% if unknown_amount_count %}<span>{% trans "Excludes entries without recorded units" %}</span>{% endif %}</div>{% endif %}
+        {% if perms.core.view_feeding %}<div><span class="text-body-secondary">{% trans "Last nursing" %}</span><strong>{% if last_nursing %}{{ last_nursing.end|datetime_short }}{% else %}—{% endif %}</strong><span>{{ nursing_count }} {% trans "sessions today" %}</span></div>{% endif %}
+    </div>
+    <footer class="lactation-footer">
+        <div class="d-flex flex-wrap gap-2">{% for side in sides %}<span class="lactation-side">{{ side.label }}: {% if side.last %}{{ side.last.end|timesince }} {% trans "ago" %}{% else %}{% trans "Not recorded" %}{% endif %}</span>{% endfor %}</div>
+        {% if reminder_enabled %}<span class="{% if reminder_ready %}text-warning{% else %}text-body-secondary{% endif %}">{% if reminder_ready %}{% trans "Your planned reminder is due" %}{% elif reminder_due %}{% trans "Your reminder:" %} {{ reminder_due|datetime_short }}{% else %}{% trans "Reminder starts after your first session" %}{% endif %} · {{ reminder_basis }}</span>{% endif %}
+    </footer>
+</section>
+{% endif %}

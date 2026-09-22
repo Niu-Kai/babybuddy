@@ -3,9 +3,29 @@ from django.contrib import admin
 from django.conf import settings
 
 from import_export import fields, resources
-from import_export.admin import ImportExportMixin, ExportActionMixin
+from import_export.admin import (
+    ImportExportMixin,
+    ExportActionMixin as BaseExportActionMixin,
+)
 
 from core import models
+
+
+class ExportActionMixin(BaseExportActionMixin):
+    def get_export_data(self, file_format, request, queryset, **kwargs):
+        content = super().get_export_data(file_format, request, queryset, **kwargs)
+        if file_format.get_title() in {"csv", "tsv"}:
+            from babybuddy.exports import safe_delimited_export
+
+            encoding = kwargs.get("encoding") or "utf-8"
+            was_bytes = isinstance(content, bytes)
+            content = safe_delimited_export(
+                content.decode(encoding) if was_bytes else content,
+                "\t" if file_format.get_title() == "tsv" else ",",
+            )
+            if was_bytes:
+                content = content.encode(encoding)
+        return content
 
 
 class ImportExportResourceBase(resources.ModelResource):
@@ -74,20 +94,10 @@ class PumpingImportExportResource(ImportExportResourceBase):
 
 @admin.register(models.Pumping)
 class PumpingAdmin(ImportExportMixin, ExportActionMixin, admin.ModelAdmin):
-    list_display = (
-        "start",
-        "end",
-        "duration",
-        "child",
-        "amount",
-        "side",
-    )
-    list_filter = ("child",)
-    search_fields = (
-        "child__first_name",
-        "child__last_name",
-        "amount",
-    )
+    list_display = ("start", "end", "duration", "amount", "side")
+    list_filter = ("side",)
+    search_fields = ("notes",)
+    exclude = ("child",)
     resource_class = PumpingImportExportResource
 
 

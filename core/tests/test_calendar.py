@@ -212,7 +212,8 @@ class CalendarViewsTest(TestCase):
         self.assertEqual(response.status_code, 302)
         saved = Appointment.objects.get(title="Late checkup")
         self.assertEqual(
-            timezone.localtime(saved.end).isoformat(), "2026-09-21T00:15:00-10:00"
+            timezone.localtime(saved.end, ZoneInfo("Pacific/Honolulu")).isoformat(),
+            "2026-09-21T00:15:00-10:00",
         )
         self.assertEqual(saved.end - saved.start, datetime.timedelta(minutes=30))
 
@@ -292,7 +293,10 @@ class CalendarViewsTest(TestCase):
                 saved = Appointment.objects.filter(title="Clock format check").latest(
                     "pk"
                 )
-                self.assertEqual(timezone.localtime(saved.start).hour, expected)
+                self.assertEqual(
+                    timezone.localtime(saved.start, ZoneInfo("Pacific/Honolulu")).hour,
+                    expected,
+                )
                 self.assertEqual(saved.start.second, 0)
         for invalid in ("13:30:42", "25:00", "1:30 XM"):
             response = self.client.get(
@@ -333,7 +337,12 @@ class CalendarViewsTest(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         saved = Appointment.objects.get(title="Custom picker values")
-        self.assertEqual(timezone.localtime(saved.start).strftime("%H:%M"), "13:07")
+        self.assertEqual(
+            timezone.localtime(saved.start, ZoneInfo("Pacific/Honolulu")).strftime(
+                "%H:%M"
+            ),
+            "13:07",
+        )
         self.assertEqual(saved.end - saved.start, datetime.timedelta(minutes=22.5))
         preview = self.client.get(
             reverse("core:appointment-end-preview"), {**params, "duration_minutes": ""}

@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils import formats, timezone
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 from django.utils.text import format_lazy, slugify
 from django.utils.translation import gettext_lazy as _
 from taggit.managers import TaggableManager as TaggitTaggableManager
@@ -81,15 +81,15 @@ def validate_unique_period(queryset, model):
                 f"core:{conflicting.model_name}-update",
                 args=[conflicting.id],
             )
-            link = (
-                f'<a href="{url}">{conflicting} '
-                f"({_format_dt(conflicting.start)} - "
-                f"{_format_dt(conflicting.end)})</a>"
-            )
             raise ValidationError(
-                mark_safe(
-                    f'{_("Another entry intersects the specified time period.")} '
-                    f'{_("Conflicting entry")}: {link}'
+                format_html(
+                    '{} {}: <a href="{}">{} ({} - {})</a>',
+                    _("Another entry intersects the specified time period."),
+                    _("Conflicting entry"),
+                    url,
+                    conflicting,
+                    _format_dt(conflicting.start),
+                    _format_dt(conflicting.end),
                 ),
                 code="period_intersection",
             )
@@ -386,12 +386,26 @@ class DiaperChange(CreatedByMixin):
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
+        indexes = [models.Index(fields=["child", "time"], name="diaper_child_time_idx")]
         ordering = ["-time"]
         verbose_name = _("Diaper Change")
         verbose_name_plural = _("Diaper Changes")
 
     def __str__(self):
         return str(_("Diaper Change"))
+
+    def save(self, *args, **kwargs):
+        from django.db import router, transaction
+
+        using = kwargs.get("using") or router.db_for_write(type(self), instance=self)
+        # Keep the care entry and its stock ledger in one transaction, including
+        # normal saves through the API and admin.
+        with transaction.atomic(using=using):
+            if self.pk:
+                type(self).objects.using(using).select_for_update().filter(
+                    pk=self.pk
+                ).exists()
+            return super().save(*args, **kwargs)
 
     def attributes(self):
         attributes = []
@@ -777,6 +791,7 @@ class Appointment(CreatedByMixin):
                 .replace("\\", "\\\\")
                 .replace(";", "\\;")
                 .replace(",", "\\,")
+                .replace("\r", "")
                 .replace("\n", "\\n")
             )
 
@@ -801,7 +816,9 @@ class Pumping(MeasurementUnitMixin, CreatedByMixin):
     model_name = "pumping"
     child = models.ForeignKey(
         "Child",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
         related_name="pumping",
         verbose_name=_("Child"),
     )
@@ -856,7 +873,7 @@ class Pumping(MeasurementUnitMixin, CreatedByMixin):
     def clean(self):
         validate_time(self.start, "start")
         validate_duration(self)
-        validate_unique_period(Pumping.objects.filter(child=self.child), self)
+        validate_unique_period(Pumping.objects.all(), self)
 
 
 class Sleep(CreatedByMixin):

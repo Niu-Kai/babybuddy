@@ -26,12 +26,10 @@ def medication_frequency(instances):
     if not totals:
         return None, None
 
-    trace = go.Scatter(
+    trace = go.Bar(
         name=_("Frequency"),
-        line=dict(shape="spline"),
         x=list(totals.values_list("date", flat=True)),
         y=list(totals.values_list("count", flat=True)),
-        fill="tozeroy",
     )
 
     layout_args = utils.default_graph_layout_options()
@@ -41,7 +39,10 @@ def medication_frequency(instances):
     layout_args["xaxis"]["autorange"] = True
     layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(trace.x)
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Number of medications")
+    layout_args["yaxis"].update(
+        title=_("Number of medications"),
+        **utils.count_axis(max(trace.y, default=0)),
+    )
 
     fig = go.Figure({"data": [trace], "layout": go.Layout(**layout_args)})
     output = plotly.plot(fig, output_type="div", include_plotlyjs=False)

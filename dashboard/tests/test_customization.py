@@ -37,7 +37,8 @@ class DashboardCustomizationTest(TestCase):
         response = self.client.post(
             self.url,
             {
-                "care": ["pumping_last", "medication_last"],
+                "household": ["pumping_overview"],
+                "care": ["medication_last"],
                 "trends": ["statistics"],
                 "measurements": ["measurement_bmi"],
             },
@@ -78,3 +79,53 @@ class DashboardCustomizationTest(TestCase):
         self.assertTrue(response.context["form"].errors)
         self.client.logout()
         self.assertEqual(self.client.get(self.url).status_code, 302)
+
+    def test_order_is_saved_per_user_and_reset_restores_default_order(self):
+        order = [
+            "sleep_last",
+            "feeding_last",
+            "diaperchange_last",
+            "timer_list",
+            "appointments_upcoming",
+        ]
+        response = self.client.post(self.url, {"action": "reorder", "order": order})
+        self.assertEqual(response.json(), {"saved": True})
+        response = self.client.get(self.dashboard)
+        self.assertEqual(response.context["dashboard_sections"][0]["panels"], order)
+        self.assertContains(response, "Arrange panels")
+        self.assertContains(response, "data-panel-move")
+        self.other.settings.refresh_from_db()
+        self.assertEqual(self.other.settings.dashboard_card_order, [])
+        response = self.client.post(
+            self.url, {"action": "reset", "care": ["pumping_last"]}, follow=True
+        )
+        self.user.settings.refresh_from_db()
+        self.assertEqual(self.user.settings.dashboard_card_order, [])
+        self.assertEqual(
+            self.user.settings.dashboard_hidden_cards, default_hidden_dashboard_cards()
+        )
+        self.assertContains(response, 'data-dashboard-panel="feeding_last"')
+
+    def test_reorder_rejects_duplicate_unknown_and_unauthorized_panels(self):
+        for order in (["sleep_last", "sleep_last"], ["bogus"], []):
+            self.assertEqual(
+                self.client.post(
+                    self.url, {"action": "reorder", "order": order}
+                ).status_code,
+                400,
+            )
+        restricted = get_user_model().objects.create_user("order-restricted")
+        self.client.force_login(restricted)
+        self.assertEqual(
+            self.client.post(
+                self.url, {"action": "reorder", "order": ["medication_last"]}
+            ).status_code,
+            400,
+        )
+        self.client.logout()
+        self.assertEqual(
+            self.client.post(
+                self.url, {"action": "reorder", "order": ["sleep_last"]}
+            ).status_code,
+            302,
+        )

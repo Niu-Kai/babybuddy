@@ -57,6 +57,10 @@
                                         <a href="{% url 'core:child-update' child.slug %}"
                                            class="btn btn-outline-primary">{% trans "Edit" %}</a>
                                     {% endif %}
+                                    {% if perms.core.change_child and perms.inventory.change_childsupplyprofile %}
+                                        <a href="{% url 'inventory:sizes' child.pk %}"
+                                           class="btn btn-outline-primary">Diaper supply &amp; sizes</a>
+                                    {% endif %}
                                     {% if perms.core.delete_child %}
                                         <details class="record-more"><summary aria-label="{% trans "More actions" %}">•••</summary><div class="record-more-menu"><a href="{% url 'core:child-delete' child.slug %}"
    class="btn btn-outline-danger record-delete"

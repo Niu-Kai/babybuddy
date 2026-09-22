@@ -16,6 +16,9 @@ urlpatterns = [
         views.AppointmentEndPreview.as_view(),
         name="appointment-end-preview",
     ),
+    path(
+        "pumping/reminders/", views.PumpingReminders.as_view(), name="pumping-reminders"
+    ),
     path("pumping/", views.PumpingList.as_view(), name="pumping-list"),
     path("pumping/add/", views.PumpingAdd.as_view(), name="pumping-add"),
     path(

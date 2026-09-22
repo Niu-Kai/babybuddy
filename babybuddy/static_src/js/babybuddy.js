@@ -52,6 +52,14 @@ BabyBuddy.PullToRefresh = (function (ptr) {
       (event.originalEvent && event.originalEvent.submitter) ||
       $(this).find('[type="submit"]')[0];
     if (!submitter || $(submitter).prop("disabled")) return;
+    // Disabled buttons are omitted from form data. Preserve the action first.
+    if (submitter.name) {
+      var action = document.createElement("input");
+      action.type = "hidden";
+      action.name = submitter.name;
+      action.value = submitter.value;
+      this.appendChild(action);
+    }
     $(submitter)
       .prop("disabled", true)
       .prepend(

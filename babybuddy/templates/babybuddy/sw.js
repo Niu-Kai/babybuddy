@@ -1,10 +1,10 @@
 /* Baby Buddy service worker (babybuddy/babybuddy#128).
  *
- * Makes the app installable and serves the static bundle from cache while it
- * refreshes in the background. Pages themselves always go to the network:
+ * Makes the app installable and checks for the current static bundle before falling
+ * back to its cached copy. Pages themselves always go to the network:
  * this is not an offline mode.
  */
-var CACHE = "babybuddy-static-v1";
+var CACHE = "babybuddy-static-v2";
 
 self.addEventListener("install", function () {
   self.skipWaiting();
@@ -18,7 +18,7 @@ self.addEventListener("activate", function (event) {
         return Promise.all(
           keys
             .filter(function (key) {
-              return key !== CACHE;
+              return key.indexOf("babybuddy-static-") === 0 && key !== CACHE;
             })
             .map(function (key) {
               return caches.delete(key);
@@ -41,19 +41,18 @@ self.addEventListener("fetch", function (event) {
   }
   event.respondWith(
     caches.open(CACHE).then(function (cache) {
-      return cache.match(event.request).then(function (cached) {
-        var network = fetch(event.request)
-          .then(function (response) {
-            if (response.ok) {
-              cache.put(event.request, response.clone());
-            }
+      return fetch(event.request)
+        .then(function (response) {
+          if (!response.ok) throw new Error("Static asset request failed");
+          return cache.put(event.request, response.clone()).then(function () {
             return response;
-          })
-          .catch(function () {
-            return cached;
           });
-        return cached || network;
-      });
+        })
+        .catch(function () {
+          return cache.match(event.request).then(function (cached) {
+            return cached || Response.error();
+          });
+        });
     }),
   );
 });

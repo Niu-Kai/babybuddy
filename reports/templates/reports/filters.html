@@ -4,20 +4,53 @@
       data-timeline-filters
       data-today="{{ today|date:'Y-m-d' }}">
     <input type="hidden" name="scope" value="{{ child_scope }}">
+    {% if pumping_view %}<input type="hidden" name="view" value="{{ pumping_view }}">{% endif %}
     <div class="timeline-filter-field">
         {{ report_period.period.label_tag }}{{ report_period.period }}{{ report_period.period.errors }}
     </div>
     {% include "core/period_picker.html" with period_filter=report_period %}
+    {% if growth_metric %}
+        <input type="hidden" name="metric" value="{{ growth_metric }}">
+        <input type="hidden" name="reference_controls" value="1">
+        <fieldset class="growth-references">
+            <legend>{% trans "WHO median" %}</legend>
+            <label>
+                <input type="checkbox"
+                       name="reference"
+                       value="boy"
+                       data-growth-reference
+                       {% if 'boy' in growth_references %}checked{% endif %}>
+                {% trans "Boys" %}
+            </label>
+            <label>
+                <input type="checkbox"
+                       name="reference"
+                       value="girl"
+                       data-growth-reference
+                       {% if 'girl' in growth_references %}checked{% endif %}>
+                {% trans "Girls" %}
+            </label>
+        </fieldset>
+    {% endif %}
+    {% if report_unit_choices %}
+        <div class="timeline-filter-field">
+            <label for="report-unit">{% trans "Display units" %}</label>
+            <select id="report-unit" name="unit" class="form-select" data-report-unit>
+                {% for value, label in report_unit_choices %}<option value="{{ value }}"
+        {% if value == report_unit %}selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+        </div>
+    {% endif %}
     <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
     <a class="btn btn-outline-secondary"
-       href="?scope={{ child_scope|urlencode }}">{% trans "Clear filters" %}</a>
+       href="?scope={{ child_scope|urlencode }}{% if growth_metric %}&amp;metric={{ growth_metric }}{% endif %}{% if pumping_view %}&amp;view={{ pumping_view }}{% endif %}">{% trans "Clear filters" %}</a>
 </form>
 {% if report_period.errors %}
     <p class="alert alert-warning">{% trans "Check the filters above to view your report." %}</p>
 {% elif report_range_start %}
     <div class="timeline-range-bar">
-        <strong>{{ report_range_start|date:"M j, Y" }}{% if report_range_end != report_range_start %} – {{ report_range_end|date:"M j, Y" }}{% endif %}</strong>
-        {% if side_by_side %}
+        <strong>{{ report_range_start|date:"M j, Y" }}{% if report_range_end != report_range_start %} to {{ report_range_end|date:"M j, Y" }}{% endif %}</strong>
+        {% if side_by_side and not household_page %}
             <span class="text-body-secondary">{% trans "Same period for every child" %}</span>
         {% endif %}
     </div>

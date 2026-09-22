@@ -1,4 +1,4 @@
-{% extends "babybuddy/page.html" %}
+{% extends "reports/base.html" %}
 {% load i18n %}
 {% block title %}
     {% trans "Reports" %}
@@ -8,7 +8,10 @@
 {% endblock %}
 {% block content %}
     <h1>{% trans "Reports" %}</h1>
-    <p class="text-body-secondary">{% trans "Explore growth, feeding, sleep, and daily care." %}</p>
+    {% if not object and perms.core.view_pumping %}
+        <a class="btn btn-outline-primary"
+           href="{% url 'reports:pumping' %}?period=week">{% trans "Pumping & nursing" %}</a>
+    {% endif %}
     {% if object %}
         <div class="report-categories">
             <section class="report-category">
@@ -21,37 +24,13 @@
                     <a class="report-link"
                        href="{% url 'reports:report-head-circumference-change-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Head Circumference" %}</a>
                 {% endif %}
-                {% if perms.core.view_headcircumference %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-head-circumference-change-child-boy' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Head Circumference Percentiles for Boys in cm" %}</a>
-                {% endif %}
-                {% if perms.core.view_headcircumference %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-head-circumference-change-child-girl' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Head Circumference Percentiles for Girls in cm" %}</a>
-                {% endif %}
                 {% if perms.core.view_height %}
                     <a class="report-link"
                        href="{% url 'reports:report-height-change-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Height" %}</a>
                 {% endif %}
-                {% if perms.core.view_height %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-height-change-child-boy' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Height Percentiles for Boys in cm" %}</a>
-                {% endif %}
-                {% if perms.core.view_height %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-height-change-child-girl' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Height Percentiles for Girls in cm" %}</a>
-                {% endif %}
                 {% if perms.core.view_weight %}
                     <a class="report-link"
                        href="{% url 'reports:report-weight-change-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Weight" %}</a>
-                {% endif %}
-                {% if perms.core.view_weight %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-weight-change-child-boy' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Weight Percentiles for Boys in kg" %}</a>
-                {% endif %}
-                {% if perms.core.view_weight %}
-                    <a class="report-link"
-                       href="{% url 'reports:report-weight-change-child-girl' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "WHO Weight Percentiles for Girls in kg" %}</a>
                 {% endif %}
             </section>
             <section class="report-category">
@@ -70,18 +49,18 @@
                 {% endif %}
                 {% if perms.core.view_feeding %}
                     <a class="report-link"
-                       href="{% url 'reports:report-feeding-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Feeding Pattern" %}</a>
+                       href="{% url 'reports:report-feeding-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}&amp;period=week">{% trans "Feeding Pattern" %}</a>
                 {% endif %}
                 {% if perms.core.view_pumping %}
                     <a class="report-link"
-                       href="{% url 'reports:report-pumping-amounts-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Pumping Amounts" %}</a>
+                       href="{% url 'reports:pumping' %}?period=week">{% trans "Pumping & nursing" %}</a>
                 {% endif %}
             </section>
             <section class="report-category">
                 <h2>{% trans "Sleep" %}</h2>
                 {% if perms.core.view_sleep %}
                     <a class="report-link"
-                       href="{% url 'reports:report-sleep-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Sleep Pattern" %}</a>
+                       href="{% url 'reports:report-sleep-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}&amp;period=week">{% trans "Sleep Pattern" %}</a>
                 {% endif %}
                 {% if perms.core.view_sleep %}
                     <a class="report-link"
@@ -92,7 +71,7 @@
                 <h2>{% trans "Other care" %}</h2>
                 {% if perms.core.view_diaperchange %}
                     <a class="report-link"
-                       href="{% url 'reports:report-diaperchange-amounts-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Diaper Change Amounts" %}</a>
+                       href="{% url 'reports:report-diaperchange-amounts-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Diaper Changes per Day" %}</a>
                 {% endif %}
                 {% if perms.core.view_diaperchange %}
                     <a class="report-link"
@@ -104,7 +83,7 @@
                 {% endif %}
                 {% if perms.core.view_diaperchange %}
                     <a class="report-link"
-                       href="{% url 'reports:report-diaperchange-lifetimes-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Diaper Lifetimes" %}</a>
+                       href="{% url 'reports:report-diaperchange-lifetimes-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Diaper Interval Distribution" %}</a>
                 {% endif %}
                 {% if perms.core.view_medication %}
                     <a class="report-link"
@@ -115,7 +94,7 @@
                        href="{% url 'reports:report-medication-intervals-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Medication Intervals" %}</a>
                 {% endif %}
                 <a class="report-link"
-                   href="{% url 'reports:report-activity-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Daily Activity" %}</a>
+                   href="{% url 'reports:report-activity-pattern-child' object.slug %}?scope={{ child_scope|urlencode }}&amp;period=week">{% trans "Daily Activity" %}</a>
                 {% if perms.core.view_temperature %}
                     <a class="report-link"
                        href="{% url 'reports:report-temperature-change-child' object.slug %}?scope={{ child_scope|urlencode }}">{% trans "Temperature" %}</a>

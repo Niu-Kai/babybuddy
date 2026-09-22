@@ -1,13 +1,18 @@
 {% extends "reports/report_base.html" %}
 {% load i18n %}
 {% block title %}
-    {% trans "Pumping" %} - {{ object }}
-{% endblock %}
-{% block breadcrumbs %}
-    {{ block.super }}
-    {% include "reports/breadcrumb_common_chunk.html" with target_url="reports:report-pumping-amounts-child" %}
-    <li class="breadcrumb-item active" aria-current="page">{% trans "Pumping" %}</li>
+    {% trans "Pumping & nursing" %}
 {% endblock %}
 {% block report_heading %}
-    {% trans "Pumping" %}
+    {% trans "Pumping & nursing" %}
+{% endblock %}
+{% block toolbar %}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <a class="btn btn-outline-primary{% if pumping_view == 'pattern' %} active{% endif %}"
+           href="{% url 'reports:pumping' %}?view=pattern&amp;period={{ report_period.period.value|default:''|urlencode }}&amp;date={{ report_period.date.value|default:''|urlencode }}">{% trans "Session pattern" %}</a>
+        <a class="btn btn-outline-primary{% if pumping_view == 'amounts' %} active{% endif %}"
+           href="{% url 'reports:pumping' %}?view=amounts&amp;period={{ report_period.period.value|default:''|urlencode }}&amp;date={{ report_period.date.value|default:''|urlencode }}">{% trans "Pumped amounts" %}</a>
+        <a class="btn btn-outline-secondary"
+           href="{% url 'core:pumping-list' %}">{% trans "Edit pumping entries" %}</a>
+    </div>
 {% endblock %}

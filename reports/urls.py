@@ -6,6 +6,12 @@ from . import views
 app_name = "reports"
 
 urlpatterns = [
+    path("reports/pumping/", views.PumpingAmounts.as_view(), name="pumping"),
+    path(
+        "children/<str:slug>/reports/growth/",
+        views.GrowthReport.as_view(),
+        name="growth",
+    ),
     path("reports/", views.ReportsHome.as_view(), name="home"),
     path(
         "children/<str:slug>/reports",

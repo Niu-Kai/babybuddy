@@ -51,6 +51,10 @@ class TestBase:
             response = self.client.post(
                 self.endpoint, self.timer_test_data, format="json"
             )
+            if self.model is models.Pumping:
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                self.assertIsNone(response.data["child"])
+                return
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             timer.refresh_from_db()
             child = models.Child.objects.first()
@@ -77,7 +81,10 @@ class TestBase:
             )
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             obj = self.model.objects.get(pk=response.data["id"])
-            self.assertIsNotNone(obj.child)
+            if self.model is models.Pumping:
+                self.assertIsNone(obj.child)
+            else:
+                self.assertIsNotNone(obj.child)
             self.assertEqual(obj.start, start)
             self.assertIsNotNone(obj.end)
 

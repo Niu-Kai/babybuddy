@@ -21,7 +21,9 @@ class WebhooksTestCase(TestCase):
         set_setting_value("core.models", "Child", "secret", "")
 
     def test_create_update_delete_events(self):
-        with mock.patch("core.webhooks.deliver_async") as deliver:
+        with mock.patch(
+            "core.webhooks.deliver_async"
+        ) as deliver, self.captureOnCommitCallbacks(execute=True):
             note = models.Note.objects.create(
                 child=self.child, note="hello", time=timezone.now()
             )
@@ -40,7 +42,9 @@ class WebhooksTestCase(TestCase):
 
     def test_disabled_without_url(self):
         set_setting_value("core.models", "Child", "url", "")
-        with mock.patch("core.webhooks.deliver_async") as deliver:
+        with mock.patch(
+            "core.webhooks.deliver_async"
+        ) as deliver, self.captureOnCommitCallbacks(execute=True):
             models.Note.objects.create(
                 child=self.child, note="quiet", time=timezone.now()
             )
@@ -48,13 +52,11 @@ class WebhooksTestCase(TestCase):
 
     def test_send_signs_and_survives_failure(self):
         payload = {"event": "note.created"}
-        with mock.patch("core.webhooks.urllib.request.urlopen") as urlopen:
+        with mock.patch("core.webhooks._opener.open") as urlopen:
             urlopen.return_value.__enter__.return_value = None
             webhooks.send("http://receiver.test/hook", payload, "s3cret")
             request = urlopen.call_args.args[0]
             self.assertEqual(request.get_method(), "POST")
             self.assertTrue(request.get_header("X-babybuddy-signature"))
-        with mock.patch(
-            "core.webhooks.urllib.request.urlopen", side_effect=OSError("down")
-        ):
+        with mock.patch("core.webhooks._opener.open", side_effect=OSError("down")):
             webhooks.send("http://receiver.test/hook", payload)  # must not raise

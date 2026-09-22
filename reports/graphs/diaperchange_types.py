@@ -1,68 +1,57 @@
-# -*- coding: utf-8 -*-
-from django.db.models import Count, Case, When
+from django.db.models import Count, Q
 from django.db.models.functions import TruncDate
 from django.utils.translation import gettext as _
-from django.utils.translation import get_language
-
+import plotly.graph_objects as go
 import plotly.offline as plotly
-import plotly.graph_objs as go
-
 from reports import utils
 
 
 def diaperchange_types(changes):
-    """
-    Create a graph showing types of totals for diaper changes.
-    :param changes: a QuerySet of Diaper Change instances.
-    :returns: a tuple of the graph's html and javascript.
-    """
-    changes = (
-        changes.annotate(date=TruncDate("time"))
-        .values("date")
-        .annotate(wet_count=Count(Case(When(wet=True, then=1))))
-        .annotate(solid_count=Count(Case(When(solid=True, then=1))))
-        .annotate(total=Count("id"))
-        .order_by("-date")
+    totals = list(
+        changes.annotate(day=TruncDate("time"))
+        .values("day")
+        .annotate(
+            wet_only=Count("pk", filter=Q(wet=True, solid=False)),
+            solid_only=Count("pk", filter=Q(wet=False, solid=True)),
+            both=Count("pk", filter=Q(wet=True, solid=True)),
+            other=Count("pk", filter=Q(wet=False, solid=False)),
+        )
+        .order_by("day")
     )
-
-    solid_trace = go.Scatter(
-        mode="markers",
-        name=_("Solid"),
-        x=list(changes.values_list("date", flat=True)),
-        y=list(changes.values_list("solid_count", flat=True)),
+    traces = [
+        go.Bar(
+            name=str(label),
+            x=[row["day"] for row in totals],
+            y=[row[key] for row in totals],
+            hovertemplate="%{x|%b %d, %Y}<br>%{y:.0f} diapers<extra>%{fullData.name}</extra>",
+        )
+        for key, label in (
+            ("wet_only", _("Wet only")),
+            ("solid_only", _("Solid only")),
+            ("both", _("Wet + solid")),
+            ("other", _("Other")),
+        )
+        if any(row[key] for row in totals)
+    ]
+    layout = utils.default_graph_layout_options()
+    layout.update(barmode="stack")
+    layout["xaxis"].update(title=_("Date"), type="date")
+    layout["yaxis"].update(
+        title=_("Diaper changes"),
+        **utils.count_axis(
+            max(
+                (
+                    sum(row[key] for key in ("wet_only", "solid_only", "both", "other"))
+                    for row in totals
+                ),
+                default=0,
+            )
+        )
     )
-    wet_trace = go.Scatter(
-        mode="markers",
-        name=_("Wet"),
-        x=list(changes.values_list("date", flat=True)),
-        y=list(changes.values_list("wet_count", flat=True)),
+    return utils.split_graph_output(
+        plotly.plot(
+            go.Figure(data=traces, layout=layout),
+            output_type="div",
+            include_plotlyjs=False,
+        )
     )
-    total_trace = go.Scatter(
-        name=_("Total"),
-        x=list(changes.values_list("date", flat=True)),
-        y=list(changes.values_list("total", flat=True)),
-    )
-
-    layout_args = utils.default_graph_layout_options()
-    layout_args["barmode"] = "stack"
-    layout_args["title"] = "<b>" + _("Diaper Change Types") + "</b>"
-    layout_args["xaxis"]["title"] = _("Date")
-    layout_args["xaxis"]["type"] = "date"
-    layout_args["xaxis"]["autorange"] = True
-    layout_args["xaxis"]["autorangeoptions"] = utils.autorangeoptions(total_trace.x)
-    layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-    layout_args["yaxis"]["title"] = _("Number of changes")
-
-    fig = go.Figure(
-        {
-            "data": [solid_trace, wet_trace, total_trace],
-            "layout": go.Layout(**layout_args),
-        }
-    )
-    output = plotly.plot(
-        fig,
-        output_type="div",
-        include_plotlyjs=False,
-        config={"locale": get_language()},
-    )
-    return utils.split_graph_output(output)

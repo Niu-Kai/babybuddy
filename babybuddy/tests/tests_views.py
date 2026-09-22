@@ -248,7 +248,8 @@ class PreferencesTestCase(TestCase):
         self.c.cookies["babybuddy_device_tz"] = "Asia/Tokyo"
         page = self.c.get("/feedings/")
         self.assertEqual(page.status_code, 200)
-        self.assertEqual(timezone.get_current_timezone_name(), "Asia/Tokyo")
+        self.assertContains(page, "10:05 p.m.")
+        self.assertEqual(timezone.get_current_timezone_name(), "UTC")
         timezone.deactivate()
         self.c.cookies["babybuddy_device_tz"] = "Not/AZone"
         page = self.c.get("/feedings/")

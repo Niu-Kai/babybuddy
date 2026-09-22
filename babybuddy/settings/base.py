@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "dashboard",
     "reports",
+    "inventory.apps.InventoryConfig",
     "axes",
     "django_filters",
     "rest_framework",
@@ -266,6 +267,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 MEDIA_URL = "media/"
 
+# Keep thumbnail paths associated with their source permission boundary.
+IMAGEKIT_CACHEFILE_NAMER = "imagekit.cachefiles.namers.source_name_as_path"
+
 AWS_STORAGE_BUCKET_NAME = os.environ.get("AWS_STORAGE_BUCKET_NAME") or None
 
 AWS_ACCESS_KEY_ID = os.environ.get("AWS_ACCESS_KEY_ID") or None
@@ -359,7 +363,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.OrderingFilter",
     ],
     "DEFAULT_METADATA_CLASS": "api.metadata.APIMetadata",
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.BoundedLimitOffsetPagination",
     "DEFAULT_PERMISSION_CLASSES": ["api.permissions.BabyBuddyDjangoModelPermissions"],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",

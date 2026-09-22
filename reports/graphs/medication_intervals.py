@@ -31,7 +31,8 @@ def medication_intervals(instances):
 
     trace_avg = go.Scatter(
         name=_("Interval"),
-        line=dict(shape="spline"),
+        line=dict(shape="linear", width=2),
+        mode="lines+markers",
         x=times,
         y=[i.total_seconds() / 3600 for i in intervals],
         hoverinfo="text",

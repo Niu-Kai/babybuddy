@@ -6,7 +6,7 @@
         <div class="row justify-content-md-center">
             <div class="col-lg-12 mb-4">
                 {% include "babybuddy/messages.html" %}
-                {% if selected_child and request.resolver_match.namespace != "dashboard" %}<div class="page-child-context text-body-secondary">{{ selected_child }}</div>{% endif %}
+                {% if selected_child and request.resolver_match.namespace != "dashboard" and not household_page %}<div class="page-child-context text-body-secondary">{{ selected_child }}</div>{% endif %}
                 {% block content %}{% endblock %}
             </div>
         </div>

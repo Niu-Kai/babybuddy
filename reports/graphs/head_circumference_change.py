@@ -37,7 +37,6 @@ def head_circumference_change(
         name=_("Head Circumference"),
         x=measure_dates,
         y=measures,
-        fill="tozeroy",
         mode="lines+markers",
     )
     data = [trace]

@@ -5,13 +5,16 @@ import config from "./gulpfile.config.js";
 import * as dartSass from "sass";
 import { deleteAsync } from "del";
 import flatten from "gulp-flatten";
-import fontello from "gulp-fontello";
+import { updateFontello } from "./scripts/fontello.mjs";
+import { createRequire } from "node:module";
+import { Transform } from "node:stream";
 import gStylelintEsm from "gulp-stylelint-esm";
 import gulp from "gulp";
 import gulpSass from "gulp-sass";
-import minify from "gulp-minify";
+import terser from "gulp-terser";
 import sassGlob from "gulp-sass-glob";
 
+const require = createRequire(import.meta.url);
 const es = child_process.execSync;
 const sass = gulpSass(dartSass);
 const spawn = child_process.spawn;
@@ -212,13 +215,21 @@ function scripts() {
     streams.push(
       gulp
         .src(config.scriptsConfig[type])
-        .pipe(concat(`${type}.js`))
         .pipe(
-          minify({
-            ext: { min: ".js" },
-            noSource: true,
+          new Transform({
+            objectMode: true,
+            transform(file, _encoding, done) {
+              if (type === "graph" && file.path.includes("plotly.js-locales")) {
+                file.contents = Buffer.from(
+                  `Plotly.register(${JSON.stringify(require(file.path))});`,
+                );
+              }
+              done(null, file);
+            },
           }),
         )
+        .pipe(concat(`${type}.js`))
+        .pipe(terser())
         .pipe(gulp.dest(config.scriptsConfig.dest)),
     );
   });
@@ -289,10 +300,10 @@ function test(cb) {
  * Updates glyphs font data from Fontello.
  */
 function updateGlyphs() {
-  return gulp
-    .src(config.glyphFontConfig.configFile, { encoding: false })
-    .pipe(fontello({ assetsOnly: false }))
-    .pipe(gulp.dest(config.glyphFontConfig.dest));
+  return updateFontello(
+    config.glyphFontConfig.configFile,
+    config.glyphFontConfig.dest,
+  );
 }
 
 /**

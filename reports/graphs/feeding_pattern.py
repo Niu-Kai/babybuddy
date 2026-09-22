@@ -1,251 +1,198 @@
-# -*- coding: utf-8 -*-
-from collections import OrderedDict
+"""Feeding sessions compared by local day, without stacking time gaps."""
 
-from django.utils import timezone, formats
-from django.utils.translation import gettext as _
-
+from collections import Counter, defaultdict
+from datetime import timedelta, timezone as utc_timezone
+from django.utils import timezone
+from django.utils.translation import gettext as _, ngettext
+import plotly.graph_objects as go
 import plotly.offline as plotly
-import plotly.graph_objs as go
-import plotly.colors as colors
-
-from core.utils import duration_string
 from core.models import Feeding
-
+from core.utils import duration_string
 from reports import utils
-
-from datetime import timedelta
-
-FEEDING_COLORS = {
-    method: colors.DEFAULT_PLOTLY_COLORS[i]
-    for i, (method, _) in enumerate(Feeding.method.field.choices)
-}
-NOT_FEEDING_COLOR = "rgba(255, 255, 255, 0)"
-
-FEEDING_METHOD_LOOKUP = dict(Feeding.method.field.choices)
+from reports.graphs.activity_pattern import _split_by_day, _minutes
+from reports.graphs.day_grid import clock, day_layout, wrap_day_chart
 
 
-def feeding_pattern(feedings):
-    """
-    Create a graph showing blocked out periods of feeding during each day.
-    :param feedings: a QuerySet of Feeding instances.
-    :returns: a tuple of the graph's html and javascript.
-    """
-    last_end_time = None
-    adjustment = None
-
-    first_day = timezone.localtime(feedings.first().start)
-    last_day = timezone.localtime(feedings.last().end)
-    days = _init_days(first_day, last_day)
-
-    for feeding in feedings:
-        start_time = timezone.localtime(feeding.start)
-        end_time = timezone.localtime(feeding.end)
-        start_date = start_time.date().isoformat()
-        end_date = end_time.date().isoformat()
-        duration = feeding.duration
-
-        # Check if the previous entry crossed midnight (see below).
-        if adjustment:
-            _add_adjustment(adjustment, days)
-            last_end_time = timezone.localtime(adjustment["end_time"])
-            adjustment = None
-
-        # If the dates do not match, set up an adjustment for the next day.
-        if end_time.date() != start_time.date():
-            adj_start_time = end_time.replace(hour=0, minute=0, second=0)
-            adjustment = {
-                "column": end_date,
-                "start_time": adj_start_time,
-                "end_time": end_time,
-                "duration": end_time - adj_start_time,
-                "method": feeding.method,
-            }
-
-            # Adjust end_time for the current entry.
-            end_time = end_time.replace(
-                year=start_time.year,
-                month=start_time.month,
-                day=start_time.day,
-                hour=23,
-                minute=59,
-                second=0,
-            )
-            duration = end_time - start_time
-
-        if last_end_time:
-            if last_end_time.date() < start_time.date():
-                # Not feeding across midnight
-                last_date = last_end_time.date().isoformat()
-                last_midnight = last_end_time.replace(hour=23, minute=59)
-                days[last_date].append(
-                    {
-                        "time": (last_midnight - last_end_time).seconds / 60,
-                        "label": None,
-                        "method": None,
-                    }
-                )
-                last_end_time = start_time.replace(hour=0, minute=0, second=0)
-
-        if not last_end_time:
-            last_end_time = start_time.replace(hour=0, minute=0, second=0)
-
-        # Not feeding time.
-        days[start_date].append(
-            {
-                "time": (start_time - last_end_time).seconds / 60,
-                "label": None,
-                "method": None,
-            }
-        )
-
-        # Feeding time.
-        days[start_date].append(
-            {
-                "time": duration.seconds / 60,
-                "label": _format_label(duration, start_time, end_time, feeding.method),
-                "method": feeding.method,
-            }
-        )
-
-        # Update the previous entry duration if an offset change occurred.
-        # This can happen when an entry crosses a daylight savings time change.
-        if start_time.utcoffset() != end_time.utcoffset():
-            diff = start_time.utcoffset() - end_time.utcoffset()
-            duration -= timezone.timedelta(seconds=diff.seconds)
-            yesterday = end_time - timezone.timedelta(days=1)
-            yesterday = yesterday.date().isoformat()
-            days[yesterday][len(days[yesterday]) - 1] = {
-                "time": duration.seconds / 60,
-                "label": _format_label(duration, start_time, end_time, feeding.method),
-                "method": feeding.method,
-            }
-
-        last_end_time = end_time
-
-    # Handle any left over adjustment (if the last entry crossed midnight).
-    if adjustment:
-        _add_adjustment(adjustment, days)
-
-    # Create dates for x-axis using a 12:00:00 time to ensure correct
-    # positioning of bars (covering entire day).
-    dates = []
-    for time in list(days.keys()):
-        dates.append("{} 12:00:00".format(time))
-
-    traces = []
-
-    # Set iterator and determine maximum iteration for dates.
-    i = 0
-    max_i = 0
-    for date_times in days.values():
-        max_i = max(len(date_times), max_i)
-    while i < max_i:
-        y = {}
-        text = {}
-        color = []
-        for date in days.keys():
-            try:
-                y[date] = days[date][i]["time"]
-                text[date] = days[date][i]["label"]
-                color.append(
-                    FEEDING_COLORS.get(days[date][i]["method"]) or NOT_FEEDING_COLOR
-                )
-            except IndexError:
-                y[date] = None
-                text[date] = None
-                color.append(NOT_FEEDING_COLOR)
-        i += 1
-        traces.append(
-            go.Bar(
-                x=dates,
-                y=list(y.values()),
-                hovertext=list(text.values()),
-                # `hoverinfo` is deprecated but if we use the new `hovertemplate`
-                # the "filler" areas for awake time get a hover that says "null"
-                # and there is no way to prevent this currently with Plotly.
-                hoverinfo="text",
-                marker={"color": color},
-                showlegend=False,
-            )
-        )
-
-    layout_args = utils.default_graph_layout_options()
-    layout_args["margin"]["b"] = 100
-
-    layout_args["barmode"] = "stack"
-    layout_args["bargap"] = 0
-    layout_args["hovermode"] = "closest"
-    layout_args["title"] = "<b>" + _("Feeding Pattern") + "</b>"
-    layout_args["height"] = 800
-
-    layout_args["xaxis"]["title"] = _("Date")
-    layout_args["xaxis"]["tickangle"] = -65
-    layout_args["xaxis"]["tickformat"] = "%b %e\n%Y"
-    layout_args["xaxis"]["ticklabelmode"] = "period"
-    layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
-
-    start = timezone.localtime().strptime("12:00 AM", "%I:%M %p")
-    ticks = OrderedDict()
-    ticks[0] = start.strftime("%I:%M %p")
-    for i in range(0, 60 * 24, 30):
-        ticks[i] = formats.time_format(
-            start + timezone.timedelta(minutes=i), "TIME_FORMAT"
-        )
-
-    layout_args["yaxis"]["title"] = _("Time of day")
-    layout_args["yaxis"]["range"] = [24 * 60, 0]
-    layout_args["yaxis"]["tickmode"] = "array"
-    layout_args["yaxis"]["tickvals"] = list(ticks.keys())
-    layout_args["yaxis"]["ticktext"] = list(ticks.values())
-    layout_args["yaxis"]["tickfont"] = {"size": 10}
-
-    fig = go.Figure({"data": traces, "layout": go.Layout(**layout_args)})
-    output = plotly.plot(fig, output_type="div", include_plotlyjs=False)
-    return utils.split_graph_output(output)
-
-
-def _init_days(first_day, last_day):
-    period = (last_day.date() - first_day.date()).days + 1
-
-    def new_day(d):
-        return (first_day + timedelta(days=d)).date().isoformat()
-
-    return {new_day(day): [] for day in range(period)}
-
-
-def _add_adjustment(adjustment, days):
-    """
-    Adds "adjustment" data for entries that cross midnight.
-    :param adjustment: Column, start time, end time, and duration of entry.
-    :param blocks: List of days
-    """
-    column = adjustment.pop("column")
-    if column not in days:
-        days[column] = []
-
-    # Real adjustment entry.
-    days[column].append(
-        {
-            "time": adjustment["duration"].seconds / 60,
-            "label": _format_label(**adjustment),
-            "method": adjustment["method"],
-        }
+def feeding_pattern(
+    feedings, first_day=None, last_day=None, use_24_hour=False, session_methods=None
+):
+    feedings = sorted(feedings, key=lambda entry: entry.start)
+    if not feedings:
+        return None, None
+    first_day = first_day or timezone.localtime(feedings[0].start).date()
+    last_day = last_day or max(
+        timezone.localtime(item.end or item.start).date() for item in feedings
     )
-
-
-def _format_label(duration, start_time, end_time, method):
-    """
-    Formats a time block label.
-    :param duration: Duration.
-    :param start_time: Start time.
-    :param end_time: End time.
-    :param method: Feeding method.
-    :return: Formatted string with duration, start, and end time.
-    """
-    readable_method = FEEDING_METHOD_LOOKUP.get(method)
-    return "{} feeding {} ({} to {})".format(
-        readable_method,
-        duration_string(duration),
-        formats.time_format(start_time, "TIME_FORMAT"),
-        formats.time_format(end_time, "TIME_FORMAT"),
+    days = [
+        first_day + timedelta(days=index)
+        for index in range((last_day - first_day).days + 1)
+    ]
+    if not days:
+        return None, None
+    methods = [
+        (method, label)
+        for method, label in (session_methods or Feeding.method.field.choices)
+        if any(item.method == method for item in feedings)
+    ]
+    if any(not item.method for item in feedings):
+        methods.append(("", _("Unspecified")))
+    method_colors = {
+        method: utils.CHART_COLORS[index % len(utils.CHART_COLORS)]
+        for index, (method, _) in enumerate(
+            session_methods or Feeding.method.field.choices
+        )
+    }
+    counts = Counter(timezone.localtime(item.start).date() for item in feedings)
+    summaries = [
+        (
+            ngettext("%(count)s session", "%(count)s sessions", counts[day])
+            if session_methods
+            else ngettext("%(count)s feeding", "%(count)s feedings", counts[day])
+        )
+        % {"count": counts[day]}
+        for day in days
+    ]
+    # Only share a day column when sessions actually overlap. Different methods
+    # at different times can use the full width instead of tiny permanent lanes.
+    segments = defaultdict(list)
+    for entry in feedings:
+        for day, start, end in _split_by_day(entry.start, entry.end or entry.start):
+            if first_day <= day <= last_day:
+                base, finish = sorted(
+                    (_minutes(start), 1440 if end.date() > day else _minutes(end))
+                )
+                segments[day].append((base, max(finish, base + 0.5), entry.pk))
+    positions = {}
+    for day, entries in segments.items():
+        clusters = []
+        finish = -1
+        for item in sorted(entries):
+            if item[0] >= finish:
+                clusters.append([])
+            clusters[-1].append(item)
+            finish = max(finish, item[1])
+        for cluster in clusters:
+            lanes, assigned = [], []
+            for start, end, key in cluster:
+                lane = next(
+                    (i for i, stop in enumerate(lanes) if stop <= start), len(lanes)
+                )
+                if lane == len(lanes):
+                    lanes.append(end)
+                else:
+                    lanes[lane] = end
+                assigned.append((key, lane))
+            width = 0.72 / len(lanes)
+            for key, lane in assigned:
+                positions[key, day] = ((lane - (len(lanes) - 1) / 2) * width, width)
+    traces = []
+    annotations = []
+    for index, (method, label) in enumerate(methods):
+        xs, bases, lengths, text, widths = [], [], [], [], []
+        px, py, ptext = [], [], []
+        for entry in feedings:
+            if (entry.method or "") != method:
+                continue
+            start = timezone.localtime(entry.start)
+            end = timezone.localtime(entry.end or entry.start)
+            if end == start:
+                if first_day <= start.date() <= last_day:
+                    offset, _width = positions[entry.pk, start.date()]
+                    px.append((start.date() - first_day).days + offset)
+                    py.append(_minutes(start))
+                    ptext.append(
+                        f"{start:%b %d, %Y}<br>{label}: {clock(start, use_24_hour)}<br>{_("Duration not recorded")}"
+                    )
+                continue
+            for day, start, end in _split_by_day(entry.start, entry.end):
+                duration = end.astimezone(utc_timezone.utc) - start.astimezone(
+                    utc_timezone.utc
+                )
+                if not first_day <= day <= last_day or duration.total_seconds() <= 0:
+                    continue
+                base, finish = sorted(
+                    (_minutes(start), 1440 if end.date() > day else _minutes(end))
+                )
+                offset, width = positions[entry.pk, day]
+                xs.append((day - first_day).days + offset)
+                widths.append(width * 0.92)
+                if width > 0.5:
+                    minutes = round(duration.total_seconds() / 60)
+                    annotations.append(
+                        dict(
+                            x=(day - first_day).days,
+                            y=base,
+                            yshift=12,
+                            text=f"{clock(start, use_24_hour)} · {minutes}m",
+                            showarrow=False,
+                            font=dict(size=13),
+                        )
+                    )
+                bases.append(base)
+                lengths.append(max(finish - base, 0.5))
+                text.append(
+                    f"{day:%b %d, %Y}<br>{label}: {clock(start, use_24_hour)} - {clock(end, use_24_hour)}<br>{duration_string(duration)}"
+                )
+        color = method_colors.get(method, "#a3afbd")
+        if xs:
+            traces.append(
+                go.Bar(
+                    name=str(label),
+                    legendgroup=method,
+                    x=xs,
+                    y=lengths,
+                    base=bases,
+                    width=widths,
+                    marker=dict(color=color, line=utils.BAR_OUTLINE),
+                    hovertext=text,
+                    hovertemplate="%{hovertext}<extra></extra>",
+                )
+            )
+        if px:
+            traces.append(
+                go.Scatter(
+                    name=str(label),
+                    legendgroup=method,
+                    showlegend=not xs,
+                    x=px,
+                    y=py,
+                    mode="markers",
+                    marker=dict(color=color, size=12, line=utils.BAR_OUTLINE),
+                    hovertext=ptext,
+                    hovertemplate="%{hovertext}<extra></extra>",
+                )
+            )
+    layout = day_layout(
+        days,
+        (
+            _("Sessions started per day")
+            if session_methods
+            else _("Feedings started per day")
+        ),
+        summaries,
+        use_24_hour,
+    )
+    if session_methods:
+        readable = []
+        previous_y = {}
+        for annotation in sorted(annotations, key=lambda item: (item["x"], item["y"])):
+            if annotation["y"] - previous_y.get(annotation["x"], -100) >= 45:
+                readable.append(annotation)
+                previous_y[annotation["x"]] = annotation["y"]
+        annotations = readable
+    layout["annotations"] = annotations
+    return wrap_day_chart(
+        plotly.plot(
+            go.Figure(data=traces, layout=layout),
+            output_type="div",
+            include_plotlyjs=False,
+        ),
+        days,
+        (
+            _("Daily pumping and nursing comparison")
+            if session_methods
+            else _("Daily feeding comparison")
+        ),
+        minimum=480,
+        day_width=280 if session_methods else 180,
     )

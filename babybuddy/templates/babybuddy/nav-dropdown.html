@@ -36,6 +36,8 @@
                         <li class="nav-item"><a class="nav-link{% if request.resolver_match.namespace == 'reports' %} active{% endif %}"
    href="{{ nav_reports_url }}">{% trans "Reports" %}</a></li>
                     {% endif %}
+                    {% if perms.inventory.view_stockitem %}<li class="nav-item"><a class="nav-link{% if request.resolver_match.namespace == 'inventory' %} active{% endif %}"
+   href="{% url 'inventory:list' %}">Inventory{% if inventory_reminders %} <span class="badge text-bg-warning">{{ inventory_reminders|length }}</span>{% endif %}</a></li>{% endif %}
                 </ul>
                 <ul class="navbar-nav nav-tools">
                     {% if perms.core.view_timer %}<li class="nav-item dropdown"><button class="nav-link dropdown-toggle"
@@ -54,7 +56,8 @@
    href="{% url 'core:timer-add' %}">{% trans "Start timer" %}</a></li>
                     {% endif %}
                     {% include "babybuddy/nav_group.html" with menu=add_menu label="+ Add entry" menu_id="add-entry-menu" %}
-                    {% if scope_children %}<li class="nav-item dropdown child-view-menu"><button class="nav-link dropdown-toggle child-view-button"
+                    {% if scope_children %}<li class="nav-item dropdown child-view-menu"
+    {% if household_page %}hidden{% endif %}><button class="nav-link dropdown-toggle child-view-button"
         id="child-view-menu"
         data-bs-toggle="dropdown"
         aria-expanded="false"

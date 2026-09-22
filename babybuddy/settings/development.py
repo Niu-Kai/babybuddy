@@ -7,7 +7,9 @@ ALLOWED_HOSTS = [
     x.strip()
     for x in os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost,::1").split(",")
 ]
-SECRET_KEY = os.environ.get("SECRET_KEY") or "DEVELOPMENT!!"
+from babybuddy.development_key import local_secret_key
+
+SECRET_KEY = os.environ.get("SECRET_KEY") or local_secret_key(BASE_DIR)
 DEBUG = bool(strtobool(os.environ.get("DEBUG") or "True"))
 
 

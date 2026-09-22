@@ -421,9 +421,12 @@ class FormsTestCase(TestCase):
         self.assertEqual(timezone.get_default_timezone_name(), "UTC")
         params = self.settings_template.copy()
         params["timezone"] = "US/Pacific"
+        previous_zone = timezone.get_current_timezone_name()
         page = self.c.post("/user/settings/", data=params, follow=True)
         self.assertEqual(page.status_code, 200)
-        self.assertEqual(timezone.get_current_timezone_name(), params["timezone"])
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.settings.timezone, params["timezone"])
+        self.assertEqual(timezone.get_current_timezone_name(), previous_zone)
 
     def test_user_settings_dashboard_hide_empty_on(self):
         self.c.login(**self.credentials)

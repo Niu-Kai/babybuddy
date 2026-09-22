@@ -1,0 +1,2 @@
+{% if inventory_reminders %}<div class="inventory-reminder" role="status"><strong>Supplies need attention</strong><span>{{ inventory_reminders|length }} item{{ inventory_reminders|length|pluralize }} to restock or review</span><a class="btn btn-sm btn-outline-primary"
+   href="{% url 'inventory:list' %}?view=shopping">View shopping list</a></div>{% endif %}
