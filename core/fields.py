@@ -35,52 +35,7 @@ class NapStartMinTimeField(forms.TimeField):
 
 
 class DateTimeField(forms.DateTimeField):
-    """
-    Accepts local times that fall in a daylight saving transition instead of
-    rejecting them (see babybuddy/babybuddy#174).
-
-    A time in the repeated hour of a "fall back" transition is taken as its
-    first occurrence; a time in the skipped hour of a "spring forward"
-    transition is moved forward by the length of the gap, which is what most
-    clocks and calendars do.
-    """
-
-    def to_python(self, value):
-        try:
-            return super().to_python(value)
-        except forms.ValidationError as error:
-            if error.code != "ambiguous_timezone":
-                raise
-        naive = self._parse_naive(value)
-        current_timezone = timezone.get_current_timezone()
-        aware = naive.replace(tzinfo=current_timezone, fold=0)
-        # Round-tripping through UTC reveals a non-existent ("imaginary") time.
-        if (
-            aware.astimezone(datetime.timezone.utc)
-            .astimezone(current_timezone)
-            .replace(tzinfo=None)
-            != naive
-        ):
-            gap = aware.replace(fold=1).utcoffset() - aware.utcoffset()
-            aware = (naive + gap).replace(tzinfo=current_timezone)
-        return aware
-
-    def _parse_naive(self, value):
-        if isinstance(value, datetime.datetime):
-            return value.replace(tzinfo=None)
-        if isinstance(value, datetime.date):
-            return datetime.datetime(value.year, value.month, value.day)
-        value = value.strip()
-        try:
-            return datetime.datetime.fromisoformat(value).replace(tzinfo=None)
-        except ValueError:
-            pass
-        for input_format in self.input_formats:
-            try:
-                return datetime.datetime.strptime(value, input_format)
-            except (ValueError, TypeError):
-                continue
-        raise forms.ValidationError(self.error_messages["invalid"], code="invalid")
+    """Offset-aware input is exact; ambiguous naive input must be clarified."""
 
 
 class FloatField(forms.FloatField):

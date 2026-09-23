@@ -36,22 +36,17 @@ class UserLanguageMiddleware:
         user = request.user
         if hasattr(user, "settings") and user.settings.language:
             language = user.settings.language
-        elif request.LANGUAGE_CODE:
+        elif getattr(request, "LANGUAGE_CODE", None):
             language = request.LANGUAGE_CODE
         else:
             language = settings.LANGUAGE_CODE
 
-        if language:
-            # Set the language before generating the response.
-            translation.activate(language)
-
-        response = self.get_response(request)
-
-        # Deactivate the translation before the response is sent so it not
-        # reused in other threads.
-        translation.deactivate()
-
-        return response
+        # Restore the caller's language even if rendering raises an exception.
+        with translation.override(language):
+            request.LANGUAGE_CODE = translation.get_language()
+            response = self.get_response(request)
+            response.setdefault("Content-Language", request.LANGUAGE_CODE)
+            return response
 
 
 class UserTimezoneMiddleware:
@@ -122,7 +117,7 @@ class CustomRemoteUser(RemoteUserMiddleware):
 
     def process_request(self, request):
         # Exclude API paths using token authentication.
-        if request.path.startswith("/api/"):
+        if request.path_info.startswith("/api/"):
             return None
         return super().process_request(request)
 
@@ -157,9 +152,17 @@ class HomeAssistant:
     def __init__(self, get_response):
         self.get_response = get_response
         self.home_assistant_support_enabled = settings.ENABLE_HOME_ASSISTANT_SUPPORT
-        self.original_script_prefix = get_script_prefix()
 
     def __call__(self, request: HttpRequest):
+        original = get_script_prefix()
+        base = settings.FORCE_SCRIPT_NAME or request.META.get("SCRIPT_NAME") or "/"
+        set_script_prefix(base)
+        try:
+            return self.handle(request)
+        finally:
+            set_script_prefix(original)
+
+    def handle(self, request: HttpRequest):
         if self.home_assistant_support_enabled:
             request.is_homeassistant_ingress_request = (
                 request.headers.get("X-Hass-Source") == "core.ingress"
@@ -178,7 +181,9 @@ class HomeAssistant:
         if apply_x_ingress_path:
             set_script_prefix("/" + x_ingress_path.lstrip("/"))
         else:
-            set_script_prefix(self.original_script_prefix)
+            set_script_prefix(
+                settings.FORCE_SCRIPT_NAME or request.META.get("SCRIPT_NAME") or "/"
+            )
 
         response = self.get_response(request)
 

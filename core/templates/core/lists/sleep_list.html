@@ -9,7 +9,7 @@
                     <th data-column="child">{% trans "Child" %}</th>
                 {% endif %}
                 <th data-column="duration">{% trans "Duration" %}</th>
-                <th data-column="previous">{% trans "Previous" %}</th>
+                <th data-column="previous">{% trans "Awake between sleep sessions" %}</th>
                 <th data-column="nap" class="text-center">{% trans "Nap" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
@@ -29,10 +29,12 @@
                         {% endif %}
                         <td data-column="duration">{{ sleep.duration|duration_string }}</td>
                         <td data-column="previous">
-                            {% if prev_sleep %}
-                                {% blocktrans trimmed with time_ago=prev_sleep.end|timesince:sleep.start %}
-                                    {{ time_ago }} ago
-                                {% endblocktrans %}
+                            {% if sleep.previous_entry_end %}
+                                {% if sleep.previous_entry_end > sleep.start %}
+                                    {% trans "Overlapping sessions" %}
+                                {% else %}
+                                    {{ sleep.previous_entry_end|timesince:sleep.start }}
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td data-column="nap" class="text-center">{{ sleep.nap|bool_icon }}</td>

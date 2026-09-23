@@ -23,13 +23,9 @@
                         </span>
                         {% if object.is_premature %}
                             <span class="dash-chip">
-                                <i class="icon-child" aria-hidden="true"></i>
-                                {% if object.due_date > today %}
-                                    {% trans "Due" %} {{ object.due_date }}
-                                {% else %}
-                                    {% trans "Corrected age" %} {{ object.due_date|child_age_string }}
-                                {% endif %}
+                                {% if object.due_date > today %}{% trans "Due" %} {{ object.due_date }}{% else %}{% trans "Corrected age" %} {{ object.due_date|child_age_string }}{% endif %}
                             </span>
+                            <span class="dash-chip">{% trans "Gestational age at birth" %}: {{ object.gestational_age_at_birth }}</span>
                         {% endif %}
                     </div>
                 </div>

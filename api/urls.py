@@ -7,7 +7,7 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.schemas import get_schema_view
 
-from . import views
+from . import views, offline, integrations
 
 
 class ExtraPath(NamedTuple):
@@ -46,6 +46,16 @@ class CustomRouterWithExtraPaths(routers.DefaultRouter):
 
 
 router = CustomRouterWithExtraPaths()
+router.add_detail_path(
+    "settings", "integration-settings", integrations.SettingsView.as_view()
+)
+router.add_detail_path("query", "integration-query", integrations.QueryView.as_view())
+router.add_detail_path(
+    "offline-context", "offline-context", offline.OfflineContext.as_view()
+)
+router.add_detail_path("offline-sync", "offline-sync", offline.OfflineSync.as_view())
+router.register(r"custom-activities", views.CustomActivityViewSet)
+router.add_detail_path("dashboard", "dashboard", views.DashboardSummary.as_view())
 router.register(r"appointments", views.AppointmentViewSet)
 router.register(r"bath-times", views.BathTimeViewSet)
 router.register(r"bmi", views.BMIViewSet)

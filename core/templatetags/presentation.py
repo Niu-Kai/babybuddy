@@ -67,6 +67,8 @@ def feeding_amount(context, entry):
             entry.amount_display,
             _("unit not recorded"),
         )
+    if entry.top_up_at:
+        return measurement(context, entry, "total_amount")
     first = measurement(context, entry, "amount")
     if entry.secondary_type and entry.secondary_amount is not None:
         second = measurement(context, entry, "secondary_amount")
@@ -84,3 +86,28 @@ def volume_total(context, value, unit_known=True):
         return f"{value:g} " + _("(unit not recorded)")
     unit = preferred_unit(context["request"].user.settings, "feeding")
     return f"{convert(value, 'mL', unit):.2f}".rstrip("0").rstrip(".") + " " + unit
+
+
+@register.simple_tag(takes_context=True)
+def top_up_details(context, entry):
+    from django.utils.html import format_html
+    from django.utils.translation import gettext as _
+    from core.templatetags.datetime import datetime_short
+
+    if not entry.top_up_at:
+        return ""
+    second = ""
+    if entry.top_up_secondary_amount is not None:
+        second = format_html(
+            " + {}: {}",
+            entry.get_top_up_secondary_type_display(),
+            measurement(context, entry, "top_up_secondary_amount"),
+        )
+    return format_html(
+        "{} · {} · {}: {}{}",
+        _("Top-up bottle"),
+        datetime_short(entry.top_up_at),
+        entry.get_top_up_type_display(),
+        measurement(context, entry, "top_up_amount"),
+        second,
+    )

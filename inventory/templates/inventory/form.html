@@ -3,17 +3,16 @@
 {% block title %}{{ title }}{% endblock %}
 {% block content %}
     <h1>{{ title }}</h1>
-    {% if stock_item %}<p class="text-center">{% if stock_item.size %}{{ stock_item.size }} · {% endif %} {{ stock_item.quantity|floatformat:"-3" }} {{ stock_item.unit }} on hand</p>{% endif %}
+    {% if stock_item %}<p class="text-center">{% if stock_item.size %}{{ stock_item.size }} · {% endif %} {% blocktrans with quantity=stock_item.quantity|floatformat:"-3" unit=stock_item.quantity_unit %}{{ quantity }} {{ unit }} on hand{% endblocktrans %}</p>{% endif %}
     {% if form.sections %}
         <div class="entry-form container-fluid">
             <form method="post">
                 {% csrf_token %}
-                {% if form.errors %}<div class="alert alert-danger">Please check the highlighted fields.{{ form.non_field_errors }}</div>{% endif %}
+                {% if form.errors %}<div class="alert alert-danger">{% trans "Please check the highlighted fields." %}{{ form.non_field_errors }}</div>{% endif %}
                 {% for title,fields in form.sections %}<fieldset class="mb-4"><legend class="fs-5">{{ title }}</legend><div class="inventory-form-fields">{% for field in fields %}<div><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{% include "babybuddy/form_field_no_label.html" %}</div>{% endfor %}</div></fieldset>{% endfor %}
                 <div class="form-actions">
-                    <button class="btn btn-primary btn-lg submit-primary"
-                            type="submit">Save</button><a class="btn btn-outline-secondary btn-lg"
-   href="{{ cancel_url }}">Cancel</a>
+                    <button class="btn btn-primary btn-lg submit-primary" type="submit">{% trans "Save" %}</button>
+                    <a class="btn btn-outline-secondary btn-lg" href="{{ cancel_url }}">{% trans "Cancel" %}</a>
                 </div>
             </form>
         </div>
@@ -23,13 +22,13 @@
     <details class="entry-form mt-3"
              data-diaper-guide
              {% if not form.diaper_size %}hidden{% endif %}>
-        <summary>Diaper sizing references (US)</summary>
-        <p class="mt-2 mb-1">Sizes are based on weight, not age. Choose the brand and range printed on your package; other brands, swim diapers, and training pants may differ.</p>
+        <summary>{% trans "Diaper sizing references (US)" %}</summary>
+        <p class="mt-2 mb-1">{% trans "Sizes are based on weight, not age. Choose the brand and range printed on your package; other brands, swim diapers, and training pants may differ." %}</p>
         <a href="https://www.pampers.com/en-us/baby/diapering/article/diaper-size-and-weight-chart"
            target="_blank"
-           rel="noopener noreferrer">Pampers guide</a> · <a href="https://www.huggies.com/en-us/resources/parenting/everyday-diaper-tips/diaper-size-calculator"
+           rel="noopener noreferrer">{% trans "Pampers guide" %}</a> · <a href="https://www.huggies.com/en-us/resources/parenting/everyday-diaper-tips/diaper-size-calculator"
     target="_blank"
-    rel="noopener noreferrer">Huggies guide</a>
+    rel="noopener noreferrer">{% trans "Huggies guide" %}</a>
     </details>
     <datalist id="diaper-sizes">
         {% for size in diaper_sizes %}<option value="{{ size }}"></option>{% endfor %}

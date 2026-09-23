@@ -58,6 +58,10 @@ def set_initial_values(kwargs, form_type):
     if timer_id:
         try:
             timer = models.Timer.objects.get(id=timer_id)
+            if timer.context.get("activity") == form_type._meta.model._meta.model_name:
+                for key in ("type", "method"):
+                    if key in timer.context:
+                        kwargs["initial"].setdefault(key, timer.context[key])
             kwargs["initial"].update(
                 # The end excludes time the timer spent paused (#190).
                 {
@@ -125,6 +129,12 @@ class CoreModelForm(forms.ModelForm):
         self.timer_id = kwargs.get("timer", None)
         kwargs = set_initial_values(kwargs, type(self))
         super(CoreModelForm, self).__init__(*args, **kwargs)
+        if "child" in self.fields:
+            from core.access import scoped
+
+            self.fields["child"].queryset = scoped(
+                models.Child.objects.all(), self.user
+            )
         self.use_tolerant_fields()
         self.add_overlap_field()
         self.hide_single_child()
@@ -450,8 +460,11 @@ class ChildForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         from core.entry_timing import time_widget, TIME_FORMATS
 
-        self.fields["birth_time"].widget = time_widget(user)
-        self.fields["birth_time"].input_formats = TIME_FORMATS + ["%H:%M:%S"]
+        self.fields["birth_time"].widget = time_widget(user, seconds=True)
+        self.fields["birth_time"].input_formats = TIME_FORMATS + [
+            "%H:%M:%S",
+            "%I:%M:%S %p",
+        ]
         if self.instance.pk:
             self.initial["slug"] = self.instance.slug
         else:
@@ -460,9 +473,22 @@ class ChildForm(forms.ModelForm):
             self.initial.setdefault("birth_date", now.date())
             self.initial.setdefault("birth_time", now.time())
 
+    def clean_picture(self):
+        picture = self.cleaned_data.get("picture")
+        if picture and hasattr(picture, "content_type"):
+            from core.photos import prepare_photo
+
+            return prepare_photo(picture)
+        return picture
+
     def clean_birth_time(self):
         value = self.cleaned_data.get("birth_time")
         old = self.instance.birth_time
+        # Explicit seconds, including :00, are editable; minute-only legacy
+        # submissions preserve existing precision.
+        raw = self.data.get(self.add_prefix("birth_time"), "")
+        if raw.count(":") >= 2:
+            return value
         if (
             self.instance.pk
             and value
@@ -537,8 +563,13 @@ class DiaperChangeForm(CoreModelForm, TaggableModelForm):
 
 
 class FeedingForm(CoreModelForm, TaggableModelForm):
+    from core.meal_foods import MealFoodsWidget
+
+    foods = forms.Field(label=_("Foods"), required=False, widget=MealFoodsWidget)
+
     fieldsets = [
         {"fields": ["child", "start", "end", "type", "method"], "layout": "required"},
+        {"fields": ["foods"]},
         {"fields": ["amount", "last_breast"]},
         {"fields": ["secondary_type", "secondary_amount"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
@@ -546,6 +577,21 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from core.top_ups import setup_top_up_form
+
+        setup_top_up_form(self)
+        from core.meal_foods import food_suggestions
+
+        self.fields["foods"].widget.suggestions = food_suggestions(self.user)
+        if self.instance.pk:
+            self.initial["foods"] = list(
+                self.instance.foods.values("id", "name", "reaction")
+            )
+        if self.user and not self.user.has_perm("core.view_food"):
+            self.fields["foods"].disabled = True
+            self.fields["foods"].widget = forms.HiddenInput()
+            self.initial["foods"] = []
+
         # The duration is optional (babybuddy/babybuddy#772): an entry without
         # an end time is stored as an instant, like a bottle feeding.
         self.fields["end"].required = False
@@ -560,7 +606,37 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
         # "Ended on" only means something for both breasts (#1012).
         if cleaned_data.get("method") != "both breasts":
             cleaned_data["last_breast"] = None
+        from core.meal_foods import normalize_foods, validate_meal_foods
+
+        if "foods" not in self.errors:
+            try:
+                rows = normalize_foods(cleaned_data.get("foods") or [])
+                # Omitted controls from older clients preserve existing exposures.
+                if self.is_bound and self.add_prefix("foods_name") not in self.data:
+                    rows = normalize_foods(
+                        list(self.instance.foods.values("id", "name", "reaction"))
+                        if self.instance.pk
+                        else []
+                    )
+                self.instance.type = cleaned_data.get("type", self.instance.type)
+                self.instance.secondary_type = cleaned_data.get("secondary_type")
+                validate_meal_foods(self.instance, rows, self.user)
+                cleaned_data["foods"] = rows
+            except forms.ValidationError as error:
+                self.add_error("foods", error)
+        from core.top_ups import clean_top_up_form
+
+        clean_top_up_form(self, cleaned_data)
         return cleaned_data
+
+    @transaction.atomic
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        if commit:
+            from core.meal_foods import save_meal_foods
+
+            save_meal_foods(instance, self.cleaned_data.get("foods", []), self.user)
+        return instance
 
     class Meta:
         model = models.Feeding
@@ -573,6 +649,11 @@ class FeedingForm(CoreModelForm, TaggableModelForm):
             "amount",
             "secondary_type",
             "secondary_amount",
+            "top_up_at",
+            "top_up_type",
+            "top_up_amount",
+            "top_up_secondary_type",
+            "top_up_secondary_amount",
             "last_breast",
             "notes",
             "tags",
@@ -675,6 +756,20 @@ class MedicationForm(CoreModelForm, TaggableModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from django.urls import reverse
+
+        if (
+            self.user
+            and self.user.has_perm("core.view_medication")
+            and not self.instance.pk
+        ):
+            self.fields["name"].widget.attrs.update(
+                {
+                    "data-medication-choices": reverse("core:medication-choices"),
+                    "autocomplete": "off",
+                    "list": "medication-history",
+                }
+            )
         # Convert existing timedelta to hours for display
         if self.instance and self.instance.next_dose_interval:
             total_seconds = self.instance.next_dose_interval.total_seconds()
@@ -690,13 +785,47 @@ class MedicationForm(CoreModelForm, TaggableModelForm):
 class PumpingForm(CoreModelForm, TaggableModelForm):
     fieldsets = [
         {"fields": ["start", "end"], "layout": "required"},
-        {"fields": ["amount", "side"]},
+        {"fields": ["left_amount", "right_amount", "amount", "side"]},
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["amount"].required = False
+        self.fields["amount"].label = _("Total amount")
+        self.fields["amount"].widget.attrs["data-pumping-total"] = ""
+
+    def clean(self):
+        data = super().clean()
+        from core.pumping import set_pumping_total
+
+        entry = models.Pumping(
+            amount=data.get("amount"),
+            left_amount=data.get("left_amount"),
+            right_amount=data.get("right_amount"),
+        )
+        try:
+            set_pumping_total(entry)
+            data["amount"] = entry.amount
+            if entry.left_amount is not None or entry.right_amount is not None:
+                data["side"] = entry.side
+        except forms.ValidationError as error:
+            for field, errors in error.message_dict.items():
+                self.add_error(field, errors)
+        return data
+
     class Meta:
         model = models.Pumping
-        fields = ["start", "end", "amount", "side", "notes", "tags"]
+        fields = [
+            "start",
+            "end",
+            "left_amount",
+            "right_amount",
+            "amount",
+            "side",
+            "notes",
+            "tags",
+        ]
         widgets = {
             "start": DateTimeInput(),
             "end": DateTimeInput(),
@@ -724,6 +853,12 @@ class AppointmentTimingForm(forms.Form):
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.local_times import configure
+
+        configure(self)
+
     def clean(self):
         import datetime
 
@@ -731,18 +866,11 @@ class AppointmentTimingForm(forms.Form):
         if self.errors:
             return data
         try:
-            start = fields.DateTimeField().clean(
-                datetime.datetime.combine(data["appointment_date"], data["start_time"])
-            )
-            reference = data.get("reference_start")
-            if reference:
-                reference = timezone.localtime(reference)
-                if (
-                    reference.date() == data["appointment_date"]
-                    and reference.time().replace(second=0, microsecond=0)
-                    == data["start_time"]
-                ):
-                    start = reference
+            from core.local_times import resolve
+
+            start = resolve(self, data, data.get("reference_start"))
+            if start is None:
+                return data
             duration = data.get("duration_minutes")
             end = (
                 None
@@ -786,6 +914,9 @@ class AppointmentForm(CoreModelForm, TaggableModelForm):
         )
         initial_start = timezone.localtime(initial_start)
         self.entry_original_start = initial_start if self.instance.pk else None
+        from core.local_times import configure
+
+        configure(self, self.entry_original_start)
         initial_end = self.initial.get("end")
         self.initial.setdefault("appointment_date", initial_start.date().isoformat())
         clock_format = (
@@ -860,7 +991,13 @@ class AppointmentForm(CoreModelForm, TaggableModelForm):
     def clean(self):
         data = super().clean()
         if not self.legacy_times:
-            names = ("appointment_date", "start_time", "duration_minutes")
+            names = (
+                "appointment_date",
+                "start_time",
+                "duration_minutes",
+                "time_occurrence",
+                "entry_reference",
+            )
             if not any(name in self.errors for name in names):
                 schedule = AppointmentTimingForm(
                     {name: data.get(name) for name in names}
@@ -870,7 +1007,7 @@ class AppointmentForm(CoreModelForm, TaggableModelForm):
                     data["end"] = schedule.cleaned_data["end"]
                     # Keep an existing timestamp's precision (and DST fold) when
                     # only unrelated fields or the duration were edited.
-                    if self.instance.pk:
+                    if self.instance.pk and not data.get("time_occurrence"):
                         original = timezone.localtime(self.instance.start)
                         if (
                             original.date() == data["appointment_date"]
@@ -890,6 +1027,7 @@ class AppointmentForm(CoreModelForm, TaggableModelForm):
                                 )
                             )
                 else:
+                    self.fields["time_occurrence"] = schedule.fields["time_occurrence"]
                     for name, errors in schedule.errors.items():
                         self.add_error(name, errors)
         return data
@@ -987,6 +1125,30 @@ class TemperatureForm(CoreModelForm, TaggableModelForm):
 
 
 class TimerForm(CoreModelForm):
+    activity = forms.ChoiceField(
+        required=False,
+        label=_("Activity"),
+        choices=[
+            ("", _("Choose when stopping")),
+            ("feeding", _("Feeding")),
+            ("sleep", _("Sleep")),
+            ("pumping", _("Pumping")),
+            ("tummytime", _("Tummy time")),
+            ("bathtime", _("Bath")),
+        ],
+    )
+
+    def clean(self):
+        data = super().clean()
+        previous = self.instance.context or {}
+        activity = data.get("activity")
+        self.instance.context = (
+            previous
+            if activity == previous.get("activity")
+            else ({"activity": activity} if activity else {})
+        )
+        return data
+
     class Meta:
         model = models.Timer
         fields = ["child", "name", "start"]
@@ -998,6 +1160,7 @@ class TimerForm(CoreModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
         super(TimerForm, self).__init__(*args, **kwargs)
+        self.initial["activity"] = self.instance.context.get("activity", "")
 
     def save(self, commit=True):
         instance = super(TimerForm, self).save(commit=False)
@@ -1007,7 +1170,7 @@ class TimerForm(CoreModelForm):
         else:
             # Editing a timer does not change its owner, including an owner
             # changed by someone else while the form was open.
-            instance.save(update_fields=self._meta.fields)
+            instance.save(update_fields=[*self._meta.fields, "context"])
         return instance
 
 
@@ -1093,6 +1256,13 @@ class FoodForm(CoreModelForm, TaggableModelForm):
         {"fields": ["notes", "tags"], "layout": "advanced"},
     ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.feeding_id:
+            for name in ("child", "time", "appointment_date", "start_time"):
+                if name in self.fields:
+                    self.fields[name].disabled = True
+
     class Meta:
         model = models.Food
         fields = ["child", "time", "name", "amount", "reaction", "notes", "tags"]
@@ -1150,6 +1320,7 @@ class TimelineFilterForm(forms.Form):
             ("food", _("Food")),
             ("note", _("Notes")),
             ("temperature", _("Temperature")),
+            ("customactivity", _("Custom activities")),
         )
         self.fields["activity"].choices = [("", _("All activities"))] + [
             (name, label)

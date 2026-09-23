@@ -17,6 +17,11 @@ class LoginRequiredMixin(LoginRequiredMixInBase):
 class PermissionRequiredMixin(PermissionRequiredMixinBase):
     login_url = "/login"
 
+    def get_queryset(self):
+        from core.access import scoped
+
+        return scoped(super().get_queryset(), self.request.user)
+
 
 @method_decorator(never_cache, name="dispatch")
 class StaffOnlyMixin(AccessMixin):

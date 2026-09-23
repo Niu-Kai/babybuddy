@@ -33,7 +33,7 @@
                             </td>
                         {% endif %}
                         <td data-column="method">{{ feeding.get_method_display }}</td>
-                        <td data-column="type">{{ feeding.type_display }}</td>
+                        <td data-column="type">{{ feeding.type_display }}{% if perms.core.view_food %}{% for food in feeding.foods.all %}<div class="small text-body-secondary">{{ food.name }}{% if food.reaction %} · {{ food.get_reaction_display }}{% endif %}</div>{% endfor %}{% endif %}</td>
                         <td data-column="amount">{% feeding_amount feeding %}</td>
                         <td data-column="duration">{{ feeding.duration|duration_string }}</td>
                         <td data-column="recorded-by">{{ feeding.created_by_display|default:"—" }}</td>
@@ -62,6 +62,11 @@
                             </div>
                         </td>
                     </tr>
+                    {% if feeding.top_up_at %}
+                        <tr class="row-details">
+                            <td colspan="11">{% top_up_details feeding %}</td>
+                        </tr>
+                    {% endif %}
                     {% if feeding.notes %}
                         <tr class="{{ row_class }} row-details" data-column="notes">
                             <td colspan="10">

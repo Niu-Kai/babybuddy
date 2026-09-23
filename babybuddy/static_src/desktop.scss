@@ -35,7 +35,7 @@ div[id^='view-'].container-fluid {
     tbody td, tbody th { padding: 1rem 1.15rem; border-color: var(--bs-border-color); font-weight: 400; vertical-align: middle; }
     tbody tr:last-child > * { border-bottom: 0; }
     .record-actions { text-align: right; }
-    td:last-child { text-align: right; }
+    td[data-column="actions"] { text-align: right; }
     .btn-group { gap: .5rem; align-items: center; }
     .btn-outline-primary { border: 0; background: transparent; }
     .row-details td { padding-top: .25rem; color: var(--bs-secondary-color); }
@@ -277,7 +277,7 @@ div[id^='view-'].container-fluid {
 .growth-tabs { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
 .growth-references { border: 0; display: flex; gap: 1rem; margin: 0; padding: 0; }
 .growth-references legend { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: .5rem; }
-.growth-references label { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.3rem; }
+.growth-references label { white-space: nowrap; display: inline-flex; align-items: center; gap: .4rem; min-height: 2.3rem; }
 .growth-references input { accent-color: var(--bs-primary); }
 .growth-source { font-size: .8rem; color: var(--bs-secondary-color); margin: 1rem .5rem; }
 .dashboard-arrange { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }

@@ -1,12 +1,18 @@
+{% load i18n %}
 <article class="inventory-card">
-    <div class="d-flex justify-content-between gap-2"><div><span class="text-body-secondary">{{ item.get_category_display }}</span><h3><a href="{% url 'inventory:detail' item.pk %}">{{ item.name }}</a></h3></div>{% if item.reminder %}<span class="inventory-status">{{ item.reminder }}</span>{% endif %}</div>
+    <div class="d-flex justify-content-between gap-2"><div><span class="text-body-secondary">{{ item.get_category_display }}</span><h3><a href="{% url 'inventory:detail' item.pk %}">{{ item.name }}</a></h3></div>{% if item.reminder %}<span class="inventory-status">{{ item.reminder_label }}</span>{% endif %}</div>
     <p>{% if item.size %}{{ item.size }} · {% endif %} {{ item.fit_label }}</p>
     <div class="inventory-quantity">{{ item.quantity|floatformat:"-3" }} <span>{{ item.quantity_unit }}</span></div>
-    {% if item.days_left != None %}<p class="text-body-secondary">About {{ item.days_left }} day{{ item.days_left|pluralize }} left · {{ item.daily_use_rate|floatformat:"-1" }} {{ item.unit }}/day</p>{% elif item.stage == "current" and not item.archived %}<p class="text-body-secondary">Not enough recent usage to estimate days left</p>{% endif %}
-    {% if item.expiration_date %}<p class="text-body-secondary">Expires {{ item.expiration_date|date:"M j, Y" }}</p>{% endif %}
-    {% if item.reminder %}<p>{% if item.buy_quantity %}<strong>30-day supply: {{ item.buy_quantity|floatformat:"-3" }} {{ item.buy_unit }}</strong>{% else %}Review this batch{% endif %}{% if item.snoozed %}<span class="text-body-secondary"> · Reminder paused until {{ item.snoozed_until|date:"M j" }}</span>{% endif %}</p>{% endif %}
-    <div class="inventory-card-actions">{% if perms.inventory.change_stockitem and not item.archived %}<a class="btn btn-outline-primary btn-sm"
-   href="{% url 'inventory:stock' item.pk %}?action=use">Use stock</a><a class="btn btn-primary btn-sm"
-   href="{% url 'inventory:stock' item.pk %}?action=add">Restock</a>{% endif %}<a class="btn btn-outline-secondary btn-sm"
-   href="{% url 'inventory:detail' item.pk %}">Details</a></div>
+    {% if item.days_left != None %}<p class="text-body-secondary">{% blocktrans count days=item.days_left %}About {{ days }} day left{% plural %}About {{ days }} days left{% endblocktrans %} · {% blocktrans with rate=item.daily_use_rate|floatformat:"-1" unit=item.get_unit_display %}{{ rate }} {{ unit }}/day{% endblocktrans %}</p>{% elif item.stage == "current" and not item.archived %}<p class="text-body-secondary">{% trans "Not enough recent usage to estimate days left" %}</p>{% endif %}
+    {% if item.expiration_date %}<p class="text-body-secondary">{% blocktrans with date=item.expiration_date|date:"DATE_FORMAT" %}Expires {{ date }}{% endblocktrans %}</p>{% endif %}
+    {% if item.reminder %}<p>{% if item.buy_quantity %}<strong>{% blocktrans with quantity=item.buy_quantity|floatformat:"-3" unit=item.buy_unit %}30-day supply: {{ quantity }} {{ unit }}{% endblocktrans %}</strong>{% else %}{% trans "Review this batch" %}{% endif %}{% if item.snoozed %}<span class="text-body-secondary"> · {% blocktrans with date=item.snoozed_until|date:"SHORT_DATE_FORMAT" %}Reminder paused until {{ date }}{% endblocktrans %}</span>{% endif %}</p>{% endif %}
+    <div class="inventory-card-actions">
+        {% if perms.inventory.change_stockitem and not item.archived %}
+            <a class="btn btn-outline-primary btn-sm"
+               href="{% url 'inventory:stock' item.pk %}?action=use">{% trans "Use stock" %}</a><a class="btn btn-primary btn-sm"
+   href="{% url 'inventory:stock' item.pk %}?action=add">{% trans "Restock" %}</a>
+        {% endif %}
+        <a class="btn btn-outline-secondary btn-sm"
+           href="{% url 'inventory:detail' item.pk %}">{% trans "Details" %}</a>
+    </div>
 </article>

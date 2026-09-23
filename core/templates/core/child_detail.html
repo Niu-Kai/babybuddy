@@ -26,6 +26,7 @@
                         {% if object.is_premature %}
                             <br />
                             {% trans "Corrected age" %} <span class="text-secondary">{{ object.due_date|child_age_string }}</span>
+                            <span class="child-meta-item">{% trans "Gestational age at birth" %}: {{ object.gestational_age_at_birth }}</span>
                         {% endif %}
                     </p>
                     {% include "dashboard/child_button_group.html" %}

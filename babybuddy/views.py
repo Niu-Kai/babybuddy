@@ -106,6 +106,7 @@ class BabyBuddyFilterView(FilterView):
         if "user" in fields:
             queryset = queryset.select_related("user")
         if self.model._meta.model_name == "feeding":
+            queryset = queryset.prefetch_related("foods")
             # Correlated lookup works across page boundaries and never compares
             # different children, even in the combined household view.
             previous = (
@@ -126,6 +127,22 @@ class BabyBuddyFilterView(FilterView):
             ).order_by("-start", "-pk")
             queryset = queryset.annotate(
                 previous_pumping_start=Subquery(previous.values("start")[:1])
+            )
+        if self.model._meta.model_name in {"sleep", "diaperchange", "tummytime"}:
+            start_field = "start" if "start" in fields else "time"
+            previous_field = "end" if "end" in fields else "time"
+            previous = (
+                self.model.objects.filter(child_id=OuterRef("child_id"))
+                .filter(
+                    Q(**{start_field + "__lt": OuterRef(start_field)})
+                    | Q(
+                        **{start_field: OuterRef(start_field), "pk__lt": OuterRef("pk")}
+                    )
+                )
+                .order_by("-" + start_field, "-pk")
+            )
+            queryset = queryset.annotate(
+                previous_entry_end=Subquery(previous.values(previous_field)[:1])
             )
         date_field = next(
             (
@@ -492,7 +509,7 @@ class Welcome(LoginRequiredMixin, TemplateView):
 
 
 class ServiceWorker(View):
-    """Serve the service worker from the site root so it can scope to "/"."""
+    """Keep the service worker scoped to this installation, including mount paths."""
 
     def get(self, request):
         from django.template.loader import render_to_string
@@ -500,7 +517,7 @@ class ServiceWorker(View):
         response = HttpResponse(
             render_to_string("babybuddy/sw.js"), content_type="application/javascript"
         )
-        response["Service-Worker-Allowed"] = "/"
+        response["Service-Worker-Allowed"] = reverse("babybuddy:root-router")
         response["Cache-Control"] = "no-cache"
         return response
 
@@ -540,6 +557,8 @@ class ExportData(StaffOnlyMixin, View):
             core_models.BathTime,
             core_models.Reflux,
             core_models.Food,
+            core_models.CustomActivity,
+            core_models.ActivityType,
             core_models.Tag,
         ]
         # Staff status alone does not authorize reading every model.

@@ -29,7 +29,9 @@ document.addEventListener("DOMContentLoaded", function () {
       }
       function numericValue(value) {
         if (picker.dataset.choiceKind === "duration") return Number(value);
-        const match = value.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+        const match = value
+          .trim()
+          .match(/^(\d{1,2}):(\d{2})(?::\d{2})?(?:\s*(AM|PM))?$/i);
         if (!match) return NaN;
         let hour = Number(match[1]);
         if (match[3])
@@ -139,6 +141,10 @@ document.addEventListener("DOMContentLoaded", function () {
               params.set(name, fields[index].value);
             },
           );
+          const occurrence = container
+            .closest("form")
+            .querySelector('[name="time_occurrence"]');
+          if (occurrence) params.set("time_occurrence", occurrence.value);
           try {
             const response = await fetch(
               container.dataset.previewUrl + "?" + params,
@@ -158,6 +164,10 @@ document.addEventListener("DOMContentLoaded", function () {
         field.addEventListener("input", update);
         field.addEventListener("change", update);
       });
+      const occurrence = container
+        .closest("form")
+        .querySelector('[name="time_occurrence"]');
+      if (occurrence) occurrence.addEventListener("change", update);
       update();
     });
 });

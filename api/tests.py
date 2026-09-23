@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 from babybuddy.models import get_user_model
 from api import serializers
@@ -193,6 +194,8 @@ class PumpingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "child": 1,
                 "created_by": "",
                 "amount": 9.0,
+                "left_amount": None,
+                "right_amount": None,
                 "side": None,
                 "start": "2017-11-17T15:03:00-05:00",
                 "end": "2017-11-17T15:22:00-05:00",
@@ -323,6 +326,7 @@ class FeedingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
             response.data["results"][0],
             {
                 "id": 3,
+                "foods": [],
                 "child": 1,
                 "created_by": "",
                 "start": "2017-11-18T09:00:00-05:00",
@@ -334,6 +338,11 @@ class FeedingAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
                 "amount": 2.5,
                 "secondary_type": None,
                 "secondary_amount": None,
+                "top_up_at": None,
+                "top_up_type": "",
+                "top_up_amount": None,
+                "top_up_secondary_type": "",
+                "top_up_secondary_amount": None,
                 "notes": "forgot vitamins :(",
                 "tags": [],
             },
@@ -423,7 +432,10 @@ class HeadCircumferenceAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         obj = self.model.objects.get(pk=response.data["id"])
         self.assertEqual(str(obj.head_circumference), data["head_circumference"])
-        self.assertEqual(str(obj.date), timezone.localdate().strftime("%Y-%m-%d"))
+        user_zone = ZoneInfo(
+            get_user_model().objects.get(username="admin").settings.timezone
+        )
+        self.assertEqual(obj.date, timezone.localdate(timezone=user_zone))
 
     def test_patch(self):
         endpoint = "{}{}/".format(self.endpoint, 2)
@@ -474,7 +486,10 @@ class HeightAPITestCase(TestBase.BabyBuddyAPITestCaseBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         obj = self.model.objects.get(pk=response.data["id"])
         self.assertEqual(str(obj.height), data["height"])
-        self.assertEqual(str(obj.date), timezone.localdate().strftime("%Y-%m-%d"))
+        user_zone = ZoneInfo(
+            get_user_model().objects.get(username="admin").settings.timezone
+        )
+        self.assertEqual(obj.date, timezone.localdate(timezone=user_zone))
 
     def test_patch(self):
         endpoint = "{}{}/".format(self.endpoint, 2)

@@ -11,6 +11,10 @@ RESTOCK_DAYS = 30
 HISTORY_DAYS = 14
 
 
+from core.access import unscoped
+
+
+@unscoped()
 def daily_rates(items):
     from core.models import Child, DiaperChange
     from .diapers import select_supply

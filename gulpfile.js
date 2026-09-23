@@ -210,7 +210,14 @@ function lint() {
  */
 function scripts() {
   const streams = [];
-  const types = ["vendor", "graph", "app", "tags_editor"];
+  const types = [
+    "vendor",
+    "graph",
+    "app",
+    "tags_editor",
+    "offline",
+    "batch_delete",
+  ];
   types.forEach((type) => {
     streams.push(
       gulp

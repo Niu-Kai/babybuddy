@@ -3,6 +3,11 @@ from . import views
 
 app_name = "inventory"
 urlpatterns = [
+    path("equipment/", views.EquipmentList.as_view(), name="equipment"),
+    path("equipment/add/", views.EquipmentAdd.as_view(), name="equipment-add"),
+    path(
+        "equipment/<int:pk>/edit/", views.EquipmentEdit.as_view(), name="equipment-edit"
+    ),
     path("", views.InventoryList.as_view(), name="list"),
     path("add/", views.ItemAdd.as_view(), name="add"),
     path("<int:pk>/", views.ItemDetail.as_view(), name="detail"),

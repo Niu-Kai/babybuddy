@@ -1,3 +1,4 @@
+import re
 import json
 import os
 import dj_database_url
@@ -253,7 +254,20 @@ STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 
-STATIC_URL = os.path.join(os.environ.get("SUB_PATH") or "", "static/")
+# URL paths always use forward slashes, including on Windows.
+SUB_PATH = (
+    "/" + (os.environ.get("SUB_PATH") or "").strip("/")
+    if (os.environ.get("SUB_PATH") or "").strip("/")
+    else ""
+)
+if SUB_PATH and (not re.fullmatch(r"(?:/[A-Za-z0-9_-]+)+", SUB_PATH)):
+    from django.core.exceptions import ImproperlyConfigured
+
+    raise ImproperlyConfigured(
+        "SUB_PATH must contain slash-separated path segments using letters, digits, underscores or hyphens."
+    )
+FORCE_SCRIPT_NAME = SUB_PATH or None
+STATIC_URL = SUB_PATH + "/static/"
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
@@ -420,3 +434,6 @@ BABY_BUDDY = {
 ENABLE_HOME_ASSISTANT_SUPPORT = bool(
     strtobool(os.environ.get("ENABLE_HOME_ASSISTANT_SUPPORT") or "False")
 )
+
+# Scope child data through template rendering, session and token authentication.
+MIDDLEWARE.append("core.access.ChildAccessMiddleware")

@@ -28,11 +28,14 @@ function initializeDayComparisons(event) {
   let cursor = first;
   let pageSize = 3;
   let lastState = "";
-  const format = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  });
+  const format = new Intl.DateTimeFormat(
+    document.documentElement.lang || "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    },
+  );
   function render() {
     pageSize = Math.max(
       1,

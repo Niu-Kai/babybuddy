@@ -1,0 +1,334 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Baby Buddy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 23:37+0000\n"
+"Language: he\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: POEditor.com\n"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:12
+msgid "Diaper size / weight range"
+msgstr "גודל חיתול / טווח משקל"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:13
+msgid "Size"
+msgstr "גודל"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:16
+msgid "Choose a package weight range or type a size"
+msgstr "בחר טווח משקל חבילה או להקליד גודל"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:62
+msgid "Loading report…"
+msgstr "דו\"ח הטעינה..."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:133
+msgid "Couldn’t load the report. "
+msgstr "לא ניתן להעלות את הדו\"ח. "
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:137
+msgid "Retry"
+msgstr "נסה שוב."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:135
+msgid ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+msgstr ""
+"רישומים ממתינים שייכים לחשבון אחר. היכנס לחשבון המקורי כדי לראות או לסנכרן "
+"אותם."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:148
+msgid " · Waiting to sync"
+msgstr " · מחכה לסנכרון"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:152
+#: babybuddy/static_src/js/offline.js:492
+msgid "Discard"
+msgstr "לזרוק."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:154
+msgid "Discard this pending entry?"
+msgstr "לזרוק את ההרשמה הזאת?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:167
+#: babybuddy/static_src/js/offline.js:174
+msgid "Correct entry"
+msgstr "עריכה: רשומה"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:203 core/static_src/js/entry_sync.js:70
+msgid "Correct the entry, then save to retry."
+msgstr "לתקן את הכניסה, ואז לשמור כדי לנסות שוב."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:212
+msgid "No pending entries."
+msgstr "אין כניסות ממתינות."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:61
+msgid "Sign in to Baby Buddy before syncing."
+msgstr "היכנס ל\"בייבי באדי\" לפני הסנכרון."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:82
+#: babybuddy/static_src/js/offline_sync.js:103
+#: babybuddy/static_src/js/offline_sync.js:159
+#: babybuddy/static_src/js/offline_sync.js:230
+#: babybuddy/static_src/js/offline_sync.js:250
+#: core/static_src/js/entry_sync.js:129 core/static_src/js/entry_sync.js:193
+msgid "Sign in to the original account to sync pending entries."
+msgstr "היכנס לחשבון המקורי כדי לסנכרן רישומים מחכים."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:174
+msgid "Some entries need attention. They remain on this device."
+msgstr "יש רישומים שזקוקים לתשומת לב. הם נשארים על המכשיר הזה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:177
+msgid "All entries synced."
+msgstr "כל הקלטות מסונכרנות."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:184
+msgid "Offline · entries stay on this device until connected."
+msgstr "הכניסות לא מקוונות נשארות במכשיר הזה עד להתחבר."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:550
+msgid "Choose a valid date and time."
+msgstr "בחר תאריך ושעה תקפים."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:512
+#: babybuddy/static_src/js/offline.js:555
+msgid "Choose a child."
+msgstr "בחר ילד."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:596 core/static_src/js/entry_sync.js:243
+msgid "Saved on this device."
+msgstr "שמור על המכשיר הזה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:222
+msgid "Offline logging requires HTTPS or localhost and a supported browser."
+msgstr "תיעוד לא מקוון דורש HTTPS או המארח המקומי ודפדפן נתמך."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:588
+msgid "Offline logging enabled for %(name)s."
+msgstr "רישום לא מקוון מופעל עבור %(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:163
+msgid "Remove all pending entries and offline setup from this device?"
+msgstr "להסיר את כל הכניסות הממתינות וההגדרה לא מקוונת מהמכשיר הזה?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:171
+msgid "Offline data cleared."
+msgstr "הנתונים לא מקוונים ננקה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:618
+msgid "Offline logging ready for %(name)s."
+msgstr "כניסה לאופליין מוכנה ל-%(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:622 core/static_src/js/entry_sync.js:132
+msgid "Enable while connected before using this page offline."
+msgstr "הפעל את זה כאשר אתה מחובר לפני שאתה משתמש בדף הזה לא מקוון."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:633
+#: babybuddy/static_src/js/offline_sync.js:209
+msgid "Offline storage is unavailable. Check your browser's storage settings."
+msgstr "אחסון לא מקוון אינו זמין. בדוק את הגדרות האחסון של הדפדפן שלך."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:304
+msgid "Choose an occurrence"
+msgstr "בחר אירוע"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "First"
+msgstr "ראשית"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "Second"
+msgstr "שני"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:322
+msgid "This time does not exist in this time zone. Choose a valid time."
+msgstr "הזמן הזה לא קיים באזור הזמן הזה. בחר זמן תקף."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:330
+msgid "This time occurs twice. Choose the first or second occurrence."
+msgstr "הפעם זה קורה פעמיים. בחר את המקרה הראשון או השני."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:376
+msgid "This timer changed in another tab. Refresh the timer list."
+msgstr "השעון הזה השתנה בלוחית אחרת. רענן את רשימת השעון."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:404
+#: babybuddy/static_src/js/offline.js:418
+msgid "minutes"
+msgstr "דקות"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Resume"
+msgstr "תמשיך."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Pause"
+msgstr "הפסקה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Review entry"
+msgstr "רישום ביקורת"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Stop and review"
+msgstr "עצור וחזור"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:463
+msgid ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+msgstr "פעילות זו אינה זמינה יותר. השעון נשאר מאוחסן במכשיר הזה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:488
+msgid "Review the details and save the completed entry."
+msgstr "בדוק את הפרטים ושמור את ההרשמה שהושלמה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:493
+msgid "Discard this timer?"
+msgstr "לזרוק את השעון הזה?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:538
+msgid "Timer started on this device."
+msgstr "טיימר התחיל על המכשיר הזה."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:603
+msgid "Sign in to the original account to refresh activities."
+msgstr "היכנס לחשבון המקורי כדי לרענן פעילויות."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:607
+msgid "Save the timer entry before refreshing activities."
+msgstr "שמור את הכניסה למזמן לפני פעילויות מרעננות."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:613
+msgid "Activities refreshed."
+msgstr "פעילויות מתחדשות."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:123
+msgid "Pending entries"
+msgstr "רישומים ממתינים"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:131
+msgid "Offline access enabled"
+msgstr "גישה לא מקוונת מופעלת"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:200
+msgid "Attachments require a connection."
+msgstr "קבצים מצורפים דורשים חיבור."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:250
+msgid "Please check the highlighted fields."
+msgstr "אנא בדקו את השדות המודגשים."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:108
+msgid "Save anyway, even though it overlaps another entry"
+msgstr "שמור בכל מקרה, גם אם זה עוטף כניסה אחרת"

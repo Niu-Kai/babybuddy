@@ -1,0 +1,343 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Baby Buddy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 23:37+0000\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: POEditor.com\n"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:12
+msgid "Diaper size / weight range"
+msgstr "Dimensioni e peso dei pannolini"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:13
+msgid "Size"
+msgstr "Dimensione"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:16
+msgid "Choose a package weight range or type a size"
+msgstr "Scegliere una gamma di peso del pacchetto o digitare una dimensione"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:62
+msgid "Loading report…"
+msgstr "Rapporto di carico..."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:133
+msgid "Couldn’t load the report. "
+msgstr "Non è stato possibile caricare il rapporto. "
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:137
+msgid "Retry"
+msgstr "Riprova ."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:135
+msgid ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+msgstr ""
+"Le voci in sospeso appartengono a un conto diverso. Accedi all'account "
+"originale per visualizzarli o sincronizzarli."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:148
+msgid " · Waiting to sync"
+msgstr " Aspettando la sincronizzazione"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:152
+#: babybuddy/static_src/js/offline.js:492
+msgid "Discard"
+msgstr "Scartare"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:154
+msgid "Discard this pending entry?"
+msgstr "Scartare questa voce in sospeso?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:167
+#: babybuddy/static_src/js/offline.js:174
+msgid "Correct entry"
+msgstr "Modifica: Registrazione"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:203 core/static_src/js/entry_sync.js:70
+msgid "Correct the entry, then save to retry."
+msgstr "Correggi l'inserimento, poi salva per riprovare."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:212
+msgid "No pending entries."
+msgstr "Niente iscrizioni in sospeso."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:61
+msgid "Sign in to Baby Buddy before syncing."
+msgstr "Accedi a Baby Buddy prima di sincronizzarti."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:82
+#: babybuddy/static_src/js/offline_sync.js:103
+#: babybuddy/static_src/js/offline_sync.js:159
+#: babybuddy/static_src/js/offline_sync.js:230
+#: babybuddy/static_src/js/offline_sync.js:250
+#: core/static_src/js/entry_sync.js:129 core/static_src/js/entry_sync.js:193
+msgid "Sign in to the original account to sync pending entries."
+msgstr "Accedi all'account originale per sincronizzare le voci in sospeso."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:174
+msgid "Some entries need attention. They remain on this device."
+msgstr "Alcune voci richiedono attenzione. Rimangono su questo dispositivo."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:177
+msgid "All entries synced."
+msgstr "Tutte le registrazioni sincronizzate."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:184
+msgid "Offline · entries stay on this device until connected."
+msgstr ""
+"Offline · entrate rimangono su questo dispositivo fino a quando collegato."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:550
+msgid "Choose a valid date and time."
+msgstr "Scegli una data e un'ora valide."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:512
+#: babybuddy/static_src/js/offline.js:555
+msgid "Choose a child."
+msgstr "Scegli un bambino."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:596 core/static_src/js/entry_sync.js:243
+msgid "Saved on this device."
+msgstr "Salvati su questo dispositivo."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:222
+msgid "Offline logging requires HTTPS or localhost and a supported browser."
+msgstr ""
+"Il logging offline richiede HTTPS o localhost e un browser supportato."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:588
+msgid "Offline logging enabled for %(name)s."
+msgstr "Registrazione offline attivata per %(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:163
+msgid "Remove all pending entries and offline setup from this device?"
+msgstr ""
+"Rimuovere tutte le voci in sospeso e l'installazione offline da questo "
+"dispositivo?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:171
+msgid "Offline data cleared."
+msgstr "Dati offline eliminati."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:618
+msgid "Offline logging ready for %(name)s."
+msgstr "Registrazione off-line pronta per %(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:622 core/static_src/js/entry_sync.js:132
+msgid "Enable while connected before using this page offline."
+msgstr "Attiva mentre sei connesso prima di usare questa pagina offline."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:633
+#: babybuddy/static_src/js/offline_sync.js:209
+msgid "Offline storage is unavailable. Check your browser's storage settings."
+msgstr ""
+"La memoria offline non è disponibile. Controlla le impostazioni di "
+"archiviazione del tuo browser."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:304
+msgid "Choose an occurrence"
+msgstr "Scegli un evento"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "First"
+msgstr "Prima cosa ."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "Second"
+msgstr "Seconda"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:322
+msgid "This time does not exist in this time zone. Choose a valid time."
+msgstr "Questa ora non esiste in questo fuso orario. Scegli un'ora valida."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:330
+msgid "This time occurs twice. Choose the first or second occurrence."
+msgstr "Questa volta succede due volte. Scegli la prima o la seconda volta."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:376
+msgid "This timer changed in another tab. Refresh the timer list."
+msgstr ""
+"Questo timer è cambiato in un'altra scheda. Aggiorna la lista dei timer."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:404
+#: babybuddy/static_src/js/offline.js:418
+msgid "minutes"
+msgstr "Minuti"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Resume"
+msgstr "Riprendere"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Pause"
+msgstr "Pausa"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Review entry"
+msgstr "Articolo di revisione"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Stop and review"
+msgstr "Fermarsi e rivedere"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:463
+msgid ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+msgstr ""
+"Questa attività non è più disponibile. Il timer rimane memorizzato su questo"
+" dispositivo."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:488
+msgid "Review the details and save the completed entry."
+msgstr "Rivedere i dettagli e salvare la voce completata."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:493
+msgid "Discard this timer?"
+msgstr "Scartare questo timer?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:538
+msgid "Timer started on this device."
+msgstr "Il timer e' partito su questo dispositivo."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:603
+msgid "Sign in to the original account to refresh activities."
+msgstr "Accedi all'account originale per aggiornare le attività."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:607
+msgid "Save the timer entry before refreshing activities."
+msgstr "Salvare l'inserimento del timer prima delle attività di ristoro."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:613
+msgid "Activities refreshed."
+msgstr "Attività rinnovata."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:123
+msgid "Pending entries"
+msgstr "Entrate in attesa"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:131
+msgid "Offline access enabled"
+msgstr "Accesso offline abilitato"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:200
+msgid "Attachments require a connection."
+msgstr "Gli allegati richiedono una connessione."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:250
+msgid "Please check the highlighted fields."
+msgstr "Si prega di controllare i campi evidenziati."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:108
+msgid "Save anyway, even though it overlaps another entry"
+msgstr "Salvare comunque, anche se si sovrappone ad un'altra voce"

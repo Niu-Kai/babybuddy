@@ -56,7 +56,13 @@ class PermissionCodenameTestCase(TestCase):
                 f"core.{codename} is not a permission Django creates",
             )
 
-        # A user holding exactly those permissions must reach every view.
+        # Keep this permission-name check independent of empty-household onboarding.
+        from core.models import Child
+        from django.utils import timezone
+
+        Child.objects.create(
+            first_name="Permission test", birth_date=timezone.localdate()
+        )
         self._login_with(codenames)
         for name in ("head-circumference-list", "head-circumference-add"):
             self.assertEqual(

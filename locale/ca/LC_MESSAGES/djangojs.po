@@ -1,0 +1,353 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Baby Buddy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 23:37+0000\n"
+"Language: ca\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: POEditor.com\n"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:12
+msgid "Diaper size / weight range"
+msgstr "Dimensió del plou / rang de pes"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:13
+msgid "Size"
+msgstr "Dimensió"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:16
+msgid "Choose a package weight range or type a size"
+msgstr "Escollir un rang de pes del paquet o escriure una mida"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:62
+msgid "Loading report…"
+msgstr "Informe de càrrega..."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:133
+msgid "Couldn’t load the report. "
+msgstr "No es pot carregar l'informe. "
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:137
+msgid "Retry"
+msgstr "Torna a intentar-ho"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:135
+msgid ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+msgstr ""
+"Les entrades pendents pertanyen a un compte diferent. Accedeix al compte "
+"original per veure'ls o sincronitzar-los."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:148
+msgid " · Waiting to sync"
+msgstr " · Esperant la sincronització"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:152
+#: babybuddy/static_src/js/offline.js:492
+msgid "Discard"
+msgstr "Esborrar"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:154
+msgid "Discard this pending entry?"
+msgstr "Descartar aquesta entrada pendent?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:167
+#: babybuddy/static_src/js/offline.js:174
+msgid "Correct entry"
+msgstr "Editar: Registre"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:203 core/static_src/js/entry_sync.js:70
+msgid "Correct the entry, then save to retry."
+msgstr "Corregir l'entrada, després guardar per intentar-ho de nou."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:212
+msgid "No pending entries."
+msgstr "No hi ha inscripcions pendents."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:61
+msgid "Sign in to Baby Buddy before syncing."
+msgstr "Connecta't a Baby Buddy abans de sincronitzar."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:82
+#: babybuddy/static_src/js/offline_sync.js:103
+#: babybuddy/static_src/js/offline_sync.js:159
+#: babybuddy/static_src/js/offline_sync.js:230
+#: babybuddy/static_src/js/offline_sync.js:250
+#: core/static_src/js/entry_sync.js:129 core/static_src/js/entry_sync.js:193
+msgid "Sign in to the original account to sync pending entries."
+msgstr "Accedeix al compte original per sincronitzar les entrades pendents."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:174
+msgid "Some entries need attention. They remain on this device."
+msgstr ""
+"Algunes entrades necessiten atenció. Es mantenen en aquest dispositiu."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:177
+msgid "All entries synced."
+msgstr "Totes les entrades sincronitzades."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:184
+msgid "Offline · entries stay on this device until connected."
+msgstr ""
+"Les entrades fora de línia es mantenen en aquest dispositiu fins que es "
+"connecti."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:550
+msgid "Choose a valid date and time."
+msgstr "Escollir una data i hora vàlides."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:512
+#: babybuddy/static_src/js/offline.js:555
+msgid "Choose a child."
+msgstr "Escolliu un nen."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:596 core/static_src/js/entry_sync.js:243
+msgid "Saved on this device."
+msgstr "Salvat en aquest dispositiu."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:222
+msgid "Offline logging requires HTTPS or localhost and a supported browser."
+msgstr ""
+"El registre fora de línia requereix HTTPS o localhost i un navegador "
+"compatible."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:588
+msgid "Offline logging enabled for %(name)s."
+msgstr "Enregistrament fora de línia activat per %(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:163
+msgid "Remove all pending entries and offline setup from this device?"
+msgstr ""
+"Eliminar totes les entrades pendents i la configuració fora de línia "
+"d'aquest dispositiu?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:171
+msgid "Offline data cleared."
+msgstr "Dades fora de línia netejades."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:618
+msgid "Offline logging ready for %(name)s."
+msgstr "Enregistrament fora de línia a punt per a %(name)s."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:622 core/static_src/js/entry_sync.js:132
+msgid "Enable while connected before using this page offline."
+msgstr ""
+"Activar mentre està connectat abans d'utilitzar aquesta pàgina sense "
+"connexió."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:633
+#: babybuddy/static_src/js/offline_sync.js:209
+msgid "Offline storage is unavailable. Check your browser's storage settings."
+msgstr ""
+"L'emmagatzematge offline no està disponible. Comproveu la configuració "
+"d'emmagatzematge del vostre navegador."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:304
+msgid "Choose an occurrence"
+msgstr "Escollir una ocurrència"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "First"
+msgstr "Primer"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "Second"
+msgstr "Segon"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:322
+msgid "This time does not exist in this time zone. Choose a valid time."
+msgstr ""
+"Aquesta hora no existeix en aquesta zona horària. Escolliu una hora vàlida."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:330
+msgid "This time occurs twice. Choose the first or second occurrence."
+msgstr ""
+"Aquesta vegada ocorre dues vegades. Escull la primera o la segona "
+"ocurrència."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:376
+msgid "This timer changed in another tab. Refresh the timer list."
+msgstr ""
+"Aquest temporitzador va canviar en una altra pestanya. Actualitza la llista "
+"de temporitzadors."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:404
+#: babybuddy/static_src/js/offline.js:418
+msgid "minutes"
+msgstr "minuts"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Resume"
+msgstr "Reprendre"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Pause"
+msgstr "Pausa"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Review entry"
+msgstr "Entrada de revisió"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Stop and review"
+msgstr "Parar i revisar"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:463
+msgid ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+msgstr ""
+"Aquesta activitat ja no està disponible. El temporitzador queda guardat en "
+"aquest dispositiu."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:488
+msgid "Review the details and save the completed entry."
+msgstr "Revisar els detalls i guardar l'entrada completa."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:493
+msgid "Discard this timer?"
+msgstr "Abandonar aquest temporizador?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:538
+msgid "Timer started on this device."
+msgstr "El temporitzador ha començat en aquest dispositiu."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:603
+msgid "Sign in to the original account to refresh activities."
+msgstr "Accedeix al compte original per actualitzar les activitats."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:607
+msgid "Save the timer entry before refreshing activities."
+msgstr ""
+"Guardar l'entrada del temporitzador abans de les activitats de refrescament."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:613
+msgid "Activities refreshed."
+msgstr "Activitats renovades."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:123
+msgid "Pending entries"
+msgstr "Entrades pendents"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:131
+msgid "Offline access enabled"
+msgstr "Accés fora de línia activat"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:200
+msgid "Attachments require a connection."
+msgstr "Els fitxers adjunts requereixen connexió."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:250
+msgid "Please check the highlighted fields."
+msgstr "Si us plau, comproveu els camps destacats."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:108
+msgid "Save anyway, even though it overlaps another entry"
+msgstr "Salvar tot i així, fins i tot si es solapa amb una altra entrada"

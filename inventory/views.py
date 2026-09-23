@@ -6,6 +6,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import (
     ListView,
     DetailView,
@@ -76,12 +77,12 @@ class InventoryList(PermissionRequiredMixin, ListView):
             categories=StockItem.CATEGORIES,
             inventory_view=self.request.GET.get("view", "all"),
             views=[
-                ("all", "All supplies"),
-                ("shopping", "Shopping list"),
-                ("current", "Use now"),
-                ("next", "Next size / later"),
-                ("outgrown", "Outgrown"),
-                ("archived", "Archived"),
+                ("all", _("All supplies")),
+                ("shopping", _("Shopping list")),
+                ("current", _("Use now")),
+                ("next", _("Next size / later")),
+                ("outgrown", _("Outgrown")),
+                ("archived", _("Archived")),
             ],
         )
         return context
@@ -119,7 +120,7 @@ class ItemFormMixin:
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(
-            title="Edit supply" if self.object else "Add supply",
+            title=_("Edit supply") if self.object else _("Add supply"),
             cancel_url=reverse("inventory:list"),
             diaper_sizes=DIAPER_SIZES,
             clothing_sizes=CLOTHING_SIZES,
@@ -145,7 +146,7 @@ class ItemAdd(ItemFormMixin, PermissionRequiredMixin, CreateView):
             user=self.request.user,
             note="Starting stock",
         )
-        messages.success(self.request, "Supply added.")
+        messages.success(self.request, _("Supply added."))
         return response
 
 
@@ -159,7 +160,7 @@ class ItemEdit(ItemAccess, ItemFormMixin, PermissionRequiredMixin, UpdateView):
         form.instance.quantity = current.quantity
         form.instance.snoozed_until = current.snoozed_until
         form.instance.archived = current.archived
-        messages.success(self.request, "Supply updated.")
+        messages.success(self.request, _("Supply updated."))
         return super().form_valid(form)
 
 
@@ -184,7 +185,7 @@ class StockUpdate(PermissionRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update(
-            title=f"Update stock · {self.item.name}",
+            title=_("Update stock · %(name)s") % {"name": self.item.name},
             stock_item=self.item,
             cancel_url=reverse("inventory:detail", args=[self.item.pk]),
         )
@@ -196,7 +197,7 @@ class StockUpdate(PermissionRequiredMixin, FormView):
         except ValidationError as error:
             form.add_error(None, error)
             return self.form_invalid(form)
-        messages.success(self.request, "Stock updated.")
+        messages.success(self.request, _("Stock updated."))
         return redirect("inventory:detail", pk=self.item.pk)
 
 
@@ -250,3 +251,44 @@ class ChildSizes(PermissionRequiredMixin, FormView):
         form.save()
         messages.success(self.request, "Sizes and diaper supply updated.")
         return super().form_valid(form)
+
+
+class EquipmentList(PermissionRequiredMixin, ListView):
+    from .models import Equipment
+
+    model = Equipment
+    permission_required = "inventory.view_equipment"
+    template_name = "inventory/equipment.html"
+
+    def get_queryset(self):
+        return self.model.objects.prefetch_related("children").filter(
+            archived=self.request.GET.get("view") == "archived"
+        )
+
+
+class EquipmentFormMixin:
+    from .models import Equipment
+    from .forms import EquipmentForm
+
+    model = Equipment
+    form_class = EquipmentForm
+    template_name = "inventory/form.html"
+    success_url = reverse_lazy("inventory:equipment")
+
+    def get_form_kwargs(self):
+        return {**super().get_form_kwargs(), "user": self.request.user}
+
+    def get_context_data(self, **kwargs):
+        return {
+            **super().get_context_data(**kwargs),
+            "title": _("Edit equipment") if self.object else _("Add equipment"),
+            "cancel_url": self.success_url,
+        }
+
+
+class EquipmentAdd(EquipmentFormMixin, PermissionRequiredMixin, CreateView):
+    permission_required = "inventory.add_equipment"
+
+
+class EquipmentEdit(EquipmentFormMixin, PermissionRequiredMixin, UpdateView):
+    permission_required = "inventory.change_equipment"

@@ -9,7 +9,7 @@
                     <th data-column="child">{% trans "Child" %}</th>
                 {% endif %}
                 <th data-column="duration">{% trans "Duration" %}</th>
-                <th data-column="previous">{% trans "Previous" %}</th>
+                <th data-column="previous">{% trans "Time since previous session" %}</th>
                 <th data-column="milestone">{% trans "Milestone" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
@@ -29,9 +29,9 @@
                         {% endif %}
                         <td data-column="duration">{{ tummytime.duration|duration_string }}</td>
                         <td data-column="previous">
-                            {% if prev_tummytime %}
-                                {% blocktrans trimmed with time_ago=prev_tummytime.start|timesince:tummytime.start %}
-                                    {{ time_ago }} ago
+                            {% if tummytime.previous_entry_end %}
+                                {% blocktrans trimmed with time_ago=tummytime.previous_entry_end|timesince:tummytime.start %}
+                                    {{ time_ago }} earlier
                                 {% endblocktrans %}
                             {% endif %}
                         </td>

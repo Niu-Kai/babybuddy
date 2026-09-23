@@ -18,7 +18,10 @@
             {% for pumping in object_list %}
                 <tr>
                     <th data-column="date" scope="row">{{ pumping.start|datetime_short }}</th>
-                    <td data-column="amount">{% measurement pumping 'amount' %}</td>
+                    <td data-column="amount">
+                        {% measurement pumping 'amount' %}
+                        {% if pumping.left_amount is not None %}<div class="small text-body-secondary">{% trans "Left" %}: {% measurement pumping 'left_amount' %}</div>{% endif %}
+                    {% if pumping.right_amount is not None %}<div class="small text-body-secondary">{% trans "Right" %}: {% measurement pumping 'right_amount' %}</div>{% endif %}</td>
                     <td data-column="side">{% if pumping.side %}{{ pumping.get_side_display }}{% endif %}</td>
                     <td data-column="duration">{{ pumping.duration|duration_string }}</td>
                     <td data-column="previous">

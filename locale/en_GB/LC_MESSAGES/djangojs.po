@@ -1,0 +1,262 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Baby Buddy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 23:37+0000\n"
+"Language: en-GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# English source fallback; existing reviewed UK wording retained.
+#: core/static_src/js/inventory.js:12
+msgid "Diaper size / weight range"
+msgstr "Diaper size / weight range"
+
+# English source fallback; existing reviewed UK wording retained.
+#: core/static_src/js/inventory.js:13
+msgid "Size"
+msgstr "Size"
+
+# English source fallback; existing reviewed UK wording retained.
+#: core/static_src/js/inventory.js:16
+msgid "Choose a package weight range or type a size"
+msgstr "Choose a package weight range or type a size"
+
+# English source fallback; existing reviewed UK wording retained.
+#: reports/static_src/js/report_navigation.js:62
+msgid "Loading report…"
+msgstr "Loading report…"
+
+# English source fallback; existing reviewed UK wording retained.
+#: reports/static_src/js/report_navigation.js:133
+msgid "Couldn’t load the report. "
+msgstr "Couldn’t load the report. "
+
+# English source fallback; existing reviewed UK wording retained.
+#: reports/static_src/js/report_navigation.js:137
+msgid "Retry"
+msgstr "Retry"
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:135
+msgid ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+msgstr ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:148
+msgid " · Waiting to sync"
+msgstr " · Waiting to sync"
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:152
+#: babybuddy/static_src/js/offline.js:492
+msgid "Discard"
+msgstr "Discard"
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:154
+msgid "Discard this pending entry?"
+msgstr "Discard this pending entry?"
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:167
+#: babybuddy/static_src/js/offline.js:174
+msgid "Correct entry"
+msgstr "Correct entry"
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:203 core/static_src/js/entry_sync.js:70
+msgid "Correct the entry, then save to retry."
+msgstr "Correct the entry, then save to retry."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:212
+msgid "No pending entries."
+msgstr "No pending entries."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:61
+msgid "Sign in to Baby Buddy before syncing."
+msgstr "Sign in to Baby Buddy before syncing."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:82
+#: babybuddy/static_src/js/offline_sync.js:103
+#: babybuddy/static_src/js/offline_sync.js:159
+#: babybuddy/static_src/js/offline_sync.js:230
+#: babybuddy/static_src/js/offline_sync.js:250
+#: core/static_src/js/entry_sync.js:129 core/static_src/js/entry_sync.js:193
+msgid "Sign in to the original account to sync pending entries."
+msgstr "Sign in to the original account to sync pending entries."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:174
+msgid "Some entries need attention. They remain on this device."
+msgstr "Some entries need attention. They remain on this device."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:177
+msgid "All entries synced."
+msgstr "All entries synced."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:184
+msgid "Offline · entries stay on this device until connected."
+msgstr "Offline · entries stay on this device until connected."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:550
+msgid "Choose a valid date and time."
+msgstr "Choose a valid date and time."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:512
+#: babybuddy/static_src/js/offline.js:555
+msgid "Choose a child."
+msgstr "Choose a child."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:596 core/static_src/js/entry_sync.js:243
+msgid "Saved on this device."
+msgstr "Saved on this device."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline_sync.js:222
+msgid "Offline logging requires HTTPS or localhost and a supported browser."
+msgstr "Offline logging requires HTTPS or localhost and a supported browser."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:588
+msgid "Offline logging enabled for %(name)s."
+msgstr "Offline logging enabled for %(name)s."
+
+# English source fallback; existing reviewed UK wording retained.
+#: core/static_src/js/entry_sync.js:163
+msgid "Remove all pending entries and offline setup from this device?"
+msgstr "Remove all pending entries and offline setup from this device?"
+
+# English source fallback; existing reviewed UK wording retained.
+#: core/static_src/js/entry_sync.js:171
+msgid "Offline data cleared."
+msgstr "Offline data cleared."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:618
+msgid "Offline logging ready for %(name)s."
+msgstr "Offline logging ready for %(name)s."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:622 core/static_src/js/entry_sync.js:132
+msgid "Enable while connected before using this page offline."
+msgstr "Enable while connected before using this page offline."
+
+# English source fallback; existing reviewed UK wording retained.
+#: babybuddy/static_src/js/offline.js:633
+#: babybuddy/static_src/js/offline_sync.js:209
+msgid "Offline storage is unavailable. Check your browser's storage settings."
+msgstr ""
+"Offline storage is unavailable. Check your browser's storage settings."
+
+#: babybuddy/static_src/js/offline.js:304
+msgid "Choose an occurrence"
+msgstr "Choose an occurrence"
+
+#: babybuddy/static_src/js/offline.js:307
+msgid "First"
+msgstr "First"
+
+#: babybuddy/static_src/js/offline.js:307
+msgid "Second"
+msgstr "Second"
+
+#: babybuddy/static_src/js/offline.js:322
+msgid "This time does not exist in this time zone. Choose a valid time."
+msgstr "This time does not exist in this time zone. Choose a valid time."
+
+#: babybuddy/static_src/js/offline.js:330
+msgid "This time occurs twice. Choose the first or second occurrence."
+msgstr "This time occurs twice. Choose the first or second occurrence."
+
+#: babybuddy/static_src/js/offline.js:376
+msgid "This timer changed in another tab. Refresh the timer list."
+msgstr "This timer changed in another tab. Refresh the timer list."
+
+#: babybuddy/static_src/js/offline.js:404
+#: babybuddy/static_src/js/offline.js:418
+msgid "minutes"
+msgstr "minutes"
+
+#: babybuddy/static_src/js/offline.js:439
+msgid "Resume"
+msgstr "Resume"
+
+#: babybuddy/static_src/js/offline.js:439
+msgid "Pause"
+msgstr "Pause"
+
+#: babybuddy/static_src/js/offline.js:453
+msgid "Review entry"
+msgstr "Review entry"
+
+#: babybuddy/static_src/js/offline.js:453
+msgid "Stop and review"
+msgstr "Stop and review"
+
+#: babybuddy/static_src/js/offline.js:463
+msgid ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+msgstr ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+
+#: babybuddy/static_src/js/offline.js:488
+msgid "Review the details and save the completed entry."
+msgstr "Review the details and save the completed entry."
+
+#: babybuddy/static_src/js/offline.js:493
+msgid "Discard this timer?"
+msgstr "Discard this timer?"
+
+#: babybuddy/static_src/js/offline.js:538
+msgid "Timer started on this device."
+msgstr "Timer started on this device."
+
+#: babybuddy/static_src/js/offline.js:603
+msgid "Sign in to the original account to refresh activities."
+msgstr "Sign in to the original account to refresh activities."
+
+#: babybuddy/static_src/js/offline.js:607
+msgid "Save the timer entry before refreshing activities."
+msgstr "Save the timer entry before refreshing activities."
+
+#: babybuddy/static_src/js/offline.js:613
+msgid "Activities refreshed."
+msgstr "Activities refreshed."
+
+#: core/static_src/js/entry_sync.js:123
+msgid "Pending entries"
+msgstr "Pending entries"
+
+#: core/static_src/js/entry_sync.js:131
+msgid "Offline access enabled"
+msgstr "Offline access enabled"
+
+#: core/static_src/js/entry_sync.js:200
+msgid "Attachments require a connection."
+msgstr "Attachments require a connection."
+
+#: core/static_src/js/entry_sync.js:250
+msgid "Please check the highlighted fields."
+msgstr "Please check the highlighted fields."
+
+#: core/static_src/js/entry_sync.js:108
+msgid "Save anyway, even though it overlaps another entry"
+msgstr "Save anyway, even though it overlaps another entry"

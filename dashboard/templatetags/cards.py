@@ -239,27 +239,35 @@ def card_feeding_recent(context, child, end_date=None):
     )  # end of the -8th day so we get the FULL 7th day
 
     instances = models.Feeding.objects.filter(child=child).filter(
-        start__range=[start_date, end_date]
+        Q(start__range=[start_date, end_date])
+        | Q(top_up_at__range=[start_date, end_date])
     )
 
     # prepare the result list for the last 7 days, labelled by day start
     dates = [_day_bounds(end_date - timezone.timedelta(days=i))[0] for i in range(8)]
     results = [{"date": d, "total": 0, "count": 0} for d in dates]
 
-    # do one pass over the data and add it to the appropriate day
+    known = True
     for instance in instances:
-        feed_date = _day_end(instance.end)
-        idx = (end_date - feed_date).days
-        result = results[idx]
-        result["total"] += instance.total_amount or 0
-        result["count"] += 1
+        idx = (end_date - _day_end(instance.end)).days
+        if 0 <= idx < len(results):
+            results[idx]["total"] += (instance.amount or 0) + (
+                instance.secondary_amount or 0
+            )
+            results[idx]["count"] += 1
+        if instance.top_up_at:
+            idx = (end_date - _day_end(instance.top_up_at)).days
+            if 0 <= idx < len(results):
+                results[idx]["total"] += (instance.top_up_amount or 0) + (
+                    instance.top_up_secondary_amount or 0
+                )
+        if instance.total_amount is not None and not instance.entry_unit:
+            known = False
 
     return {
         "child": child,
         "request": context["request"],
-        "totals_unit_known": not instances.filter(entry_unit="")
-        .exclude(amount__isnull=True)
-        .exists(),
+        "totals_unit_known": known,
         "feedings": results,
         "type": "feeding",
         "empty": len(instances) == 0,

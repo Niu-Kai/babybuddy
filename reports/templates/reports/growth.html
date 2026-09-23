@@ -14,5 +14,5 @@
 {% block report_footer %}
     <p class="growth-source"><a href="https://www.who.int/toolkits/child-growth-standards"
    target="_blank"
-   rel="noopener">{% trans "WHO median (50th percentile) · birth to age 5" %}</a>{% if corrected_age %} · {% trans "Corrected age" %}{% endif %}</p>
+   rel="noopener">{% if growth_percentiles %}{% trans "WHO reference" %}{% else %}{% trans "WHO median (50th percentile) · birth to age 5" %}{% endif %}</a>{% if corrected_age %} · {% trans "Corrected age" %}{% endif %}</p>
 {% endblock %}

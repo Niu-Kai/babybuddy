@@ -82,3 +82,63 @@
     //on the form at the left hand side of the box
     padding-right: 0;
 }
+
+
+// Keep the dropdown arrow clear of RTL labels and preserve numeric input order.
+[dir="rtl"] {
+    .form-select {
+        padding-right: 0.75rem;
+        padding-left: 2.25rem;
+        background-position: left 0.75rem center;
+    }
+
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    input[inputmode="decimal"],
+    input[inputmode="numeric"],
+    input[name$="_time"] {
+        direction: ltr;
+    }
+}
+
+// Choice groups are checkboxes, not select menus. Labels are full click targets.
+.preference-group {
+    clear: both;
+    width: 100%;
+}
+
+.preference-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+    gap: .5rem;
+}
+.preference-choice {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem .85rem;
+    border: 1px solid var(--bs-border-color);
+    border-radius: .5rem;
+    cursor: pointer;
+    background: var(--bs-body-bg);
+
+    input[type="checkbox"] {
+        appearance: auto;
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0;
+        flex-shrink: 0;
+        accent-color: var(--bs-primary);
+    }
+
+    &:has(input:checked) {
+        border-color: var(--bs-primary);
+        background: var(--bs-tertiary-bg);
+    }
+
+    &:focus-within {
+        outline: 2px solid var(--bs-primary);
+        outline-offset: 2px;
+    }
+}

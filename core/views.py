@@ -10,9 +10,11 @@ from django.db.models import Count
 from django.db.models.functions import Lower
 from django.forms import Form, ValidationError
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
-from django.urls import reverse, reverse_lazy
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse, reverse_lazy, resolve, Resolver404
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from urllib.parse import urlencode, urlsplit
 from django.utils.translation import gettext as _
 from django.views.generic import View
 from django.views.generic.base import RedirectView, TemplateView
@@ -36,6 +38,14 @@ def _prepare_timeline_context_data(context, date, child=None, user=None):
 
 
 class CoreFormMixin:
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        if isinstance(form, forms.CoreModelForm):
+            from core.feature_preferences import apply_fields
+
+            apply_fields(form)
+        return form
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["cancel_url"] = str(
@@ -60,6 +70,41 @@ class CoreFormMixin:
 class CoreAddView(
     CoreFormMixin, PermissionRequiredMixin, SuccessMessageMixin, CreateView
 ):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        from api.offline import REGISTRY
+
+        key = self.model._meta.model_name
+        if key in REGISTRY:
+            context["offline_activity"] = key
+            context["offline_timezone"] = timezone.get_current_timezone_name()
+            context["offline_timer"] = self.request.GET.get("timer", "")
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        from core.access import scoped
+
+        fields = {field.name: field for field in self.model._meta.fields}
+        child_field = fields.get("child")
+        if (
+            request.user.is_authenticated
+            and request.user.has_perms(self.get_permission_required())
+            and child_field is not None
+            and not child_field.blank
+            and not scoped(models.Child.objects.all(), request.user).exists()
+        ):
+            if request.user.has_perm("core.add_child"):
+                messages.info(
+                    request, _("Add a child first, then continue your entry.")
+                )
+                return HttpResponseRedirect(
+                    reverse("core:child-add")
+                    + "?"
+                    + urlencode({"next": request.get_full_path()})
+                )
+            return render(request, "core/child_required.html", status=403)
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_message(self, cleaned_data):
         cleaned_data["model"] = self.model._meta.verbose_name.title()
         if "child" in cleaned_data:
@@ -155,6 +200,25 @@ class ChildAdd(CoreAddView):
     form_class = forms.ChildForm
     success_url = reverse_lazy("core:child-list")
     success_message = _("%(first_name)s %(last_name)s added!")
+
+    def get_success_url(self):
+        target = self.request.GET.get("next", "")
+        if target and url_has_allowed_host_and_scheme(
+            target,
+            allowed_hosts={self.request.get_host()},
+            require_https=self.request.is_secure(),
+        ):
+            try:
+                match = resolve(urlsplit(target).path)
+                view = getattr(match.func, "view_class", None)
+                if view and issubclass(view, CoreAddView) and view is not ChildAdd:
+                    self.request.session["child_scope"] = self.object.slug
+                    if self.request.user.settings.restrict_children:
+                        self.request.user.settings.allowed_children.add(self.object)
+                    return target
+            except Resolver404:
+                pass
+        return super().get_success_url()
 
 
 class ChildDetail(PermissionRequiredMixin, DetailView):
@@ -591,18 +655,29 @@ class AppointmentEndPreview(PermissionRequiredMixin, View):
 class EntryEndPreview(AppointmentEndPreview):
     def has_permission(self):
         name = self.kwargs["model_name"]
-        return name in {"feeding", "pumping", "sleep", "tummytime", "bathtime"} and (
+        return name in {
+            "feeding",
+            "pumping",
+            "sleep",
+            "tummytime",
+            "bathtime",
+            "customactivity",
+        } and (
             self.request.user.has_perm(f"core.add_{name}")
             or self.request.user.has_perm(f"core.change_{name}")
         )
 
     def get(self, request, model_name):
-        if model_name != "feeding" and not request.GET.get("duration_minutes"):
+        if model_name not in {"feeding", "customactivity"} and not request.GET.get(
+            "duration_minutes"
+        ):
             from django.http import JsonResponse
 
             return JsonResponse({"display": "—"})
         # An unknown feeding duration is stored as an instant.
-        if model_name == "feeding" and not request.GET.get("duration_minutes"):
+        if model_name in {"feeding", "customactivity"} and not request.GET.get(
+            "duration_minutes"
+        ):
             data = request.GET.copy()
             data["duration_minutes"] = "0"
             request.GET = data

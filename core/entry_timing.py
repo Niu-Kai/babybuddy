@@ -17,8 +17,10 @@ def clock_format(user):
     return "%H:%M" if user and user.settings.use_24_hour_time else "%I:%M %p"
 
 
-def time_widget(user):
+def time_widget(user, seconds=False):
     fmt = clock_format(user)
+    if seconds:
+        fmt = fmt.replace("%M", "%M:%S")
     values = [
         datetime.time(hour, minute).strftime(fmt)
         for hour in range(24)
@@ -27,7 +29,7 @@ def time_widget(user):
     return AppointmentTimeInput(
         format=fmt,
         attrs={
-            "placeholder": "13:30" if fmt == "%H:%M" else "1:30 PM",
+            "placeholder": datetime.time(13, 30).strftime(fmt).lstrip("0"),
             "autocomplete": "off",
         },
         choices=[(value, value) for value in values],
@@ -94,6 +96,9 @@ def setup_entry_timing(form):
         getattr(form.instance, timestamp) if form.instance.pk else now
     )
     original = timezone.localtime(original)
+    from core.local_times import configure
+
+    configure(form, original)
     form.entry_original_start = original
     form._entry_timestamp = timestamp
     form.entry_timing = True
@@ -113,7 +118,7 @@ def setup_entry_timing(form):
     form.initial["start_time"] = original.strftime(clock_format(form.user))
     timing_names = ["appointment_date", "start_time"]
     if paired:
-        optional = form.entry_model == "feeding"
+        optional = form.entry_model in {"feeding", "customactivity"}
         form.fields["end"].required = False
         form.fields["end"].widget = forms.HiddenInput()
         form.fields["duration_minutes"] = fields.FloatField(
@@ -178,16 +183,14 @@ def clean_entry_timing(form, data):
     if any(name in form.errors for name in names):
         return
     try:
-        start = fields.DateTimeField().clean(
-            datetime.datetime.combine(data["appointment_date"], data["start_time"])
+        from core.local_times import resolve
+
+        reference = (
+            form.entry_original_start if form.instance.pk or form.timer_id else None
         )
-        original = form.entry_original_start
-        # Preserve precise old/timer timestamps when their visible date/time is unchanged.
-        if (
-            original.date() == data["appointment_date"]
-            and original.time().replace(second=0, microsecond=0) == data["start_time"]
-        ):
-            start = original
+        start = resolve(form, data, reference)
+        if start is None:
+            return
         data[form._entry_timestamp] = start
         if form.entry_has_duration:
             minutes = data.get("duration_minutes")

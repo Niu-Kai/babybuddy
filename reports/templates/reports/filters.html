@@ -13,7 +13,7 @@
         <input type="hidden" name="metric" value="{{ growth_metric }}">
         <input type="hidden" name="reference_controls" value="1">
         <fieldset class="growth-references">
-            <legend>{% trans "WHO median" %}</legend>
+            <legend>{% trans "WHO reference" %}</legend>
             <label>
                 <input type="checkbox"
                        name="reference"
@@ -30,7 +30,26 @@
                        {% if 'girl' in growth_references %}checked{% endif %}>
                 {% trans "Girls" %}
             </label>
+            <label>
+                <input type="checkbox"
+                       name="percentiles"
+                       value="1"
+                       data-growth-percentiles
+                       {% if growth_percentiles %}checked{% endif %}>
+                {% trans "Show percentiles" %}
+            </label>
         </fieldset>
+    {% endif %}
+    {% if feeding_group %}
+        <div class="timeline-filter-field">
+            <label for="feeding-group">{% trans "Group by" %}</label>
+            <select id="feeding-group" name="group" class="form-select">
+                <option value="type"
+                        {% if feeding_group == 'type' %}selected{% endif %}>{% trans "Milk type" %}</option>
+                <option value="session"
+                        {% if feeding_group == 'session' %}selected{% endif %}>{% trans "Feeding session" %}</option>
+            </select>
+        </div>
     {% endif %}
     {% if report_unit_choices %}
         <div class="timeline-filter-field">
@@ -49,7 +68,7 @@
     <p class="alert alert-warning">{% trans "Check the filters above to view your report." %}</p>
 {% elif report_range_start %}
     <div class="timeline-range-bar">
-        <strong>{{ report_range_start|date:"M j, Y" }}{% if report_range_end != report_range_start %} to {{ report_range_end|date:"M j, Y" }}{% endif %}</strong>
+        <strong>{{ report_range_start|date:"M j, Y" }}{% if report_range_end != report_range_start %} {% trans "to" %} {{ report_range_end|date:"M j, Y" }}{% endif %}</strong>
         {% if side_by_side and not household_page %}
             <span class="text-body-secondary">{% trans "Same period for every child" %}</span>
         {% endif %}

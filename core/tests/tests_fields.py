@@ -8,7 +8,7 @@ from core import fields
 
 
 class DateTimeFieldTestCase(TestCase):
-    """DST transition times must be accepted, not rejected (#174)."""
+    """Ambiguous wall times need a choice; nonexistent times must not be shifted."""
 
     def setUp(self):
         timezone.activate("America/New_York")
@@ -20,18 +20,17 @@ class DateTimeFieldTestCase(TestCase):
         value = fields.DateTimeField().clean("2023-11-05T12:00:00")
         self.assertEqual(value.utcoffset(), datetime.timedelta(hours=-5))
 
-    def test_ambiguous_time_takes_first_occurrence(self):
-        # 01:30 happens twice on 2023-11-05 (fall back at 02:00 EDT).
-        value = fields.DateTimeField().clean("2023-11-05T01:30:00")
-        self.assertEqual(value.hour, 1)
-        self.assertEqual(value.minute, 30)
-        self.assertEqual(value.utcoffset(), datetime.timedelta(hours=-4))
+    def test_ambiguous_time_requires_clarification(self):
+        from django.core.exceptions import ValidationError
 
-    def test_non_existent_time_moves_forward(self):
-        # 02:30 does not exist on 2024-03-10 (spring forward at 02:00 EST).
-        value = fields.DateTimeField().clean("2024-03-10T02:30:00")
-        self.assertEqual((value.hour, value.minute), (3, 30))
-        self.assertEqual(value.utcoffset(), datetime.timedelta(hours=-4))
+        with self.assertRaises(ValidationError):
+            fields.DateTimeField().clean("2023-11-05T01:30:00")
+
+    def test_non_existent_time_is_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        with self.assertRaises(ValidationError):
+            fields.DateTimeField().clean("2024-03-10T02:30:00")
 
     def test_invalid_still_rejected(self):
         with self.assertRaises(Exception):

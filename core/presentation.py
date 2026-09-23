@@ -1,7 +1,7 @@
 """Shared desktop child scope and navigation, independent of record mutations."""
 
 from django.urls import reverse
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext as _, gettext_noop
 
 
 def presentation(request):
@@ -83,29 +83,51 @@ def scope_url(request, scope):
 
 MEASUREMENTS = [
     (
-        "Growth",
+        gettext_noop("Growth"),
         [
-            ("weight", "Weight"),
-            ("height", "Height"),
-            ("head-circumference", "Head circumference"),
-            ("bmi", "BMI"),
+            ("weight", gettext_noop("Weight")),
+            ("height", gettext_noop("Height")),
+            ("head-circumference", gettext_noop("Head circumference")),
+            ("bmi", gettext_noop("BMI")),
         ],
     ),
-    ("Other measurements", [("temperature", "Temperature")]),
+    (
+        gettext_noop("Other measurements"),
+        [("temperature", gettext_noop("Temperature"))],
+    ),
 ]
 ACTIVITIES = [
-    ("Feeding", [("feeding", "Feedings"), ("pumping", "Pumping"), ("food", "Foods")]),
     (
-        "Daily care",
+        gettext_noop("Feeding"),
         [
-            ("sleep", "Sleep"),
-            ("diaperchange", "Diaper changes"),
-            ("tummytime", "Tummy time"),
-            ("bathtime", "Bath time"),
+            ("feeding", gettext_noop("Feedings")),
+            ("pumping", gettext_noop("Pumping")),
+            ("food", gettext_noop("Foods")),
         ],
     ),
-    ("Health", [("medication", "Medication"), ("reflux", "Reflux")]),
-    ("Notes", [("note", "Notes")]),
+    (
+        gettext_noop("Daily care"),
+        [
+            ("sleep", gettext_noop("Sleep")),
+            ("diaperchange", gettext_noop("Diaper changes")),
+            ("tummytime", gettext_noop("Tummy time")),
+            ("bathtime", gettext_noop("Bath time")),
+        ],
+    ),
+    (
+        gettext_noop("Health"),
+        [
+            ("medication", gettext_noop("Medication")),
+            ("reflux", gettext_noop("Reflux")),
+        ],
+    ),
+    (
+        gettext_noop("Notes"),
+        [
+            ("note", gettext_noop("Notes")),
+            ("customactivity", gettext_noop("Custom activities")),
+        ],
+    ),
 ]
 
 
@@ -135,7 +157,9 @@ def navigation(request):
                 if action == "add" and key == "bmi":
                     continue
                 model = key.replace("-", "")
-                if user.has_perm(f"core.{action}_{model}"):
+                if model not in (
+                    user.settings.hidden_activities or []
+                ) and user.has_perm(f"core.{action}_{model}"):
                     url = reverse(f"core:{key}-{'list' if action == 'view' else 'add'}")
                     child = context["selected_child"]
                     if action == "add" and child and key != "pumping":
@@ -166,7 +190,9 @@ def navigation(request):
         item["active"] for group in context["activity_menu"] for item in group["items"]
     )
     context["add_menu"] = groups(
-        ACTIVITIES + MEASUREMENTS + [("Planning", [("appointment", "Appointment")])],
+        ACTIVITIES
+        + MEASUREMENTS
+        + [(gettext_noop("Planning"), [("appointment", gettext_noop("Appointment"))])],
         "add",
     )
     context["child_choices"] = [
@@ -187,6 +213,20 @@ def navigation(request):
     from inventory.views import reminders
 
     context["inventory_reminders"] = reminders(request)
+    from inventory.models import Equipment
+
+    context["equipment_alerts"] = (
+        [
+            {"item": item, "result": result}
+            for item in Equipment.objects.filter(archived=False).prefetch_related(
+                "children"
+            )
+            for result in item.assessments()
+            if result["attention"]
+        ]
+        if user.has_perm("inventory.view_equipment")
+        else []
+    )
     context["nav_reports_url"] = reverse("reports:home")
     if context["selected_child"]:
         context["nav_reports_url"] = reverse(

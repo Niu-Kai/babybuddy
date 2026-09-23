@@ -196,6 +196,9 @@ class AutomaticReminderTests(TestCase):
 
     def test_automatic_fields_and_dashboard_shopping_list_are_consistent(self):
         user = get_user_model().objects.create_user("parent", is_superuser=True)
+        # Generate fixtures and render requests in the same civil time zone.
+        user.settings.timezone = timezone.get_current_timezone_name()
+        user.settings.save(update_fields=["timezone"])
         self.client.force_login(user)
         self.logs(self.child, 8, 1)
         for field in ("low_stock", "target_stock", "daily_use", "reminder_days"):

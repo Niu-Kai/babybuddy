@@ -1,0 +1,12 @@
+<script>
+// Cross-document transitions may be skipped during rapid navigation or when
+// entering a page without transition support. Handle that expected cancellation.
+["pageswap", "pagereveal"].forEach(function (name) {
+  window.addEventListener(name, function (event) {
+    if (!event.viewTransition) return;
+    event.viewTransition.ready.catch(function () {});
+    event.viewTransition.finished.catch(function () {});
+  });
+});
+
+</script>

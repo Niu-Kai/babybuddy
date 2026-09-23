@@ -1,0 +1,332 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Baby Buddy\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-13 23:37+0000\n"
+"Language: zh-Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: POEditor.com\n"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:12
+msgid "Diaper size / weight range"
+msgstr "尿布尺寸/体重范围"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:13
+msgid "Size"
+msgstr "尺寸"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/inventory.js:16
+msgid "Choose a package weight range or type a size"
+msgstr "选择一个包装重量范围或输入一个大小"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:62
+msgid "Loading report…"
+msgstr "装载报告..."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:133
+msgid "Couldn’t load the report. "
+msgstr "无法加载报告. "
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: reports/static_src/js/report_navigation.js:137
+msgid "Retry"
+msgstr "再试一次"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:135
+msgid ""
+"Pending entries belong to a different account. Sign in to the original "
+"account to view or sync them."
+msgstr "悬而未决的条目属于另一个帐户. 登录原始帐户以查看或同步它们."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:148
+msgid " · Waiting to sync"
+msgstr " · 在等待同步"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:152
+#: babybuddy/static_src/js/offline.js:492
+msgid "Discard"
+msgstr "丢弃"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:154
+msgid "Discard this pending entry?"
+msgstr "要删除这笔待同步的纪录吗？"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:167
+#: babybuddy/static_src/js/offline.js:174
+msgid "Correct entry"
+msgstr "编辑记录"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:203 core/static_src/js/entry_sync.js:70
+msgid "Correct the entry, then save to retry."
+msgstr "纠正输入,然后保存以重试."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:212
+msgid "No pending entries."
+msgstr "没有待同步的纪录。"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:61
+msgid "Sign in to Baby Buddy before syncing."
+msgstr "在同步之前登录Baby Buddy."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:82
+#: babybuddy/static_src/js/offline_sync.js:103
+#: babybuddy/static_src/js/offline_sync.js:159
+#: babybuddy/static_src/js/offline_sync.js:230
+#: babybuddy/static_src/js/offline_sync.js:250
+#: core/static_src/js/entry_sync.js:129 core/static_src/js/entry_sync.js:193
+msgid "Sign in to the original account to sync pending entries."
+msgstr "登录原始帐户以同步待处理的条目."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:174
+msgid "Some entries need attention. They remain on this device."
+msgstr "一些条目需要注意. 它们留在这个设备上."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:177
+msgid "All entries synced."
+msgstr "所有纪录已同步。"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:184
+msgid "Offline · entries stay on this device until connected."
+msgstr "在这个设备上直到连接."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:550
+msgid "Choose a valid date and time."
+msgstr "选择一个有效的日期和时间."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:512
+#: babybuddy/static_src/js/offline.js:555
+msgid "Choose a child."
+msgstr "选择一个孩子."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:596 core/static_src/js/entry_sync.js:243
+msgid "Saved on this device."
+msgstr "在这个设备上保存."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline_sync.js:222
+msgid "Offline logging requires HTTPS or localhost and a supported browser."
+msgstr "在线日志需要HTTPS或本地主机和支持的浏览器."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:588
+msgid "Offline logging enabled for %(name)s."
+msgstr "已启用%(name)s的离线记录."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:163
+msgid "Remove all pending entries and offline setup from this device?"
+msgstr "要删除此装置上所有待同步的纪录和离线设定吗？"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:171
+msgid "Offline data cleared."
+msgstr "在线数据清除."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:618
+msgid "Offline logging ready for %(name)s."
+msgstr "准备在%(name)s进行离线记录."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:622 core/static_src/js/entry_sync.js:132
+msgid "Enable while connected before using this page offline."
+msgstr "在离线使用此页面之前, 在连接时启用."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:633
+#: babybuddy/static_src/js/offline_sync.js:209
+msgid "Offline storage is unavailable. Check your browser's storage settings."
+msgstr "在线存储不可用. 检查浏览器的存储设置."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:304
+msgid "Choose an occurrence"
+msgstr "选择一个事件"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "First"
+msgstr "首先"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:307
+msgid "Second"
+msgstr "第二个"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:322
+msgid "This time does not exist in this time zone. Choose a valid time."
+msgstr "这个时间在这个时区不存在. 选择一个合适的时间."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:330
+msgid "This time occurs twice. Choose the first or second occurrence."
+msgstr "这次发生两次. 选择第一个或第二个出现."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:376
+msgid "This timer changed in another tab. Refresh the timer list."
+msgstr "这个定时器在另一个选项卡中改变了. 更新时间表."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:404
+#: babybuddy/static_src/js/offline.js:418
+msgid "minutes"
+msgstr "分钟"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Resume"
+msgstr "恢复"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:439
+msgid "Pause"
+msgstr "暂停"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Review entry"
+msgstr "审查条目"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:453
+msgid "Stop and review"
+msgstr "停下来回顾"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:463
+msgid ""
+"This activity is no longer available. The timer remains saved on this "
+"device."
+msgstr "这项活动已不再提供. 计时器仍然存储在这个设备上."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:488
+msgid "Review the details and save the completed entry."
+msgstr "查看详情并保存已完成的条目."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:493
+msgid "Discard this timer?"
+msgstr "抛弃这个计时器?"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:538
+msgid "Timer started on this device."
+msgstr "在这个设备上启动计时器."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:603
+msgid "Sign in to the original account to refresh activities."
+msgstr "登录原始帐户以更新活动."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:607
+msgid "Save the timer entry before refreshing activities."
+msgstr "在刷新活动之前保存计时器条目."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: babybuddy/static_src/js/offline.js:613
+msgid "Activities refreshed."
+msgstr "活动更新."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:123
+msgid "Pending entries"
+msgstr "待同步纪录"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:131
+msgid "Offline access enabled"
+msgstr "已启用离线访问"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:200
+msgid "Attachments require a connection."
+msgstr "附件需要网络连接。"
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:250
+msgid "Please check the highlighted fields."
+msgstr "请检查凸显的字段."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/static_src/js/entry_sync.js:108
+msgid "Save anyway, even though it overlaps another entry"
+msgstr "无论如何保存,即使它重叠了另一个条目"

@@ -27,17 +27,15 @@ or many individual records and select "Export selected Diaper Changes" from the
 
 ## Import
 
-Import actions are accessible from Baby Buddy's "Database Admin" area (the
-Django admin interface). From the list of entry types in the Database Admin,
-select the type to import and click the "Import" button on the list page. The
-import screen for a particular type will list the fields generally expected to
-be present for an import. Multiple file types -- including csv, xlsx, etc. --
-are supported for the import.
+Open the account menu → **Import data** in the regular app. A staff account with permission to add the selected record type is required.
 
-The import pages do not provide _detailed_ information about the required data
-and formats. All rows will be checked for errors on import and any issues will
-be reported on screen and will need to be resolved before the import can be
-performed.
+1. Choose an entry type and click **Choose**.
+2. Select the child for the file (pumping and tag imports are shared; child imports create children).
+3. Download the CSV template. **Columns and accepted values** lists required columns, date/time formats, and exact choice values such as feeding type and method.
+4. Fill a UTF-8 CSV file with up to 500 rows / 2 MB. Import one entry type and child at a time. Choose the units used by the numeric columns; Baby Buddy exports store quantities in kg, cm, mL, and °C. The file's entry_unit metadata does not override this choice. Timestamps with no offset use the timezone displayed on the import page.
+5. Upload and select **Preview import**. Fix any row errors and upload again. The preview validates every row, including interactions between rows; it does not save entries or emit webhooks.
+6. Review the selected child, units, and preview, then select **Confirm import**. The file is checked again and saved as one transaction. A failure saves nothing. Previews expire after one hour.
 
-See the [example import files](https://github.com/babybuddy/babybuddy/tree/master/core/tests/import)
-used for tests to get an idea of the expected data format.
+Imports create new records, never update records by file ID. File IDs, recorded-by metadata, duration, and child columns are ignored; the explicitly selected child and current caregiver are used. Unsupported columns are reported rather than silently discarded. Tags use names, not database IDs. Photos, ZIP backups, custom-activity definitions, and live timers are not accepted by this CSV workflow. BMI is calculated from imported weight and height rather than imported manually. The older Database Admin import tools remain available for their existing formats.
+
+Repeating confirmation or uploading the same file with the same options does not create duplicates. Imported diaper history does not deduct today's inventory. Completed receipts retain only a digest, options, and count; staged CSV rows are cleared after completion. Expired private drafts are removed on the user's next valid upload. This is an entry import, not a complete backup-restore tool.

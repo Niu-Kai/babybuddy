@@ -112,7 +112,7 @@ class QueryEfficiencyTest(TestCase):
             {self.child.pk, self.other.pk},
         )
 
-    def test_timeline_tags_keep_correct_associations_in_two_queries(self):
+    def test_timeline_tags_and_foods_use_bounded_queries(self):
         tag = models.Tag.objects.create(name="Morning", color="#123456")
         moment = datetime(2024, 1, 2, tzinfo=tz.utc)
         for n in range(10):
@@ -120,12 +120,22 @@ class QueryEfficiencyTest(TestCase):
                 child=self.child,
                 start=moment + timedelta(hours=n),
                 end=moment + timedelta(hours=n, minutes=10),
-                type="formula",
-                method="bottle",
+                type="solid food",
+                method="parent fed",
             )
             entry.tags.add(tag)
-        with self.assertNumQueries(2):
+            models.Food.objects.create(
+                feeding=entry, child=self.child, time=entry.start, name=f"Food {n}"
+            )
+        # One query each for meals, tags, and linked foods, independent of row count.
+        with self.assertNumQueries(3):
             events = timeline.get_objects(child=self.child, activity="feeding")
             tags = [[value.pk for value in event["tags"]] for event in events]
         self.assertEqual(len(events), 20)
         self.assertTrue(all(value == [tag.pk] for value in tags))
+        self.assertTrue(
+            all(
+                any(detail.startswith("Food ") for detail in event["details"])
+                for event in events
+            )
+        )

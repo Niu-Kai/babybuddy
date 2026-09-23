@@ -1,23 +1,35 @@
 {% extends "babybuddy/page.html" %}
 {% load i18n %}
-{% block title %}Inventory{% endblock %}
+{% block title %}
+    {% trans "Inventory" %}
+{% endblock %}
 {% block content %}
-    <h1>Inventory {% if perms.inventory.add_stockitem %}<a class="btn btn-primary"
-   href="{% url 'inventory:add' %}">Add supply</a>{% endif %}</h1>
+    <h1>
+        {% trans "Inventory" %}
+        {% if perms.inventory.add_stockitem %}
+            <a class="btn btn-primary" href="{% url 'inventory:add' %}">{% trans "Add supply" %}</a>
+        {% endif %}
+    </h1>
+    {% if perms.inventory.view_equipment %}
+        <p class="text-center"><a class="btn btn-outline-secondary"
+   href="{% url 'inventory:equipment' %}">{% trans "Equipment &amp; limits" %}</a></p>
+    {% endif %}
     <form method="get" class="timeline-toolbar mb-3">
         <div class="timeline-filter-field">
-            <label for="inventory-q">Search</label><input id="inventory-q"
-       class="form-control"
-       name="q"
-       value="{{ request.GET.q }}"
-       placeholder="Supply or size">
+            <label for="inventory-q">{% trans "Search" %}</label>
+            <input id="inventory-q"
+                   class="form-control"
+                   name="q"
+                   value="{{ request.GET.q }}"
+                   placeholder="{% trans 'Supply or size' %}">
         </div>
-        <div class="timeline-filter-field"><label for="inventory-category">Category</label><select id="inventory-category" name="category" class="form-select"><option value="">All categories</option>{% for value,label in categories %}<option value="{{ value }}"
+        <div class="timeline-filter-field"><label for="inventory-category">{% trans "Category" %}</label><select id="inventory-category" name="category" class="form-select"><option value="">{% trans "All categories" %}</option>{% for value,label in categories %}<option value="{{ value }}"
         {% if request.GET.category == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-        <div class="timeline-filter-field"><label for="inventory-view">Show</label><select id="inventory-view" name="view" class="form-select">{% for value,label in views %}<option value="{{ value }}"
+        <div class="timeline-filter-field"><label for="inventory-view">{% trans "Show" %}</label><select id="inventory-view" name="view" class="form-select">{% for value,label in views %}<option value="{{ value }}"
         {% if inventory_view == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></div>
-        <button class="btn btn-primary" type="submit">Apply filters</button><a href="{% url 'inventory:list' %}" class="btn btn-outline-secondary">Clear filters</a><a class="btn btn-outline-primary"
-   href="{% url 'inventory:list' %}?view=shopping">Shopping list</a>
+        <button class="btn btn-primary" type="submit">{% trans "Apply filters" %}</button>
+        <a href="{% url 'inventory:list' %}" class="btn btn-outline-secondary">{% trans "Clear filters" %}</a><a class="btn btn-outline-primary"
+   href="{% url 'inventory:list' %}?view=shopping">{% trans "Shopping list" %}</a>
     </form>
     {% if items %}
         <div class="inventory-grid">
@@ -25,5 +37,20 @@
                 {% include "inventory/item.html" %}
             {% endfor %}
         </div>
-{% else %}<div class="report-empty-state"><h2>{% if inventory_view == "shopping" %}Nothing to restock{% else %}No supplies here yet{% endif %}</h2>{% if inventory_view == "shopping" %}<p>No current supplies match your restock or expiration reminders.</p>{% elif perms.inventory.add_stockitem %}<a class="btn btn-primary" href="{% url 'inventory:add' %}">Add your first supply</a>{% endif %}</div>{% endif %}
+    {% else %}
+        <div class="report-empty-state">
+            <h2>
+                {% if inventory_view == "shopping" %}
+                    {% trans "Nothing to restock" %}
+                {% else %}
+                    {% trans "No supplies here yet" %}
+                {% endif %}
+            </h2>
+            {% if inventory_view == "shopping" %}
+                <p>{% trans "No current supplies match your restock or expiration reminders." %}</p>
+            {% elif perms.inventory.add_stockitem %}
+                <a class="btn btn-primary" href="{% url 'inventory:add' %}">{% trans "Add your first supply" %}</a>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endblock %}

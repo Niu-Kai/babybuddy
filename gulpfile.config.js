@@ -64,9 +64,15 @@ const config = {
     ],
     app: [
       "babybuddy/static_src/js/babybuddy.js",
+      "babybuddy/static_src/js/offline_sync.js",
       "core/static_src/js/*.js",
       "dashboard/static_src/js/*.js",
       "reports/static_src/js/*.js",
+    ],
+    batch_delete: ["babybuddy/static_src/js/batch_delete.js"],
+    offline: [
+      "babybuddy/static_src/js/offline_sync.js",
+      "babybuddy/static_src/js/offline.js",
     ],
     tags_editor: ["babybuddy/static_src/js/tags_editor.js"],
   },

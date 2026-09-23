@@ -3,10 +3,31 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, path, reverse_lazy
 
+from django.views.generic import TemplateView
+
 from . import views
 from .media import PrivateMedia
+from .localization import InterfaceCatalog
+from .pwa import AppManifest
+from .imports import ImportData
 
 app_patterns = [
+    path(
+        "entries/add/",
+        TemplateView.as_view(template_name="babybuddy/offline.html"),
+        name="entry-add",
+    ),
+    path("app.webmanifest", AppManifest.as_view(), name="manifest"),
+    path(
+        "i18n/<str:language>/interface.js",
+        InterfaceCatalog.as_view(),
+        name="interface-catalog",
+    ),
+    path(
+        "offline/",
+        TemplateView.as_view(template_name="babybuddy/offline.html"),
+        name="offline",
+    ),
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", views.LogoutView.as_view(), name="logout"),
     path(
@@ -44,10 +65,12 @@ app_patterns = [
     path("user/settings/", views.UserSettings.as_view(), name="user-settings"),
     path("user/add-device/", views.UserAddDevice.as_view(), name="user-add-device"),
     path("settings/", include("dbsettings.urls")),
+    path("import/", ImportData.as_view(), name="import"),
     path("export/", views.ExportData.as_view(), name="export"),
     path("sw.js", views.ServiceWorker.as_view(), name="service-worker"),
     path("media/<path:path>", PrivateMedia.as_view(), name="private-media"),
 ]
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),

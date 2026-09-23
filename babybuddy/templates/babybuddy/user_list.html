@@ -49,7 +49,9 @@
                             {% user_is_locked object as is_locked %}
                             <td class="text-center">{{ is_locked|bool_icon }}</td>
                             <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+                                <div class="btn-group btn-group-sm"
+                                     role="group"
+                                     aria-label="{% trans 'Actions' %}">
                                     {% if perms.admin.change_user %}
                                         <a href="{% url 'babybuddy:user-update' object.id %}"
                                            class="btn btn-outline-primary">{% trans "Edit" %}</a>

@@ -41,6 +41,11 @@ function initializeReportCharts(event) {
       charts.forEach(updateReferences);
     });
   });
+  const percentiles = reports.querySelector("[data-growth-percentiles]");
+  if (percentiles)
+    percentiles.addEventListener("change", () =>
+      percentiles.form.requestSubmit(),
+    );
   const units = reports.querySelector("[data-report-unit]");
   if (units)
     units.addEventListener("change", function () {

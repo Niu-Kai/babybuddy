@@ -4,7 +4,7 @@
     <nav class="navbar navbar-expand-xl desktop-nav sticky-top"
          aria-label="{% trans 'Main navigation' %}">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard:dashboard' %}"><img src="{% static 'babybuddy/logo/icon-brand.png' %}"
+            <a class="navbar-brand" dir="ltr" href="{% url 'dashboard:dashboard' %}"><img src="{% static 'babybuddy/logo/icon-brand.png' %}"
      width="32"
      height="32"
      alt=""><span class="text-primary">Baby</span> Buddy</a>
@@ -37,7 +37,7 @@
    href="{{ nav_reports_url }}">{% trans "Reports" %}</a></li>
                     {% endif %}
                     {% if perms.inventory.view_stockitem %}<li class="nav-item"><a class="nav-link{% if request.resolver_match.namespace == 'inventory' %} active{% endif %}"
-   href="{% url 'inventory:list' %}">Inventory{% if inventory_reminders %} <span class="badge text-bg-warning">{{ inventory_reminders|length }}</span>{% endif %}</a></li>{% endif %}
+   href="{% url 'inventory:list' %}">{% trans "Inventory" %}{% if inventory_reminders %} <span class="badge text-bg-warning">{{ inventory_reminders|length }}</span>{% endif %}</a></li>{% endif %}
                 </ul>
                 <ul class="navbar-nav nav-tools">
                     {% if perms.core.view_timer %}<li class="nav-item dropdown"><button class="nav-link dropdown-toggle"
@@ -55,7 +55,15 @@
                         <li class="nav-item"><a class="nav-link"
    href="{% url 'core:timer-add' %}">{% trans "Start timer" %}</a></li>
                     {% endif %}
-                    {% include "babybuddy/nav_group.html" with menu=add_menu label="+ Add entry" menu_id="add-entry-menu" %}
+                    <li class="nav-item">
+                        <a class="nav-link small"
+                           id="device-sync-indicator"
+                           hidden
+                           href="{% url 'babybuddy:entry-add' %}#pending-entries"
+                           role="status"></a>
+                    </li>
+                    {% trans "+ Add entry" as add_entry_label %}
+                    {% include "babybuddy/nav_group.html" with menu=add_menu label=add_entry_label menu_id="add-entry-menu" %}
                     {% if scope_children %}<li class="nav-item dropdown child-view-menu"
     {% if household_page %}hidden{% endif %}><button class="nav-link dropdown-toggle child-view-button"
         id="child-view-menu"
@@ -99,6 +107,8 @@
                                 <a href="{% url 'babybuddy:site_settings' %}"
                                    class="dropdown-item">{% trans "Settings" %}</a>
                                 <a href="{% url 'core:tag-list' %}" class="dropdown-item">{% trans "Tags" %}</a>
+                                <a href="{% url 'babybuddy:import' %}"
+                                   class="dropdown-item">{% trans "Import data" %}</a>
                                 <a href="{% url 'babybuddy:export' %}"
                                    class="dropdown-item">{% trans "Export data" %}</a>
                                 <a href="{% url 'babybuddy:user-list' %}" class="dropdown-item">{% trans "Users" %}</a>

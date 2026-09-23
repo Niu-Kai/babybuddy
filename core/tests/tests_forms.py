@@ -1361,11 +1361,11 @@ class SmallIssuesTestCase(FormsTestCaseBase):
         finally:
             set_setting_value("core.models", "DiaperChange", "default_amount", 0)
 
-    def test_birth_time_uses_minute_picker(self):
+    def test_birth_time_supports_seconds_picker(self):
         page = self.c.get("/children/{}/edit/".format(self.child.slug))
         self.assertContains(page, 'name="birth_time"')
         self.assertContains(page, 'data-choice-kind="time"')
-        self.assertNotRegex(page.content.decode(), r'name="birth_time"[^>]*step="1"')
+        self.assertIn("%S", page.context["form"].fields["birth_time"].widget.format)
 
     def test_child_slug_editable(self):
         params = {

@@ -10,7 +10,7 @@
                 <th data-column="contents" class="text-center">{% trans "Contents" %}</th>
                 <th data-column="color">{% trans "Color" %}</th>
                 <th data-column="amount">{% trans "Amount" %}</th>
-                <th data-column="previous">{% trans "Previous" %}</th>
+                <th data-column="previous">{% trans "Time since previous change" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
@@ -37,9 +37,9 @@
                         <td data-column="color">{{ change.get_color_display }}</td>
                         <td data-column="amount">{{ change.amount|default_if_none:"" }}</td>
                         <td data-column="previous">
-                            {% if prev_change %}
-                                {% blocktrans trimmed with time_ago=prev_change.time|timesince:change.time %}
-                                    {{ time_ago }} ago
+                            {% if change.previous_entry_end %}
+                                {% blocktrans trimmed with time_ago=change.previous_entry_end|timesince:change.time %}
+                                    {{ time_ago }} earlier
                                 {% endblocktrans %}
                             {% endif %}
                         </td>

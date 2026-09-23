@@ -117,6 +117,33 @@
                    href="{% url 'dashboard:dashboard-customize' %}">{% trans "Edit dashboard" %}</a>
             </fieldset>
             <fieldset>
+                <legend>{% trans "Entry preferences" %}</legend>
+                <input type="hidden" name="entry_preferences_present" value="1">
+                {% with form_settings.shown_activities as field %}
+                    {% include "babybuddy/form_field.html" with form=form_settings %}
+                {% endwith %}
+                {% with form_settings.shown_entry_fields as field %}
+                    {% include "babybuddy/form_field.html" with form=form_settings %}
+                {% endwith %}
+            </fieldset>
+            <fieldset id="device-sync">
+                <legend>{% trans "Offline access" %}</legend>
+                <p id="device-sync-status" role="status"></p>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            id="device-sync-enable">{% trans "Enable on this device" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            id="device-sync-now"
+                            hidden>{% trans "Sync now" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="device-sync-clear"
+                            hidden>{% trans "Clear this device" %}</button>
+                </div>
+            </fieldset>
+            <fieldset>
                 <legend>{% trans "API" %}</legend>
                 <div class="form-group row">
                     <label class="col-sm-2 col-form-label">{% trans "Key" %}</label>

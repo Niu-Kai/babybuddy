@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const gettext = window.gettext || ((text) => text);
   const category = document.getElementById("id_category");
   const size = document.getElementById("id_size");
   if (!category || !size || !document.getElementById("diaper-sizes")) return;
@@ -7,10 +8,12 @@ document.addEventListener("DOMContentLoaded", function () {
   function updateSizeChoices() {
     const diapers = category.value === "diapers";
     if (label)
-      label.textContent = diapers ? "Diaper size / weight range" : "Size";
+      label.textContent = diapers
+        ? gettext("Diaper size / weight range")
+        : gettext("Size");
     if (guide) guide.hidden = !diapers;
     size.placeholder = diapers
-      ? "Choose a package weight range or type a size"
+      ? gettext("Choose a package weight range or type a size")
       : "";
     const list =
       category.value === "diapers"

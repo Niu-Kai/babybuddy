@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+{% block content %}
+    <p>{% blocktrans with count=total type=model_label %}Delete {{ count }} selected {{ type }}? Related data may also be removed. This cannot be undone.{% endblocktrans %}</p>
+    <form method="post"
+          id="batch-delete"
+          data-deleted-label="{% trans 'deleted' %}"
+          data-skipped-label="{% trans 'skipped' %}"
+          data-position="{{ job.position }}"
+          data-total="{{ total }}"
+          data-completed="{% trans 'Deletion finished.' %}"
+          data-stopped="{% trans 'Stopped. Completed batches remain deleted. You can retry the remaining entries.' %}">
+        {% csrf_token %}
+        <input type="hidden" name="confirm" value="yes">
+        <progress max="{{ total }}" value="{{ job.position }}" id="delete-progress"></progress>
+        <p id="delete-status" role="status">{% blocktrans with deleted=job.deleted skipped=job.skipped total=total %}Deleted: {{ deleted }} · Skipped: {{ skipped }} · Selected: {{ total }}{% endblocktrans %}</p>
+        <button type="submit" class="button">{% trans "Confirm and delete" %}</button>
+        <button type="button" id="stop-delete" class="button" hidden>{% trans "Stop after this batch" %}</button>
+        <a href="{{ back_url }}">{% trans "Back to entries" %}</a>
+    </form>
+    <script src="{% static 'babybuddy/js/batch_delete.js' %}"></script>
+{% endblock %}

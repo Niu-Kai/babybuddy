@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _, ngettext
 
 from .sizing import DIAPER_SIZES
 from .forecast import NOTICE_DAYS, RESTOCK_DAYS
@@ -31,7 +32,7 @@ class ChildSupplyProfile(models.Model):
     diaper_size = models.CharField(max_length=40, blank=True)
     clothing_size = models.CharField(max_length=40, blank=True)
     auto_deduct_diapers = models.BooleanField(
-        "Deduct diapers automatically", default=True
+        _("Deduct diapers automatically"), default=True
     )
     diaper_stock = models.ForeignKey(
         "StockItem",
@@ -39,7 +40,7 @@ class ChildSupplyProfile(models.Model):
         null=True,
         blank=True,
         related_name="diaper_users",
-        verbose_name="Diaper supply",
+        verbose_name=_("Diaper supply"),
     )
 
     def __str__(self):
@@ -48,32 +49,32 @@ class ChildSupplyProfile(models.Model):
 
 class StockItem(models.Model):
     CATEGORIES = [
-        ("diapers", "Diapers"),
-        ("wipes", "Wipes"),
-        ("feeding", "Feeding supplies"),
-        ("formula", "Formula"),
-        ("food", "Food"),
-        ("clothing", "Clothing"),
-        ("bath", "Bath & skin care"),
-        ("health", "Health supplies"),
-        ("other", "Other"),
+        ("diapers", _("Diapers")),
+        ("wipes", _("Wipes")),
+        ("feeding", _("Feeding supplies")),
+        ("formula", _("Formula")),
+        ("food", _("Food")),
+        ("clothing", _("Clothing")),
+        ("bath", _("Bath & skin care")),
+        ("health", _("Health supplies")),
+        ("other", _("Other")),
     ]
     UNITS = [
-        ("items", "items"),
-        ("diapers", "diapers"),
-        ("wipes", "wipes"),
-        ("packs", "packs"),
-        ("cans", "cans"),
-        ("bottles", "bottles"),
+        ("items", _("items")),
+        ("diapers", _("diapers")),
+        ("wipes", _("wipes")),
+        ("packs", _("packs")),
+        ("cans", _("cans")),
+        ("bottles", _("bottles")),
         ("mL", "mL"),
         ("fl oz", "fl oz"),
         ("g", "g"),
         ("oz", "oz"),
     ]
     STAGES = [
-        ("current", "Use now"),
-        ("next", "Next size / later"),
-        ("outgrown", "Outgrown / no longer used"),
+        ("current", _("Use now")),
+        ("next", _("Next size / later")),
+        ("outgrown", _("Outgrown / no longer used")),
     ]
     name = models.CharField(max_length=120)
     category = models.CharField(max_length=20, choices=CATEGORIES, default="other")
@@ -83,12 +84,12 @@ class StockItem(models.Model):
     quantity = models.DecimalField(
         max_digits=12, decimal_places=3, default=0, editable=False
     )
-    expiration_date = models.DateField("Batch expiration", null=True, blank=True)
+    expiration_date = models.DateField(_("Batch expiration"), null=True, blank=True)
     min_age_months = models.PositiveSmallIntegerField(
-        "Minimum age (months)", null=True, blank=True
+        _("Minimum age (months)"), null=True, blank=True
     )
     max_age_months = models.PositiveSmallIntegerField(
-        "Maximum age (months)", null=True, blank=True
+        _("Maximum age (months)"), null=True, blank=True
     )
     notes = models.TextField(blank=True)
     archived = models.BooleanField(default=False)
@@ -113,25 +114,37 @@ class StockItem(models.Model):
             and self.max_age_months is not None
             and self.min_age_months > self.max_age_months
         ):
-            errors["max_age_months"] = "Maximum age must be at least the minimum age."
+            errors["max_age_months"] = _(
+                "Maximum age must be at least the minimum age."
+            )
         if errors:
             raise ValidationError(errors)
 
+    def display_unit(self, count):
+        return {
+            "items": lambda: ngettext("item", "items", count),
+            "diapers": lambda: ngettext("diaper", "diapers", count),
+            "wipes": lambda: ngettext("wipe", "wipes", count),
+            "packs": lambda: ngettext("pack", "packs", count),
+            "cans": lambda: ngettext("can", "cans", count),
+            "bottles": lambda: ngettext("bottle", "bottles", count),
+        }.get(self.unit, lambda: self.unit)()
+
     def quantity_unit(self):
-        return (
-            self.unit[:-1]
-            if self.quantity == 1
-            and self.unit in {"items", "diapers", "wipes", "packs", "cans", "bottles"}
-            else self.unit
-        )
+        return self.display_unit(self.quantity)
 
     def buy_unit(self):
-        return (
-            self.unit[:-1]
-            if self.buy_quantity == 1
-            and self.unit in {"items", "diapers", "wipes", "packs", "cans", "bottles"}
-            else self.unit
-        )
+        return self.display_unit(self.buy_quantity or 0)
+
+    @property
+    def reminder_label(self):
+        # Preserve reminder keys used by integrations and filtering.
+        return {
+            "Expired": _("Expired"),
+            "Out of stock": _("Out of stock"),
+            "Expiring soon": _("Expiring soon"),
+            "Running low": _("Running low"),
+        }.get(self.reminder, "")
 
     @property
     def fit(self):
@@ -140,10 +153,10 @@ class StockItem(models.Model):
     @property
     def fit_label(self):
         return {
-            "current": "Use now",
-            "next": "Next size / later",
-            "outgrown": "Outgrown",
-            "review": "Check size",
+            "current": _("Use now"),
+            "next": _("Next size / later"),
+            "outgrown": _("Outgrown"),
+            "review": _("Check size"),
         }[self.fit]
 
     @property
@@ -215,7 +228,11 @@ class StockMovement(models.Model):
     )
     action = models.CharField(
         max_length=10,
-        choices=[("add", "Restocked"), ("use", "Used"), ("set", "Count corrected")],
+        choices=[
+            ("add", _("Restocked")),
+            ("use", _("Used")),
+            ("set", _("Count corrected")),
+        ],
     )
     change = models.DecimalField(max_digits=12, decimal_places=3)
     balance = models.DecimalField(max_digits=12, decimal_places=3)
@@ -251,3 +268,104 @@ class DiaperStockUsage(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class Equipment(models.Model):
+    name = models.CharField(max_length=120)
+    children = models.ManyToManyField("core.Child", related_name="equipment")
+    weight_limit = models.FloatField(_("Maximum weight"), null=True, blank=True)
+    weight_unit = models.CharField(
+        max_length=4, choices=[("kg", "kg"), ("lb", "lbs"), ("oz", "oz")], default="lb"
+    )
+    height_limit = models.FloatField(_("Maximum height"), null=True, blank=True)
+    height_unit = models.CharField(
+        max_length=4, choices=[("cm", "cm"), ("in", "in")], default="in"
+    )
+    instructions = models.TextField(_("Other manufacturer limits"), blank=True)
+    manual_review = models.BooleanField(
+        _("Needs review (milestone or other limit)"), default=False
+    )
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["name", "pk"]
+        verbose_name_plural = "equipment"
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        import math
+
+        errors = {}
+        for field in ("weight_limit", "height_limit"):
+            value = getattr(self, field)
+            if value is not None and (not math.isfinite(value) or value <= 0):
+                errors[field] = _("Enter a positive limit.")
+        if errors:
+            raise ValidationError(errors)
+
+    def assessments(self):
+        from core.units import convert
+
+        results = []
+        for child in self.children.all():
+            checks = []
+            for metric, field, canonical in (
+                ("weight", "weight", "kg"),
+                ("height", "height", "cm"),
+            ):
+                limit = getattr(self, metric + "_limit")
+                if limit is None:
+                    continue
+                record = (
+                    getattr(child, metric)
+                    .order_by(
+                        *(
+                            ["-date", "-time", "-pk"]
+                            if metric == "weight"
+                            else ["-date", "-pk"]
+                        )
+                    )
+                    .first()
+                )
+                unit = getattr(self, metric + "_unit")
+                value = (
+                    convert(getattr(record, field), canonical, unit)
+                    if record and record.entry_unit
+                    else None
+                )
+                checks.append(
+                    {
+                        "metric": {"weight": _("Weight"), "height": _("Height")}[
+                            metric
+                        ],
+                        "value": value,
+                        "unit": unit,
+                        "limit": limit,
+                        "date": record.date if record else None,
+                        "reached": value is not None and value >= limit,
+                    }
+                )
+            reached = self.manual_review or any(check["reached"] for check in checks)
+            results.append(
+                {
+                    "child": child,
+                    "checks": checks,
+                    "attention": reached,
+                    "status": (
+                        _("Limit reached / review before use")
+                        if reached
+                        else (
+                            _("No measurement recorded")
+                            if any(c["value"] is None for c in checks)
+                            else (
+                                _("Below entered limits")
+                                if checks
+                                else _("Check manufacturer instructions")
+                            )
+                        )
+                    ),
+                }
+            )
+        return results

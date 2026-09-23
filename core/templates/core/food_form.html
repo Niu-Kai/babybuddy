@@ -25,5 +25,8 @@
     {% else %}
         <h1>{% trans "Add Food" %}</h1>
     {% endif %}
+    {% if object.feeding_id and perms.core.change_feeding %}
+        <p class="text-center"><a href="{% url 'core:feeding-update' object.feeding_id %}">{% trans "Edit meal date, time, or child" %}</a></p>
+    {% endif %}
     {% include "babybuddy/form.html" %}
 {% endblock %}

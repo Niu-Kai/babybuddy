@@ -30,7 +30,10 @@ BabyBuddy.PullToRefresh = (function (ptr) {
         shouldPullToRefresh: function () {
           var zoomed =
             window.visualViewport && window.visualViewport.scale > 1.01;
-          return !window.scrollY && !zoomed;
+          var entryForm = document.querySelector(
+            '[id^="view-"] form[method="post"], .entry-form, [data-no-pull-refresh]',
+          );
+          return !window.scrollY && !zoomed && !entryForm;
         },
         onRefresh: this.onRefresh,
       });

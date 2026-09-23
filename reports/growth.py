@@ -33,13 +33,20 @@ METRICS = {
 
 
 @lru_cache(maxsize=1)
+def bmi_percentiles():
+    return json.loads(
+        (Path(__file__).parent / "data" / "who_bmi_percentiles.json").read_text()
+    )
+
+
+@lru_cache(maxsize=1)
 def bmi_medians():
     return json.loads(
         (Path(__file__).parent / "data" / "who_bmi_medians.json").read_text()
     )
 
 
-def growth_chart(objects, child, metric, unit, references):
+def growth_chart(objects, child, metric, unit, references, percentiles=False):
     model, field, percentile_model, label = METRICS[metric]
     birthday = child.corrected_birth_date
     measurements = list(objects.order_by("date", "pk").values_list("date", field))
@@ -76,7 +83,7 @@ def growth_chart(objects, child, metric, unit, references):
             hovertemplate="%{customdata[0]}<br>%{y:.2f} "
             + unit_label
             + "<br>"
-            + str(_("Age"))
+            + str(_("Corrected age") if child.is_premature else _("Age"))
             + ": %{customdata[1]} "
             + str(_("days"))
             + "<extra>%{fullData.name}</extra>",
@@ -130,6 +137,63 @@ def growth_chart(objects, child, metric, unit, references):
                 + "<extra>%{fullData.name}</extra>",
             )
         )
+    if percentiles:
+        table = bmi_percentiles() if not percentile_model else None
+        for sex, label_sex, color in (
+            ("boy", _("Boys"), "#8f80a7"),
+            ("girl", _("Girls"), "#b28e6c"),
+        ):
+            for percentile, column, dash in (
+                (3, 1, "dot"),
+                (15, 2, "dash"),
+                (85, 4, "dash"),
+                (97, 5, "dot"),
+            ):
+                if percentile_model:
+                    rows = [
+                        (age.days, value)
+                        for age, value in percentile_model.objects.filter(
+                            sex=sex,
+                            age_in_days__gte=timedelta(days=low),
+                            age_in_days__lte=timedelta(days=high),
+                        )
+                        .order_by("age_in_days")
+                        .values_list("age_in_days", f"p{percentile}_{field}")
+                    ]
+                else:
+                    rows = [
+                        (row[0], row[column])
+                        for row in table[sex]
+                        if low <= row[0] <= high
+                    ]
+                if not rows:
+                    continue
+                xs, ys = [], []
+                for day, value in rows:
+                    if metric in ("height", "bmi") and day == 731 and xs:
+                        xs.append(None)
+                        ys.append(None)
+                    xs.append(day / scale)
+                    ys.append(display(value))
+                title = _("%(sex)s - WHO %(percentile)s percentile") % {
+                    "sex": label_sex,
+                    "percentile": percentile,
+                }
+                traces.append(
+                    go.Scatter(
+                        x=xs,
+                        y=ys,
+                        name=title,
+                        mode="lines",
+                        meta={"reference": sex, "percentile": percentile},
+                        visible=sex in references,
+                        line={"color": color, "width": 1.3, "dash": dash},
+                        connectgaps=False,
+                        hovertemplate="%{y:.2f} "
+                        + unit_label
+                        + "<extra>%{fullData.name}</extra>",
+                    )
+                )
     layout = utils.default_graph_layout_options()
     layout["xaxis"].update(
         title=age_label,

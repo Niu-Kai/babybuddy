@@ -15,12 +15,17 @@ SPECS = {
     "weight": (("weight",), "kg", "lb", (("kg", "kg"), ("lb", "lbs"), ("oz", "oz"))),
     "temperature": (("temperature",), "C", "F", (("C", "°C"), ("F", "°F"))),
     "feeding": (
-        ("amount", "secondary_amount"),
+        ("amount", "secondary_amount", "top_up_amount", "top_up_secondary_amount"),
         "mL",
         "fl oz",
         (("mL", "mL"), ("fl oz", "fl oz (US)")),
     ),
-    "pumping": (("amount",), "mL", "fl oz", (("mL", "mL"), ("fl oz", "fl oz (US)"))),
+    "pumping": (
+        ("amount", "left_amount", "right_amount"),
+        "mL",
+        "fl oz",
+        (("mL", "mL"), ("fl oz", "fl oz (US)")),
+    ),
 }
 UNIT_PREFERENCE_FIELDS = {
     "height": "length_unit",
@@ -90,7 +95,8 @@ def setup_unit_field(form):
             "Choose the unit you are entering. Other caregivers can view the same measurement in their preferred units."
         )
     for field in fields:
-        form.fields[field].help_text = _("Use the selected entry unit.")
+        if field in form.fields:
+            form.fields[field].help_text = _("Use the selected entry unit.")
     if hasattr(form, "fieldsets"):
         form.fieldsets = [
             {**fieldset, "fields": list(fieldset["fields"])}
@@ -117,13 +123,14 @@ def clean_unit_fields(form, data):
     if form._meta.model._meta.model_name == "feeding" and (
         data.get("type") == "solid food" or data.get("secondary_type") == "solid food"
     ):
-        if unit:
+        if any(data.get(field) is not None for field in fields):
             form.add_error(
-                "entry_unit",
+                "amount",
                 _(
-                    "Liquid units do not apply to solid food. Choose 'Unit not recorded' or use Foods to describe a serving."
+                    "Record solid foods in the Foods field; liquid amounts do not apply."
                 ),
             )
+        form.instance.entry_unit = ""
         return
     if unit:
         for field in fields:

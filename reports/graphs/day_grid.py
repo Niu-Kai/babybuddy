@@ -2,6 +2,7 @@
 
 from datetime import datetime, time, timedelta
 from django.utils.translation import gettext as _
+from django.utils.formats import date_format
 from django.utils.html import escape
 from reports import utils
 
@@ -22,7 +23,7 @@ def day_layout(days, title, summaries=None, use_24_hour=False):
     layout["font"]["size"] = 16
     layout["xaxis"]["tickfont"] = {"size": 15}
     layout["yaxis"]["tickfont"] = {"size": 15}
-    labels = [f"{day:%a}<br>{day:%b %d}" for day in days]
+    labels = [f"{date_format(day, 'D')}<br>{date_format(day, 'M d')}" for day in days]
     if summaries:
         labels = [
             f"{label}<br><b>{escape(summary)}</b>"

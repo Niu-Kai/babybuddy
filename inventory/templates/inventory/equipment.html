@@ -1,0 +1,31 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n %}
+{% block title %}
+    {% trans "Equipment" %}
+{% endblock %}
+{% block content %}
+    <h1>
+        {% trans "Equipment" %}
+        {% if perms.inventory.add_equipment %}
+            <a class="btn btn-primary" href="{% url 'inventory:equipment-add' %}">{% trans "Add equipment" %}</a>
+        {% endif %}
+    </h1>
+    <p class="text-center"><a href="{% url 'inventory:list' %}">{% trans "Supplies" %}</a> · <a href="{% url 'inventory:equipment' %}">{% trans "In use" %}</a> · <a href="{% url 'inventory:equipment' %}?view=archived">{% trans "Archived equipment" %}</a></p>
+    <div class="inventory-grid">
+        {% for item in object_list %}
+            <article class="card p-3">
+                <h2 class="h4">{{ item.name }}</h2>
+                {% for result in item.assessments %}
+                    <section class="mb-3"><h3 class="h6">{{ result.child }}</h3><p class="{% if result.attention %}text-danger fw-bold{% else %}text-body-secondary{% endif %}">{{ result.status }}</p>
+                    {% for check in result.checks %}<p>{{ check.metric }}: {% if check.value != None %}{{ check.value|floatformat:2 }} {{ check.unit }} · {{ check.date }}{% else %}{% trans "No measurement with a recorded unit" %}{% endif %}<br>{% trans "Limit:" %} {{ check.limit|floatformat:"-2" }} {{ check.unit }}</p>{% endfor %}</section>
+                {% endfor %}
+                {% if item.instructions %}<p>{{ item.instructions|linebreaksbr }}</p>{% endif %}
+                {% if perms.inventory.change_equipment %}
+                    <a href="{% url 'inventory:equipment-edit' item.pk %}">{% trans "Edit" %}</a>
+                {% endif %}
+            </article>
+        {% empty %}
+            <p>{% trans "No equipment added yet." %}</p>
+        {% endfor %}
+    </div>
+{% endblock %}

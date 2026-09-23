@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const gettext = window.gettext || ((text) => text);
   if (!document.querySelector("[data-report-page]") || !window.fetch) return;
   let controller;
   let generation = 0;
@@ -58,7 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const current = document.querySelector("[data-report-page]");
     let stage;
     current.setAttribute("aria-busy", "true");
-    status.textContent = "Loading report…";
+    status.textContent = gettext("Loading report…");
     status.hidden = false;
     try {
       const response = await fetch(url.href, {
@@ -129,11 +130,11 @@ document.addEventListener("DOMContentLoaded", function () {
       if (ticket !== generation || error.name === "AbortError") return;
       if (fromHistory)
         window.history.replaceState({ report: true }, "", displayedURL);
-      status.textContent = "Couldn’t load the report. ";
+      status.textContent = gettext("Couldn’t load the report. ");
       const retry = document.createElement("button");
       retry.type = "button";
       retry.className = "btn btn-sm btn-outline-primary";
-      retry.textContent = "Retry";
+      retry.textContent = gettext("Retry");
       retry.addEventListener("click", function () {
         navigate(url, false);
       });

@@ -54,6 +54,9 @@ class ReadOnlyGroupPermissionsTestCase(TestCase):
 
 class CaregiverGroupPermissionsTestCase(TestCase):
     inventory_codenames = {
+        "view_equipment",
+        "add_equipment",
+        "change_equipment",
         "view_stockitem",
         "add_stockitem",
         "change_stockitem",
@@ -61,6 +64,10 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         "view_childsupplyprofile",
     }
     expected_codenames = {
+        "view_customactivity",
+        "add_customactivity",
+        "change_customactivity",
+        "view_activitytype",
         "view_child",
         "view_timer",
         "add_timer",
@@ -107,7 +114,10 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         self.group = Group.objects.get(name=settings.BABY_BUDDY["CAREGIVER_GROUP_NAME"])
 
     def test_fresh_group_has_exact_default_permissions(self):
-        self.assertEqual(self.group.permissions.count(), 45)
+        self.assertEqual(
+            self.group.permissions.count(),
+            len(self.expected_codenames | self.inventory_codenames),
+        )
         self.assertEqual(
             set(
                 self.group.permissions.values_list(
@@ -144,7 +154,10 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         self.assertEqual(
             set(self.group.permissions.values_list("pk", flat=True)), original_ids
         )
-        self.assertEqual(self.group.permissions.count(), 45)
+        self.assertEqual(
+            self.group.permissions.count(),
+            len(self.expected_codenames | self.inventory_codenames),
+        )
 
     def test_missing_early_permission_is_skipped_until_next_sync(self):
         permission = Permission.objects.get(
@@ -166,7 +179,7 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         )
         add_caregiver_group_permissions(sender=None)
         self.assertIn(permission, self.group.permissions.all())
-        self.assertEqual(self.group.permissions.count(), 40)
+        self.assertEqual(self.group.permissions.count(), len(self.expected_codenames))
 
     def test_sync_restores_defaults_and_retains_manual_permissions(self):
         default = Permission.objects.get(

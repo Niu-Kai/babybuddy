@@ -1,0 +1,115 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n widget_tweaks %}
+{% block title %}
+    {% trans "Import data" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Import data" %}</h1>
+    <div class="entry-form">
+        {% if batch %}
+            {% if batch.completed_at %}
+                <p role="status">{% trans "This file has already been imported." %}</p>
+            {% else %}
+                <h2 class="h5">{% trans "Review import" %}</h2>
+                <p><strong>{% trans "Entry type" %}:</strong> {{ import_type }}</p>
+                <p>{% blocktrans with count=batch.count %}Entries ready to import: {{ count }}. No records have been saved yet.{% endblocktrans %}</p>
+                {% if form.cleaned_data.child %}<p><strong>{% trans "Child" %}:</strong> {{ form.cleaned_data.child }}</p>{% endif %}
+                {% if batch.options.unit %}<p><strong>{% trans "Units in file" %}:</strong> {{ batch.options.unit }}</p>{% endif %}
+                <p><strong>{% trans "Timezone" %}:</strong> {{ batch.options.timezone }}</p>
+                <div class="table-responsive mb-3">
+                    <table class="table record-table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Row" %}</th>
+                                <th>{% trans "Entries" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in preview %}<tr><td>{{ row.number }}</td><td>{% for name,value in row.values.items %}{% if value %}<div><strong>{{ name }}:</strong> {{ value }}</div>{% endif %}{% endfor %}</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if batch.count > 20 %}
+                    <p>{% trans "Showing the first 20 rows. All rows have been validated." %}</p>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <button class="btn btn-primary"
+                                name="confirm"
+                                value="{{ batch.pk }}">{% trans "Confirm import" %}</button>
+                        <a class="btn btn-outline-secondary"
+                           href="{% url 'babybuddy:import' %}?kind={{ form.selected_kind }}">{% trans "Cancel" %}</a>
+                    </div>
+                </form>
+            {% endif %}
+            <a href="{% url 'babybuddy:import' %}">{% trans "Import another file" %}</a>
+        {% else %}
+            <form method="get" class="d-flex align-items-end flex-wrap gap-2 mb-4">
+                <div>
+                    <label class="form-label"
+                           for="id_kind">{{ form.kind.label }}</label>{{ form.kind|add_class:"form-select" }}
+                </div>
+                <button class="btn btn-outline-primary">{% trans "Choose" %}</button>
+            </form>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="kind" value="{{ form.selected_kind }}">
+                {{ form.non_field_errors }}{{ form.kind.errors }}
+                {% with form.child as field %}
+                    {% include "babybuddy/form_field.html" %}
+                {% endwith %}
+                {% with form.unit as field %}
+                    {% include "babybuddy/form_field.html" %}
+                {% endwith %}
+                {% with form.file as field %}
+                    {% include "babybuddy/form_field.html" %}
+                {% endwith %}
+                <p class="small text-body-secondary">{% trans "CSV, UTF-8, up to 500 rows and 2 MB. Import one entry type and child at a time." %}</p>
+                <p class="small text-body-secondary">{% trans "Entries are added as new records. File IDs and child columns are ignored; the selected child is used. Imported history does not reduce current diaper stock." %}</p>
+                <p class="small text-body-secondary">{% trans "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm, mL, and °C." %}</p>
+                <p class="small"><strong>{% trans "Timezone" %}:</strong> {{ import_timezone }}</p>
+                <div class="form-actions">
+                    <button class="btn btn-primary" name="preview" value="1">{% trans "Preview import" %}</button>
+                    <a class="btn btn-outline-secondary"
+                       href="{% url 'babybuddy:import' %}?kind={{ form.selected_kind }}&amp;template=1">{% trans "Download CSV template" %}</a>
+                </div>
+            </form>
+            {% if row_errors %}
+                <div class="alert alert-danger mt-3"
+                     role="alert">{% trans "Fix these rows and upload the file again. Nothing was imported." %}</div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Row" %}</th>
+                                <th>{% trans "Field" %}</th>
+                                <th>{% trans "Error" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for error in row_errors %}<tr><td>{{ error.row }}</td><td>{{ error.field }}</td><td>{{ error.message }}</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            <details class="mt-4" open>
+                <summary>{% trans "Columns and accepted values" %}</summary>
+                <div class="table-responsive mt-3">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Field" %}</th>
+                                <th>{% trans "Required" %}</th>
+                                <th>{% trans "Format" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for column in guide %}<tr><td><code>{{ column.name }}</code><br>{{ column.label }}</td><td>{{ column.required|yesno:_("Yes,No") }}</td><td>{{ column.format }}</td></tr>{% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        {% endif %}
+    </div>
+{% endblock %}

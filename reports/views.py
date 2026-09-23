@@ -19,9 +19,9 @@ def report_period(request):
     return request._report_period
 
 
-def report_entries(model, request, **filters):
+def report_entries(model, request, include_top_ups=False, **filters):
     from datetime import date
-    from django.db.models import DateTimeField, DateField
+    from django.db.models import DateTimeField, DateField, Q
 
     queryset = model.objects.filter(**filters)
     fields = {field.name: field for field in model._meta.fields}
@@ -42,9 +42,10 @@ def report_entries(model, request, **filters):
             "range_end"
         )
         if first:
-            queryset = queryset.filter(
-                **{lookup + "__gte": first, lookup + "__lte": last}
-            )
+            bounds = Q(**{lookup + "__gte": first, lookup + "__lte": last})
+            if include_top_ups:
+                bounds |= Q(top_up_at__date__gte=first, top_up_at__date__lte=last)
+            queryset = queryset.filter(bounds)
         elif "period" not in request.GET:
             # Existing bookmarked ranges remain valid until a period is chosen.
             for parameter, operation in (("from", "gte"), ("to", "lte")):
@@ -52,7 +53,10 @@ def report_entries(model, request, **filters):
                     value = date.fromisoformat(request.GET.get(parameter, ""))
                 except ValueError:
                     continue
-                queryset = queryset.filter(**{lookup + "__" + operation: value})
+                bounds = Q(**{lookup + "__" + operation: value})
+                if include_top_ups:
+                    bounds |= Q(**{"top_up_at__date__" + operation: value})
+                queryset = queryset.filter(bounds)
     return queryset
 
 
@@ -186,6 +190,7 @@ class GrowthReport(ReportPresentationMixin, PermissionRequiredMixin, DetailView)
             growth_metric=metric,
             growth_label=label,
             growth_references=refs,
+            growth_percentiles=self.request.GET.get("percentiles") == "1",
             corrected_age=child.is_premature,
         )
         links = []
@@ -197,7 +202,12 @@ class GrowthReport(ReportPresentationMixin, PermissionRequiredMixin, DetailView)
                 links.append((key, spec[3], query.urlencode()))
         context["growth_links"] = links
         html, js = growth_chart(
-            objects, child, metric, context.get("report_unit", ""), refs
+            objects,
+            child,
+            metric,
+            context.get("report_unit", ""),
+            refs,
+            percentiles=context["growth_percentiles"],
         )
         if html:
             context.update(html=html, js=js)
@@ -334,12 +344,37 @@ class FeedingAmountsChildReport(
     def get_context_data(self, **kwargs):
         context = super(FeedingAmountsChildReport, self).get_context_data(**kwargs)
         child = context["object"]
-        instances = report_entries(models.Feeding, self.request, child=child)
+        instances = report_entries(
+            models.Feeding, self.request, child=child, include_top_ups=True
+        )
         instances = known_unit_entries(instances, context, "feeding")
         context.update(report_unit_context(self.request, "feeding"))
+        context["feeding_group"] = (
+            "session" if self.request.GET.get("group") == "session" else "type"
+        )
+        period = report_period(self.request)
+        first = period.cleaned_data.get("range_start")
+        last = period.cleaned_data.get("range_end")
+        if not first and "period" not in self.request.GET:
+            from datetime import date
+
+            for parameter in ("from", "to"):
+                try:
+                    value = date.fromisoformat(self.request.GET.get(parameter, ""))
+                    if parameter == "from":
+                        first = value
+                    else:
+                        last = value
+                except ValueError:
+                    pass
         if instances:
             context["html"], context["js"] = graphs.feeding_amounts(
-                instances, unit=context["report_unit"]
+                instances,
+                unit=context["report_unit"],
+                group=context["feeding_group"],
+                first_day=first,
+                last_day=last,
+                use_24_hour=self.request.user.settings.use_24_hour_time,
             )
         return context
 

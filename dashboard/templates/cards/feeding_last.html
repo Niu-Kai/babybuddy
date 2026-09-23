@@ -21,6 +21,9 @@
     {% if feeding %}
         {{ feeding.type_display }}, {{ feeding.get_method_display }}
         {% if feeding.total_amount %}({% feeding_amount feeding %}){% endif %}
+        {% if feeding.top_up_at %}
+            <p class="small">{% top_up_details feeding %}</p>
+        {% endif %}
         {% if feeding.next_breast_display %}
             <div>{% trans "Start next on" %}: <strong>{{ feeding.next_breast_display }}</strong></div>
         {% endif %}

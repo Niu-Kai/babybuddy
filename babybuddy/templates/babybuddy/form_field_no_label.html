@@ -7,6 +7,15 @@
     {% endif %}
     <label for="{{ field.id_for_label }}"
            class="btn btn-outline-secondary btn-no-hover">{{ field.label }}</label>
+{% elif field|widget_type == "checkboxselectmultiple" %}
+    <div class="preference-choices">
+        {% for checkbox in field %}
+            <label class="preference-choice" for="{{ checkbox.id_for_label }}">
+                {{ checkbox.tag }}
+                <span>{{ checkbox.choice_label }}</span>
+            </label>
+        {% endfor %}
+    </div>
 {% elif "choice" in field|field_type %}
     {% if field.errors %}
         {{ field|add_class:"form-select is-invalid" }}

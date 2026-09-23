@@ -46,6 +46,24 @@ class PrivateMedia(View):
             raise Http404
         if not user.has_perm(permission):
             raise PermissionDenied
+        from core.access import restricted, scoped
+
+        if restricted(user):
+            from core.models import Child, Note
+
+            model, field = (
+                (Child, "picture")
+                if permission == "core.view_child"
+                else (Note, "image")
+            )
+            permitted = scoped(model.objects.all(), user).exclude(**{field: ""})
+            names = permitted.values_list(field, flat=True)
+            if not any(
+                name
+                and (source == name or source.startswith(name.rsplit(".", 1)[0] + "/"))
+                for name in names
+            ):
+                raise Http404
         types = {
             ".png": "image/png",
             ".jpg": "image/jpeg",

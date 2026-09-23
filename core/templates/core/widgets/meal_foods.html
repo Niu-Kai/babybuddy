@@ -1,0 +1,39 @@
+{% load i18n %}
+<div class="meal-foods"
+     data-meal-foods
+     data-field-name="{{ widget.name }}">
+    <datalist id="{{ widget.attrs.id }}_suggestions">
+        {% for name in suggestions %}<option value="{{ name }}"></option>{% endfor %}
+    </datalist>
+    <div data-food-rows>
+        {% for row in rows %}
+            <div class="d-flex flex-wrap gap-2 mb-2" data-food-row>
+                <input type="hidden"
+                       name="{{ widget.name }}_id"
+                       value="{{ row.id|default:'' }}">
+                <input type="text"
+                       name="{{ widget.name }}_name"
+                       value="{{ row.name }}"
+                       list="{{ widget.attrs.id }}_suggestions"
+                       maxlength="255"
+                       class="form-control flex-grow-1 w-auto"
+                       aria-label="{% trans 'Food name' %}"
+                       placeholder="{% trans 'Choose or type a food' %}">
+                <select name="{{ widget.name }}_reaction"
+                        class="form-select meal-food-reaction w-auto"
+                        aria-label="{% trans 'Reaction' %}">
+                    <option value="">{% trans "Reaction" %}</option>
+                    {% for key, label in reactions %}<option value="{{ key }}"
+        {% if key == row.reaction %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                </select>
+                <button type="button"
+                        class="btn btn-outline-danger"
+                        data-remove-food
+                        aria-label="{% trans 'Remove food' %}">
+                    <i class="icon-delete" aria-hidden="true"></i>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    <button type="button" class="btn btn-outline-primary" data-add-food>{% trans "Add food" %}</button>
+</div>

@@ -2,7 +2,10 @@
 {# Load any form-javascript files #}
 {{ form.media.js }}
 <div class="entry-form container-fluid pb-5">
-    <form role="form" method="post" enctype="multipart/form-data">
+    <form role="form"
+          method="post"
+          enctype="multipart/form-data"
+          {% if offline_activity %}data-queued-entry="{{ offline_activity }}" data-entry-timezone="{{ offline_timezone }}" data-entry-timer="{{ offline_timer }}"{% endif %}>
         {% csrf_token %}
         {% if form.errors %}<div class="alert alert-danger" role="alert">{% trans "Please check the highlighted fields." %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden.errors }}{% endfor %}</div>{% endif %}
         {% if form.fieldsets %}
@@ -11,6 +14,10 @@
                     {% include template %}
                 {% endwith %}
             {% endfor %}
+            {% if form.entry_reference %}{{ form.entry_reference }}{% endif %}
+            {% if form.time_occurrence %}
+                <div class="row">{% include "babybuddy/form_field.html" with field=form.time_occurrence %}</div>
+            {% endif %}
         {% else %}
             {% for field in form %}
                 {{ field.widget }}

@@ -16,10 +16,14 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
         cache: "pipenv"
-        cache-dependency-path: "requirements.txt"
+        cache-dependency-path: "requirements.lock"
     - name: Install Python dependencies
       shell: bash
-      run: pipenv install --dev
+      run: |
+        pipenv install --dev
+        pipenv run python -m pip install -r requirements.lock
+        pipenv run python scripts/lock_requirements.py
+        pipenv run python -m pip check
     - name: Print installed dependency versions
       shell: bash
       run: pipenv graph

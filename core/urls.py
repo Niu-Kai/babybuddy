@@ -1,11 +1,51 @@
 # -*- coding: utf-8 -*-
+from core.batch_delete import BatchDelete
+from core.medication_choices import MedicationChoices
 from django.urls import path
 
 from . import views
 
 app_name = "core"
 
+from core import custom_activities as custom
+
 urlpatterns = [
+    path("entries/delete-batch/<uuid:pk>/", BatchDelete.as_view(), name="batch-delete"),
+    path(
+        "custom-activities/potty-preset/",
+        custom.PottyPreset.as_view(),
+        name="potty-preset",
+    ),
+    path("medication/choices/", MedicationChoices.as_view(), name="medication-choices"),
+    path(
+        "custom-activities/",
+        custom.CustomActivityList.as_view(),
+        name="customactivity-list",
+    ),
+    path(
+        "custom-activities/add/",
+        custom.CustomActivityAdd.as_view(),
+        name="customactivity-add",
+    ),
+    path(
+        "custom-activities/<int:pk>/edit/",
+        custom.CustomActivityEdit.as_view(),
+        name="customactivity-update",
+    ),
+    path(
+        "custom-activities/<int:pk>/delete/",
+        custom.CustomActivityDelete.as_view(),
+        name="customactivity-delete",
+    ),
+    path("activity-types/", custom.ActivityTypeList.as_view(), name="custom-types"),
+    path(
+        "activity-types/add/", custom.ActivityTypeAdd.as_view(), name="custom-type-add"
+    ),
+    path(
+        "activity-types/<int:pk>/edit/",
+        custom.ActivityTypeEdit.as_view(),
+        name="custom-type-edit",
+    ),
     path(
         "entries/<str:model_name>/end-preview/",
         views.EntryEndPreview.as_view(),

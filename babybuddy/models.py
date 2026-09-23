@@ -87,6 +87,12 @@ def default_hidden_dashboard_cards():
 
 
 class Settings(models.Model):
+    hidden_activities = models.JSONField(default=list, blank=True)
+    hidden_entry_fields = models.JSONField(default=list, blank=True)
+    restrict_children = models.BooleanField(default=False)
+    allowed_children = models.ManyToManyField(
+        "core.Child", blank=True, related_name="authorized_settings"
+    )
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     pumping_reminder_minutes = models.PositiveIntegerField(null=True, blank=True)
     pumping_reminder_basis = models.CharField(
@@ -323,3 +329,40 @@ def create_user_settings(sender, instance, created, **kwargs):
 @receiver(post_save, sender=get_user_model())
 def save_user_settings(sender, instance, **kwargs):
     instance.settings.save()
+
+
+class OfflineReceipt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    key = models.UUIDField()
+    digest = models.CharField(max_length=64)
+    result = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "key"], name="offline_user_key_unique"
+            )
+        ]
+
+
+class ImportBatch(models.Model):
+    """Private staged CSV and durable receipt for an explicitly confirmed import."""
+
+    import uuid
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    digest = models.CharField(max_length=64)
+    options = models.JSONField(default=dict)
+    rows = models.JSONField(default=list)
+    count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "digest"], name="import_user_digest_unique"
+            )
+        ]

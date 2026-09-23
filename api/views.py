@@ -14,10 +14,14 @@ from . import serializers, filters
 
 class RelatedDataMixin:
     def get_queryset(self):
-        queryset = super().get_queryset()
+        from core.access import scoped
+
+        queryset = scoped(super().get_queryset(), self.request.user)
         fields = {field.name for field in queryset.model._meta.get_fields()}
         if "created_by" in fields:
             queryset = queryset.select_related("created_by")
+        if queryset.model is models.Feeding:
+            queryset = queryset.prefetch_related("foods")
         if "tags" in fields and self.action in {"list", "retrieve"}:
             queryset = queryset.prefetch_related("tags")
         return queryset
@@ -244,3 +248,61 @@ class FoodViewSet(RelatedDataMixin, viewsets.ModelViewSet):
     filterset_class = filters.FoodFilter
     ordering_fields = ("time",)
     ordering = "-time"
+
+
+class CustomActivityViewSet(RelatedDataMixin, viewsets.ModelViewSet):
+    queryset = models.CustomActivity.objects.all()
+    serializer_class = serializers.CustomActivitySerializer
+    filterset_fields = ("child", "activity_type")
+
+
+class DashboardSummary(views.APIView):
+    from rest_framework.permissions import IsAuthenticated
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from core.access import scoped
+
+        if not request.user.has_perm("core.view_child"):
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied()
+        result = []
+        for child in scoped(models.Child.objects.all(), request.user):
+            latest = {}
+            for name, model, serializer, field in (
+                ("feeding", models.Feeding, serializers.FeedingSerializer, "start"),
+                ("sleep", models.Sleep, serializers.SleepSerializer, "start"),
+                (
+                    "diaper_change",
+                    models.DiaperChange,
+                    serializers.DiaperChangeSerializer,
+                    "time",
+                ),
+            ):
+                if request.user.has_perm(f"core.view_{model._meta.model_name}"):
+                    entry = (
+                        model.objects.filter(child=child)
+                        .order_by("-" + field, "-pk")
+                        .first()
+                    )
+                    latest[name] = (
+                        serializer(entry, context={"request": request}).data
+                        if entry
+                        else None
+                    )
+            result.append({"id": child.pk, "name": str(child), "latest": latest})
+        timers = (
+            scoped(models.Timer.objects.all(), request.user)
+            if request.user.has_perm("core.view_timer")
+            else []
+        )
+        return Response(
+            {
+                "children": result,
+                "timers": serializers.TimerSerializer(
+                    timers, many=True, context={"request": request}
+                ).data,
+            }
+        )

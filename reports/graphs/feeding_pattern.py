@@ -122,10 +122,10 @@ def feeding_pattern(
                         dict(
                             x=(day - first_day).days,
                             y=base,
-                            yshift=12,
+                            yshift=14 if session_methods else 12,
                             text=f"{clock(start, use_24_hour)} · {minutes}m",
                             showarrow=False,
-                            font=dict(size=13),
+                            font=dict(size=15 if session_methods else 13),
                         )
                     )
                 bases.append(base)
@@ -173,10 +173,36 @@ def feeding_pattern(
         use_24_hour,
     )
     if session_methods:
+        # Leave enough vertical space for short sessions and readable labels.
+        # Wider day columns are paged by the shared responsive chart controls.
+        layout.update(height=1120)
+        layout["margin"].update(l=100, r=32, b=190)
+        layout["legend"].update(y=-0.13, font=dict(size=15), tracegroupgap=12)
+        ticks = list(range(0, 1441, 60))
+        origin = timezone.localtime(feedings[0].start).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        layout["yaxis"].update(
+            tickvals=ticks,
+            ticktext=[
+                clock(origin + timedelta(minutes=value), use_24_hour) for value in ticks
+            ],
+        )
         readable = []
         previous_y = {}
         for annotation in sorted(annotations, key=lambda item: (item["x"], item["y"])):
-            if annotation["y"] - previous_y.get(annotation["x"], -100) >= 45:
+            day = first_day + timedelta(days=int(annotation["x"]))
+            # Do not put a label over an earlier session, including sessions
+            # whose own labels were hidden because they overlap.
+            clear_above = all(
+                end <= annotation["y"] - 45
+                for start, end, _key in segments[day]
+                if start < annotation["y"]
+            )
+            if (
+                clear_above
+                and annotation["y"] - previous_y.get(annotation["x"], -100) >= 45
+            ):
                 readable.append(annotation)
                 previous_y[annotation["x"]] = annotation["y"]
         annotations = readable
@@ -193,6 +219,6 @@ def feeding_pattern(
             if session_methods
             else _("Daily feeding comparison")
         ),
-        minimum=480,
-        day_width=280 if session_methods else 180,
+        minimum=640 if session_methods else 480,
+        day_width=360 if session_methods else 180,
     )

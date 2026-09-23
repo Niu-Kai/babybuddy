@@ -105,3 +105,15 @@
     border-bottom: 1px solid var(--nav-border);
     backdrop-filter: saturate(160%) blur(14px);
 }
+
+// Prevent the browser's own refresh gesture while entering data, too.
+html:has([id^="view-"] form[method="post"]),
+body:has([id^="view-"] form[method="post"]),
+html:has(.entry-form), body:has(.entry-form),
+html:has([data-no-pull-refresh]), body:has([data-no-pull-refresh]) {
+  overscroll-behavior-y: contain;
+}
+
+.meal-food-reaction {
+    min-width: 12rem;
+}

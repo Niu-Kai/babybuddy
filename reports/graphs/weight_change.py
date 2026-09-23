@@ -10,13 +10,17 @@ from reports import utils
 
 
 def weight_change(
-    actual_weights: BaseManager, percentile_weights: BaseManager, birthday: datetime
+    actual_weights: BaseManager,
+    percentile_weights: BaseManager,
+    birthday: datetime,
+    due_date: datetime = None,
 ):
     """
     Create a graph showing weight over time.
     :param actual_weights: a QuerySet of Weight instances.
     :param percentile_weights: a QuerySet of Weight Percentile instances.
     :param birthday: a datetime of the child's birthday
+    :param due_date: optional reference date for corrected-age percentile curves.
     :returns: a tuple of the graph's html and javascript.
     """
     measurements = list(actual_weights.order_by("-date").values_list("date", "weight"))
@@ -28,6 +32,12 @@ def weight_change(
         else []
     )
 
+    # Adapted from upstream 2400ccf and 3602c59; preserve our single-query reads.
+    correct_for_prematurity = bool(
+        percentile_weights and due_date and due_date > birthday
+    )
+    percentile_anchor = due_date if correct_for_prematurity else birthday
+
     actual_weights_trace = go.Scatter(
         name=_("Weight"),
         x=weighing_dates,
@@ -36,12 +46,13 @@ def weight_change(
     )
 
     if percentile_weights:
-        dates = [birthday + row.age_in_days for row in percentile_weights]
+        dates = [percentile_anchor + row.age_in_days for row in percentile_weights]
 
         # reduce percentile data xrange to end 1 day after last weigh in for formatting purposes
         # https://github.com/babybuddy/babybuddy/pull/708#discussion_r1332335789
         last_date_for_percentiles = min(max(dates), max(weighing_dates))
-        end_index = dates.index(last_date_for_percentiles) + 1
+        # Early measurements can precede the first corrected-age reference point.
+        end_index = max(sum(day <= last_date_for_percentiles for day in dates), 1)
         dates = dates[:end_index]
 
         percentile_weight_3_trace = go.Scatter(
@@ -81,6 +92,8 @@ def weight_change(
     layout_args = utils.default_graph_layout_options()
     layout_args["barmode"] = "stack"
     layout_args["title"] = "<b>" + _("Weight") + "</b>"
+    if correct_for_prematurity:
+        layout_args["title"] += "<br><sup>" + _("Corrected age") + "</sup>"
     layout_args["xaxis"]["title"] = _("Date")
     layout_args["xaxis"]["rangeselector"] = utils.rangeselector_date()
     layout_args["yaxis"]["title"] = _("Weight (kg)")

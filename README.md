@@ -1,13 +1,44 @@
 <img src="babybuddy/static_src/logo/icon.png" height="150" align="left">
 
-# Baby Buddy
+# Baby Buddy — Niu-Kai fork
 
 [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause)
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/babybuddy/Lobby)
-[![CI Status](https://github.com/babybuddy/babybuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/babybuddy/babybuddy/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/babybuddy/babybuddy/badge.svg?branch=master)](https://coveralls.io/github/babybuddy/babybuddy?branch=master)
-[![Open in GitHub Codespaces ready-to-code](https://img.shields.io/badge/Codespace-ready--to--code-blue?logo=github)](https://codespaces.new/babybuddy/babybuddy?quickstart=1)
+[![CI Status](https://github.com/Niu-Kai/babybuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/Niu-Kai/babybuddy/actions/workflows/ci.yml)
+[![Open in GitHub Codespaces ready-to-code](https://img.shields.io/badge/Codespace-ready--to--code-blue?logo=github)](https://codespaces.new/Niu-Kai/babybuddy?quickstart=1)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+This is a customized fork of [Baby Buddy](https://github.com/babybuddy/babybuddy),
+with credit to its original authors and contributors. It retains the
+[BSD 2-Clause license](LICENSE).
+
+## What is different in this fork
+
+- Customizable dashboards, shared period filters, and day-by-day care reports.
+- Growth charts with unit conversion, WHO references, and corrected-age support.
+- Shared household inventory with diaper usage deductions and automatic restock reminders.
+- Household pumping, separate left/right amounts, food tracking, and supplemental feedings.
+- Calendar appointments, custom activities, child access permissions, and integration APIs.
+- Optional browser offline entry and synchronization; a separate phone app is not required.
+- Guided CSV imports with a validation preview, plus expanded interface translations.
+
+See [feature details](docs/user-guide/upstream-followup.md),
+[import/export instructions](docs/import-export.md), and the
+[remaining verification and deferred issues](docs/upstream-remaining-issues-2026-09-22.md).
+Physical-phone offline/install testing and several external integrations remain
+unverified. Offline access covers supported new entries and limited recent
+history, not the entire application. Updated translations still benefit from
+native-speaker review.
+
+For installation, browse the [setup guides](docs/setup). Use the
+[update and backup workflow](docs/setup/updating.md) when updating an existing
+installation. The [upstream integration record](docs/development/upstream-sync-2026-09-23.md)
+explains how recent upstream changes were adapted to this fork.
+
+## Original Baby Buddy overview
+
+The screenshots and public demo below show the upstream project, rather than
+this fork's redesigned interface.
 
 A buddy for babies! Helps caregivers track sleep, feedings, diaper changes,
 tummy time and more to learn about and predict baby's needs without (_as much_)
@@ -17,7 +48,7 @@ guess work.
 
 ![Baby Buddy mobile views](screenshot_mobile.png)
 
-## 👾 Demo
+## 👾 Upstream demo
 
 A [demo of Baby Buddy](https://demo.baby-buddy.net) is available. The demo instance
 resets every hour. Login credentials are:
@@ -121,11 +152,12 @@ _Some of the links below use referral codes -- all referral proceeds are treated
 
 ## Inventory and diaper changes
 
-Inventory tracks shared or child-specific supplies, sizes, stock history, and in-app
-restock reminders. Under **Inventory → Sizes & diaper supply**, set each child's
-current size and optionally select the exact diaper supply to use. Automatic selection
-uses a single matching supply assigned to that child; shared supplies require an
-explicit selection and a matching size. Track diapers individually, not as packs.
+Inventory tracks shared household supplies, sizes, stock history, and in-app
+restock reminders. Under **Manage children → Sizes & diaper supply**, select a
+child's supply or size. Automatic matching uses a unique matching shared supply;
+an explicit assignment overrides size and age matching. Track diapers individually,
+not as packs. Reminders begin at an estimated 14 days of stock remaining, based on
+recorded usage. See [Inventory](inventory/README.md) for forecasting details.
 
 Each new diaper-change entry deducts one diaper, including entries marked both wet
 and solid. Editing the same child's entry never deducts twice. Reassigning an entry
@@ -135,3 +167,9 @@ not replenish consumed stock. Existing entries are not charged retroactively.
 If stock is missing, ambiguous, unavailable, or empty, the care entry still saves
 and the web form shows a warning. Restocking later does not retroactively charge
 previously skipped entries. Automatic deduction can be turned off per child.
+
+## Additional care features
+
+[Upstream issue follow-up](docs/user-guide/upstream-followup.md) documents equipment
+limit alerts, access restricted to selected children, offline care logging,
+custom activities, entry preferences, and dashboard/timer API additions.

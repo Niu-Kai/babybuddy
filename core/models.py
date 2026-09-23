@@ -1,3 +1,5 @@
+from django.conf import settings
+
 # -*- coding: utf-8 -*-
 import datetime
 import re
@@ -5,7 +7,7 @@ import re
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models.functions import Lower
 from django.urls import reverse
 from django.utils import formats, timezone
@@ -23,6 +25,7 @@ from babybuddy.site_settings import (
     WebhookSettings,
 )
 from core.utils import random_color, timezone_aware_duration
+from core.access import ChildAccessManager
 
 
 def validate_date(date, field_name):
@@ -239,7 +242,7 @@ class BMI(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -285,7 +288,7 @@ class Child(models.Model):
         blank=True, null=True, upload_to="child/picture/", verbose_name=_("Picture")
     )
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     cache_key_count = "core.child.count"
 
@@ -303,11 +306,27 @@ class Child(models.Model):
         return bool(self.due_date and self.due_date > self.birth_date)
 
     @property
+    def gestational_age_at_birth(self):
+        if not self.is_premature:
+            return ""
+        days = 280 - (self.due_date - self.birth_date).days
+        if days < 0:
+            return ""
+        return _("%(weeks)s weeks, %(days)s days") % {
+            "weeks": days // 7,
+            "days": days % 7,
+        }
+
+    @property
     def corrected_birth_date(self):
         """The date to count age from for growth charts (#369)."""
         return self.due_date if self.is_premature else self.birth_date
 
     def save(self, *args, **kwargs):
+        if self.picture and not self.picture._committed:
+            from core.photos import prepare_photo
+
+            self.picture = prepare_photo(self.picture.file)
         # The slug follows the name unless it was customised (see ChildForm):
         # regenerate it when it is empty or still equal to the slug derived
         # from the previously saved name.
@@ -346,7 +365,7 @@ class Child(models.Model):
     @classmethod
     def count(cls):
         """Get a (cached) count of total number of Child instances."""
-        return cache.get_or_set(cls.cache_key_count, Child.objects.count, None)
+        return Child.objects.count()
 
 
 class DiaperChange(CreatedByMixin):
@@ -382,7 +401,7 @@ class DiaperChange(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -463,10 +482,11 @@ class Feeding(MeasurementUnitMixin, CreatedByMixin):
     method = models.CharField(
         choices=[
             ("bottle", _("Bottle")),
+            ("tube", _("Tube")),
             ("left breast", _("Left breast")),
             ("right breast", _("Right breast")),
             ("both breasts", _("Both breasts")),
-            ("parent fed", _("Parent fed")),
+            ("parent fed", _("Caregiver fed")),
             ("self fed", _("Self fed")),
         ],
         max_length=255,
@@ -489,6 +509,37 @@ class Feeding(MeasurementUnitMixin, CreatedByMixin):
     secondary_amount = models.FloatField(
         blank=True, null=True, verbose_name=_("Second amount")
     )
+    top_up_at = models.DateTimeField(
+        blank=True, null=True, verbose_name=_("Top-up bottle time")
+    )
+    top_up_type = models.CharField(
+        blank=True,
+        default="",
+        max_length=255,
+        choices=[
+            ("breast milk", _("Breast milk")),
+            ("formula", _("Formula")),
+            ("fortified breast milk", _("Fortified breast milk")),
+        ],
+        verbose_name=_("Top-up milk type"),
+    )
+    top_up_amount = models.FloatField(
+        blank=True, null=True, verbose_name=_("Top-up amount")
+    )
+    top_up_secondary_type = models.CharField(
+        blank=True,
+        default="",
+        max_length=255,
+        choices=[
+            ("breast milk", _("Breast milk")),
+            ("formula", _("Formula")),
+            ("fortified breast milk", _("Fortified breast milk")),
+        ],
+        verbose_name=_("Top-up second milk type"),
+    )
+    top_up_secondary_amount = models.FloatField(
+        blank=True, null=True, verbose_name=_("Top-up second amount")
+    )
     last_breast = models.CharField(
         blank=True,
         choices=[("left", _("Left")), ("right", _("Right"))],
@@ -505,7 +556,7 @@ class Feeding(MeasurementUnitMixin, CreatedByMixin):
 
     settings = FeedingSettings()
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -519,9 +570,25 @@ class Feeding(MeasurementUnitMixin, CreatedByMixin):
     @property
     def total_amount(self):
         """Amount of both parts of a mixed feeding, or None if untracked."""
-        if self.amount is None and self.secondary_amount is None:
+        if all(
+            value is None
+            for value in (
+                self.amount,
+                self.secondary_amount,
+                self.top_up_amount,
+                self.top_up_secondary_amount,
+            )
+        ):
             return None
-        return (self.amount or 0) + (self.secondary_amount or 0)
+        return sum(
+            value or 0
+            for value in (
+                self.amount,
+                self.secondary_amount,
+                self.top_up_amount,
+                self.top_up_secondary_amount,
+            )
+        )
 
     @property
     def type_display(self):
@@ -560,15 +627,25 @@ class Feeding(MeasurementUnitMixin, CreatedByMixin):
     def next_breast_display(self):
         return {"left": _("Left"), "right": _("Right")}.get(self.next_breast, "")
 
+    @transaction.atomic
     def save(self, *args, **kwargs):
         if self.start and self.end:
             self.duration = timezone_aware_duration(self.start, self.end)
         super(Feeding, self).save(*args, **kwargs)
+        # Linked foods share the meal's child and start, never a second copy.
+        self.foods.update(child_id=self.child_id, time=self.start)
 
     def clean(self):
         validate_time(self.start, "start")
+        validate_time(self.end, "end")
         validate_duration(self)
-        validate_unique_period(Feeding.objects.filter(child=self.child), self)
+        validate_unique_period(Feeding.objects.filter(child_id=self.child_id), self)
+        from core.feeding import validate_feeding_method
+
+        validate_feeding_method(self)
+        from core.top_ups import validate_top_up
+
+        validate_top_up(self)
         if self.secondary_amount is not None and not self.secondary_type:
             raise ValidationError(
                 {"secondary_type": _("Choose the type of the second amount.")},
@@ -598,7 +675,7 @@ class HeadCircumference(MeasurementUnitMixin, CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -628,7 +705,7 @@ class Height(MeasurementUnitMixin, CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -708,7 +785,7 @@ class Note(CreatedByMixin):
     )
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -742,7 +819,7 @@ class Appointment(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -840,6 +917,12 @@ class Pumping(MeasurementUnitMixin, CreatedByMixin):
         verbose_name=_("Duration"),
     )
     amount = models.FloatField(blank=False, null=False, verbose_name=_("Amount"))
+    left_amount = models.FloatField(
+        blank=True, null=True, verbose_name=_("Left breast amount")
+    )
+    right_amount = models.FloatField(
+        blank=True, null=True, verbose_name=_("Right breast amount")
+    )
     side = models.CharField(
         blank=True,
         choices=[
@@ -854,7 +937,7 @@ class Pumping(MeasurementUnitMixin, CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -866,11 +949,23 @@ class Pumping(MeasurementUnitMixin, CreatedByMixin):
         return str(_("Pumping"))
 
     def save(self, *args, **kwargs):
+        from core.pumping import set_pumping_total
+
+        set_pumping_total(self)
+        if kwargs.get("update_fields") is not None and set(kwargs["update_fields"]) & {
+            "amount",
+            "left_amount",
+            "right_amount",
+        }:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {"amount", "side"}
         if self.start and self.end:
             self.duration = timezone_aware_duration(self.start, self.end)
         super(Pumping, self).save(*args, **kwargs)
 
     def clean(self):
+        from core.pumping import set_pumping_total
+
+        set_pumping_total(self)
         validate_time(self.start, "start")
         validate_duration(self)
         validate_unique_period(Pumping.objects.all(), self)
@@ -897,7 +992,7 @@ class Sleep(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
     settings = NapSettings(_("Nap settings"))
 
     class Meta:
@@ -924,7 +1019,7 @@ class Sleep(CreatedByMixin):
         validate_time(self.start, "start")
         validate_time(self.end, "end")
         validate_duration(self)
-        validate_unique_period(Sleep.objects.filter(child=self.child), self)
+        validate_unique_period(Sleep.objects.filter(child_id=self.child_id), self)
 
 
 class Temperature(MeasurementUnitMixin, CreatedByMixin):
@@ -944,7 +1039,7 @@ class Temperature(MeasurementUnitMixin, CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -960,6 +1055,7 @@ class Temperature(MeasurementUnitMixin, CreatedByMixin):
 
 
 class Timer(models.Model):
+    context = models.JSONField(default=dict, blank=True)
     model_name = "timer"
     child = models.ForeignKey(
         "Child",
@@ -989,7 +1085,7 @@ class Timer(models.Model):
         verbose_name=_("User"),
     )
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1062,6 +1158,9 @@ class Timer(models.Model):
 
     def clean(self):
         validate_time(self.start, "start")
+        from core.feeding import validate_timer_context
+
+        validate_timer_context(self.context)
 
 
 class TummyTime(CreatedByMixin):
@@ -1090,7 +1189,7 @@ class TummyTime(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1110,7 +1209,7 @@ class TummyTime(CreatedByMixin):
         validate_time(self.start, "start")
         validate_time(self.end, "end")
         validate_duration(self)
-        validate_unique_period(TummyTime.objects.filter(child=self.child), self)
+        validate_unique_period(TummyTime.objects.filter(child_id=self.child_id), self)
 
 
 class Weight(MeasurementUnitMixin, CreatedByMixin):
@@ -1134,7 +1233,7 @@ class Weight(MeasurementUnitMixin, CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1203,7 +1302,7 @@ class Medication(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         ordering = ["-time"]
@@ -1262,7 +1361,7 @@ class BathTime(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1307,7 +1406,7 @@ class Reflux(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1324,6 +1423,14 @@ class Reflux(CreatedByMixin):
 
 class Food(CreatedByMixin):
     model_name = "food"
+    feeding = models.ForeignKey(
+        "Feeding",
+        related_name="foods",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Feeding"),
+    )
     child = models.ForeignKey(
         "Child",
         on_delete=models.CASCADE,
@@ -1350,7 +1457,7 @@ class Food(CreatedByMixin):
     notes = models.TextField(blank=True, null=True, verbose_name=_("Notes"))
     tags = TaggableManager(blank=True, through=Tagged)
 
-    objects = models.Manager()
+    objects = ChildAccessManager()
 
     class Meta:
         default_permissions = ("view", "add", "change", "delete")
@@ -1363,6 +1470,12 @@ class Food(CreatedByMixin):
 
     def clean(self):
         validate_time(self.time, "time")
+        if self.feeding_id and (
+            self.child_id != self.feeding.child_id or self.time != self.feeding.start
+        ):
+            raise ValidationError(
+                _("Change this meal's child or time from its Feeding entry.")
+            )
 
 
 class WeightPercentile(models.Model):
@@ -1391,3 +1504,107 @@ class WeightPercentile(models.Model):
 
     def __str__(self):
         return f"Sex: {self.sex}, Age: {self.age_in_days} days, p3: {self.p3_weight} kg, p15: {self.p15_weight} kg, p50: {self.p50_weight} kg, p85: {self.p85_weight} kg, p97: {self.p97_weight} kg"
+
+
+class ActivityType(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    track_duration = models.BooleanField(_("Track duration"), default=False)
+    amount_label = models.CharField(_("Number field label"), max_length=80, blank=True)
+    amount_unit = models.CharField(_("Number unit"), max_length=20, blank=True)
+    choice_label = models.CharField(_("Dropdown label"), max_length=80, blank=True)
+    choice_options = models.TextField(_("Dropdown options (one per line)"), blank=True)
+    check_label = models.CharField(_("Yes/no field label"), max_length=80, blank=True)
+    text_label = models.CharField(_("Text field label"), max_length=80, blank=True)
+    archived = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def options(self):
+        return list(
+            dict.fromkeys(
+                v.strip() for v in self.choice_options.splitlines() if v.strip()
+            )
+        )
+
+    def clean(self):
+        if self.choice_label and not self.options():
+            raise ValidationError(
+                {"choice_options": _("Add at least one dropdown option.")}
+            )
+        if len(self.options()) > 50 or any(len(v) > 120 for v in self.options()):
+            raise ValidationError(
+                {
+                    "choice_options": _(
+                        "Use up to 50 options, each 120 characters or fewer."
+                    )
+                }
+            )
+
+
+class CustomActivity(CreatedByMixin):
+    model_name = "customactivity"
+    child = models.ForeignKey(
+        Child, on_delete=models.CASCADE, related_name="custom_activities"
+    )
+    activity_type = models.ForeignKey(ActivityType, on_delete=models.PROTECT)
+    start = models.DateTimeField(default=timezone.now)
+    end = models.DateTimeField(default=timezone.now)
+    amount = models.FloatField(null=True, blank=True)
+    choice = models.CharField(max_length=120, blank=True)
+    checked = models.BooleanField(default=False)
+    text = models.CharField(max_length=500, blank=True)
+    notes = models.TextField(blank=True)
+    objects = ChildAccessManager()
+
+    class Meta:
+        ordering = ["-start", "-pk"]
+
+    def __str__(self):
+        return str(self.activity_type)
+
+    def clean(self):
+        validate_time(self.start, "start")
+        validate_duration(self)
+        if self.activity_type_id:
+            if (
+                self.activity_type.archived
+                and not type(self)
+                .objects.filter(pk=self.pk, activity_type_id=self.activity_type_id)
+                .exists()
+            ):
+                raise ValidationError(
+                    {"activity_type": _("This activity type is archived.")}
+                )
+            allowed = self.activity_type.options()
+            if self.choice and self.choice not in allowed:
+                previous = (
+                    type(self).objects.filter(pk=self.pk, choice=self.choice).exists()
+                    if self.pk
+                    else False
+                )
+                if not previous:
+                    raise ValidationError({"choice": _("Choose a configured option.")})
+        import math
+
+        if self.amount is not None and not math.isfinite(self.amount):
+            raise ValidationError({"amount": _("Enter a finite number.")})
+
+
+class DeletionBatch(models.Model):
+    """A confirmed selection snapshot; each bounded step rechecks permissions."""
+
+    import uuid
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    model_name = models.CharField(max_length=80)
+    object_ids = models.JSONField(default=list)
+    position = models.PositiveIntegerField(default=0)
+    deleted = models.PositiveIntegerField(default=0)
+    skipped = models.PositiveIntegerField(default=0)
+    confirmed = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)

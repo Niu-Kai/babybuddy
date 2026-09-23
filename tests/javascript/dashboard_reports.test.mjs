@@ -335,7 +335,10 @@ test("static service worker fetches fresh controls and falls back to cached asse
     },
   };
   vm.runInNewContext(
-    fs.readFileSync("babybuddy/templates/babybuddy/sw.js", "utf8"),
+    fs
+      .readFileSync("babybuddy/templates/babybuddy/sw.js", "utf8")
+      .replaceAll("{% url 'babybuddy:root-router' %}", "/")
+      .replaceAll("{% get_static_prefix %}", "/static/"),
     context,
   );
   async function request() {
@@ -384,6 +387,7 @@ test("day comparison pages children together and keeps axes inside the viewport"
     fs.readFileSync("reports/static_src/js/day_comparison.js", "utf8"),
     {
       document: {
+        documentElement: { lang: "en-US" },
         querySelectorAll() {
           return grids;
         },
@@ -408,4 +412,201 @@ test("day comparison pages children together and keeps axes inside the viewport"
   assert.equal(grids[0].buttons["[data-day-next]"].disabled, true);
   grids[1].buttons["[data-day-previous]"].fire("click");
   assert.equal(grids[0].buttons["[data-day-next]"].disabled, false);
+});
+
+test("offline fallback never caches authenticated pages or intercepts API writes", async () => {
+  const callbacks = {},
+    stored = [];
+  const shell = { kind: "public offline shell" };
+  let disconnected = false,
+    serverDown = false,
+    matched = null;
+  const context = {
+    self: {
+      location: { origin: "http://localhost" },
+      addEventListener: (name, fn) => {
+        callbacks[name] = fn;
+      },
+      skipWaiting: async () => {},
+    },
+    URL,
+    Response,
+    caches: {
+      open: async () => ({ addAll: async (urls) => stored.push(...urls) }),
+      match: async (url) => {
+        matched = url;
+        return shell;
+      },
+    },
+    fetch: async () => {
+      if (disconnected) throw Error("network lost");
+      return { kind: "private page", status: serverDown ? 503 : 200 };
+    },
+  };
+  const source = fs
+    .readFileSync("babybuddy/templates/babybuddy/sw.js", "utf8")
+    .replaceAll("{% url 'babybuddy:root-router' %}", "/")
+    .replaceAll("{% get_static_prefix %}", "/static/")
+    .replaceAll("{% url 'babybuddy:entry-add' %}", "/offline/")
+    .replaceAll(
+      "{% url 'babybuddy:interface-catalog' LANGUAGE_CODE %}",
+      "/i18n/en-us/interface.js",
+    )
+    .replace(/\{% static '([^']+)' %\}/g, "/static/$1");
+  vm.runInNewContext(source, context);
+  let installed;
+  callbacks.install({
+    waitUntil: (promise) => {
+      installed = promise;
+    },
+  });
+  await installed;
+  assert.equal(stored.length, 4);
+  assert.ok(
+    stored.every(
+      (url) =>
+        url === "/offline/" ||
+        new URL(url, "http://localhost").pathname ===
+          "/i18n/en-us/interface.js" ||
+        url.startsWith("/static/"),
+    ),
+  );
+  async function request(method, url, mode) {
+    let response;
+    callbacks.fetch({
+      request: { method, url: "http://localhost" + url, mode },
+      respondWith: (promise) => {
+        response = promise;
+      },
+    });
+    return response;
+  }
+  assert.equal(
+    (await request("GET", "/timeline/", "navigate")).kind,
+    "private page",
+  );
+  assert.equal(matched, null);
+  serverDown = true;
+  assert.equal(await request("GET", "/timeline/", "navigate"), shell);
+  serverDown = false;
+  disconnected = true;
+  assert.equal(await request("GET", "/timeline/", "navigate"), shell);
+  assert.equal(matched, "/offline/");
+  assert.equal(await request("POST", "/api/offline-sync", "cors"), undefined);
+  assert.equal(await request("GET", "/api/children/", "cors"), undefined);
+});
+
+test("pull-to-refresh stays off on forms after page navigation and when zoomed", () => {
+  const source = fs.readFileSync(
+    "babybuddy/static_src/js/babybuddy.js",
+    "utf8",
+  );
+  const start = source.indexOf("BabyBuddy.PullToRefresh =");
+  const end =
+    source.indexOf(")(PullToRefresh);", start) + ")(PullToRefresh);".length;
+  let config,
+    onForm = true;
+  const window = { scrollY: 0, visualViewport: { scale: 1 } };
+  const BabyBuddy = {};
+  vm.runInNewContext(source.slice(start, end), {
+    BabyBuddy,
+    window,
+    document: { querySelector: () => (onForm ? {} : null) },
+    PullToRefresh: {
+      init: (value) => {
+        config = value;
+      },
+    },
+  });
+  BabyBuddy.PullToRefresh.init();
+  assert.equal(config.shouldPullToRefresh(), false);
+  onForm = false;
+  assert.equal(config.shouldPullToRefresh(), true);
+  window.visualViewport.scale = 2;
+  assert.equal(config.shouldPullToRefresh(), false);
+  window.visualViewport.scale = 1;
+  window.scrollY = 10;
+  assert.equal(config.shouldPullToRefresh(), false);
+  window.scrollY = 0;
+  onForm = true;
+  assert.equal(config.shouldPullToRefresh(), false);
+});
+
+test("subpath worker leaves sibling apps and their caches alone", async () => {
+  const callbacks = {},
+    deleted = [];
+  const scope = "/apps/baby/";
+  const prefix = "babybuddy-static-" + encodeURIComponent(scope) + "-";
+  const source = fs
+    .readFileSync("babybuddy/templates/babybuddy/sw.js", "utf8")
+    .replaceAll("{% url 'babybuddy:root-router' %}", scope)
+    .replaceAll("{% get_static_prefix %}", scope + "static/")
+    .replaceAll("{% url 'babybuddy:entry-add' %}", scope + "offline/");
+  vm.runInNewContext(source, {
+    URL,
+    Response,
+    encodeURIComponent,
+    self: {
+      location: { origin: "http://localhost" },
+      clients: { claim: async () => {} },
+      addEventListener: (name, callback) => {
+        callbacks[name] = callback;
+      },
+    },
+    caches: {
+      keys: async () => [
+        prefix + "v1",
+        "babybuddy-static-%2Fother%2F-v1",
+        "photos-cache",
+      ],
+      delete: async (key) => {
+        deleted.push(key);
+      },
+      match: async () => "offline-shell",
+    },
+    fetch: async () => {
+      throw Error("offline");
+    },
+  });
+  let work;
+  callbacks.activate({
+    waitUntil: (promise) => {
+      work = promise;
+    },
+  });
+  await work;
+  assert.deepEqual(deleted, [prefix + "v1"]);
+  for (const path of [
+    "/photos/",
+    "/other/static/app.js",
+    scope + "api/children/",
+  ]) {
+    let intercepted = false;
+    callbacks.fetch({
+      request: {
+        method: "GET",
+        url: "http://localhost" + path,
+        mode:
+          path.includes("static") || path.includes("api/")
+            ? "cors"
+            : "navigate",
+      },
+      respondWith: () => {
+        intercepted = true;
+      },
+    });
+    assert.equal(intercepted, false, path);
+  }
+  let fallback;
+  callbacks.fetch({
+    request: {
+      method: "GET",
+      url: "http://localhost" + scope + "timeline/",
+      mode: "navigate",
+    },
+    respondWith: (promise) => {
+      fallback = promise;
+    },
+  });
+  assert.equal(await fallback, "offline-shell");
 });

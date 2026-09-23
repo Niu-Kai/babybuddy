@@ -13,6 +13,7 @@ nav:
       - "setup/deployment.md"
       - "setup/ssl.md"
       - "setup/subdirectory.md"
+      - "setup/updating.md"
       - "setup/proxy.md"
   - "Configuration":
       - "configuration/intro.md"
@@ -27,6 +28,7 @@ nav:
       - "user-guide/managing-users.md"
       - "user-guide/adding-entries.md"
       - "user-guide/using-timers.md"
+      - "user-guide/upstream-followup.md"
   - "Contributing":
       - "contributing/development-environment.md"
       - "contributing/translation.md"
@@ -34,6 +36,7 @@ nav:
       - "contributing/gulp-command-reference.md"
   - "import-export.md"
   - "api.md"
+  - "development/device-qr.md"
   - "mcp.md"
 theme:
   name: material

@@ -8,6 +8,7 @@
       data-bs-theme="{% if user.is_authenticated and user.settings.theme == 'light' %}light{% else %}dark{% endif %}"
       dir="{{ LANGUAGE_BIDI|yesno:"rtl,ltr" }}">
     <head>
+        {% include "babybuddy/view_transitions.html" %}
         <meta charset="utf-8" />
         <style>
             html { color-scheme: dark; background: #0d1117; }
@@ -56,7 +57,7 @@
               href="{% static "babybuddy/root/favicon.svg" %}?v=20210925" />
         <link rel="manifest"
               crossorigin="use-credentials"
-              href="{% static "babybuddy/root/site.webmanifest" %}?v=20211225" />
+              href="{% url 'babybuddy:manifest' %}" />
         <link rel="mask-icon"
               href="{% static "babybuddy/root/safari-pinned-tab.svg" %}?v=20211218"
               color="#37abe9" />
@@ -80,12 +81,24 @@
         {% block nav %}{% endblock %}
         {% block breadcrumb_nav %}{% endblock %}
         {% block page %}{% endblock %}
+        {% if user.is_authenticated %}
+            <div id="offline-sync-config"
+                 hidden
+                 data-user="{{ user.pk }}"
+                 data-worker="{% url 'babybuddy:service-worker' %}"
+                 data-settings="{% url 'babybuddy:user-settings' %}#device-sync"
+                 data-entry="{% url 'babybuddy:entry-add' %}"
+                 data-context="{% url 'api:offline-context' %}"
+                 data-sync="{% url 'api:offline-sync' %}"
+                 data-scope="{% url 'babybuddy:root-router' %}"></div>
+        {% endif %}
         <script src="{% static "babybuddy/js/vendor.js" %}"></script>
+        <script src="{% url 'babybuddy:interface-catalog' LANGUAGE_CODE %}?v=20260922-catalogs"></script>
         <script src="{% static "babybuddy/js/app.js" %}?v=20260921-shared-inventory"></script>
         {% if user.is_authenticated %}<script>BabyBuddy.PullToRefresh.init()</script>{% endif %}
         <script>
             if ("serviceWorker" in navigator) {
-                navigator.serviceWorker.register("{% url 'babybuddy:service-worker' %}", { scope: "/" }).catch(function () {});
+                navigator.serviceWorker.register("{% url 'babybuddy:service-worker' %}", { scope: "{% url 'babybuddy:root-router' %}" }).catch(function () {});
             }
         </script>
         {% block javascript %}{% endblock %}

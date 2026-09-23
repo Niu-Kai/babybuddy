@@ -91,7 +91,7 @@ def movement(item, change, entry, note, using):
 
 
 def saved(sender, instance, created, raw=False, using="default", **kwargs):
-    if raw:
+    if raw or getattr(instance, "_historical_import", False):
         return
     usage = (
         DiaperStockUsage.objects.using(using)

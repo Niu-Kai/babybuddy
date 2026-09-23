@@ -1,0 +1,90 @@
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}{% get_current_language_bidi as LANGUAGE_BIDI %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}"
+      dir="{{ LANGUAGE_BIDI|yesno:'rtl,ltr' }}"
+      data-bs-theme="dark">
+    <head>
+        {% include "babybuddy/view_transitions.html" %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>{% trans "Add entry" %} · Baby Buddy</title>
+        <link rel="stylesheet" href="{% static 'babybuddy/css/app.css' %}">
+    </head>
+    <body>
+        <main class="container py-4"
+              id="offline-log"
+              data-context="{% url 'api:offline-context' %}"
+              data-sync="{% url 'api:offline-sync' %}"
+              data-scope="{% url 'babybuddy:root-router' %}"
+              data-worker="{% url 'babybuddy:service-worker' %}">
+            <a href="{% url 'dashboard:dashboard' %}">{% trans "Back to Baby Buddy" %}</a>
+            <h1 class="text-center">{% trans "Add entry" %}</h1>
+            <p id="offline-status" role="status">{% trans "Connecting…" %}</p>
+            <div id="offline-enable">
+                <p>{% trans "Enable on a private device to save care entries without a connection. Pending entries and child names stay on this device until synced or cleared." %}</p>
+                <a class="btn btn-primary"
+                   href="{% url 'babybuddy:user-settings' %}#device-sync">{% trans "Settings" %}</a>
+            </div>
+            <form id="offline-entry" class="card p-4 my-3" hidden>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="offline-activity">{% trans "Activity" %}</label>
+                        <select id="offline-activity" class="form-select"></select>
+                    </div>
+                    <div class="col-md-6" id="offline-child-wrap">
+                        <label class="form-label" for="offline-child">{% trans "Child" %}</label>
+                        <select id="offline-child" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="offline-date">{% trans "Date" %}</label>
+                        <input id="offline-date" class="form-control" type="date" required>
+                    </div>
+                    <div class="col-md-4" id="offline-time-wrap">
+                        <label class="form-label" for="offline-time">{% trans "Time" %}</label>
+                        <input id="offline-time" class="form-control" type="time" step="60" required>
+                    </div>
+                    <div class="col-md-4" id="offline-occurrence-wrap" hidden>
+                        <label for="offline-occurrence">{% trans "Which occurrence?" %}</label>
+                        <select id="offline-occurrence" class="form-select"></select>
+                    </div>
+                    <div class="col-md-4" id="offline-duration-wrap">
+                        <label class="form-label" for="offline-duration">{% trans "Duration (minutes)" %}</label>
+                        <input id="offline-duration"
+                               class="form-control"
+                               type="number"
+                               min="0"
+                               max="1440"
+                               step="any"
+                               value="0">
+                    </div>
+                    <div class="col-12" id="offline-fields"></div>
+                    <div class="col-md-6" id="offline-unit-wrap">
+                        <label class="form-label" for="offline-unit">{% trans "Entry unit" %}</label>
+                        <select id="offline-unit" class="form-select"></select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary">{% trans "Save entry" %}</button>
+                    <button type="button"
+                            class="btn btn-outline-primary"
+                            id="offline-start-timer">{% trans "Start timer" %}</button>
+                </div>
+            </form>
+            <p><a href="{% url 'babybuddy:user-settings' %}#device-sync">{% trans "Settings" %}</a></p>
+            <section id="offline-timers-section" hidden>
+                <h2 class="h4">{% trans "Timers on this device" %}</h2>
+                <div id="offline-timers"></div>
+            </section>
+            <h2 class="h4" id="pending-entries">{% trans "Pending entries" %}</h2>
+            <div id="offline-queue"></div>
+            <section id="offline-history-section" class="mt-4" hidden>
+                <h2 class="h4">{% trans "Recent entries" %}</h2>
+                <p class="text-body-secondary">{% trans "Last updated" %}: <span id="offline-history-time"></span></p>
+                <p class="text-body-secondary">{% trans "Last 7 days · up to 200 entries" %}</p>
+                <div id="offline-history"></div>
+            </section>
+        </main>
+        <script src="{% url 'babybuddy:interface-catalog' LANGUAGE_CODE %}?v=20260922-partial"></script>
+        <script src="{% static 'babybuddy/js/offline.js' %}"></script>
+    </body>
+</html>

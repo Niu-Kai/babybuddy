@@ -15,6 +15,8 @@ class HouseholdPumpingTests(TestCase):
         self.user = get_user_model().objects.create_user(
             "household-pumping", is_superuser=True
         )
+        self.user.settings.timezone = timezone.get_current_timezone_name()
+        self.user.settings.save(update_fields=["timezone"])
         self.client.force_login(self.user)
         self.now = timezone.now().replace(second=0, microsecond=0)
         self.a = models.Child.objects.create(
@@ -45,13 +47,12 @@ class HouseholdPumpingTests(TestCase):
     def test_web_create_without_child_and_preserve_legacy_on_edit(self):
         form = PumpingForm(user=self.user)
         self.assertNotIn("child", form.fields)
+        start = timezone.localtime(self.now - timedelta(minutes=30))
         response = self.client.post(
             reverse("core:pumping-add"),
             {
-                "appointment_date": timezone.localdate(self.now).isoformat(),
-                "start_time": timezone.localtime(
-                    self.now - timedelta(minutes=30)
-                ).strftime("%H:%M"),
+                "appointment_date": start.date().isoformat(),
+                "start_time": start.strftime("%H:%M"),
                 "duration_minutes": 10,
                 "amount": 2,
                 "entry_unit": "fl oz",

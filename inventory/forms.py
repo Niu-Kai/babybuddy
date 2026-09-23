@@ -2,6 +2,7 @@ import uuid
 from django import forms
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from babybuddy.widgets import DateInput
 from .models import (
     StockItem,
@@ -13,7 +14,7 @@ from .models import (
 
 class ItemForm(forms.ModelForm):
     starting_quantity = forms.DecimalField(
-        label="Quantity on hand",
+        label=_("Quantity on hand"),
         min_value=0,
         max_digits=12,
         decimal_places=3,
@@ -37,13 +38,20 @@ class ItemForm(forms.ModelForm):
             "size": forms.TextInput(
                 attrs={
                     "list": "diaper-sizes",
-                    "placeholder": "Choose a package weight range or type a size",
+                    "placeholder": _("Choose a package weight range or type a size"),
                 }
             ),
             "expiration_date": DateInput(),
             "notes": forms.Textarea(attrs={"rows": 2}),
         }
-        labels = {"unit": "Stock unit"}
+        labels = {
+            "name": _("Name"),
+            "category": _("Category"),
+            "size": _("Size"),
+            "stage": _("Stage"),
+            "unit": _("Stock unit"),
+            "notes": _("Notes"),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -59,13 +67,13 @@ class ItemForm(forms.ModelForm):
             and cleaned.get("unit") not in {"mL", "fl oz", "g", "oz"}
             and value != value.to_integral_value()
         ):
-            self.add_error("starting_quantity", "Use a whole number for this unit.")
+            self.add_error("starting_quantity", _("Use a whole number for this unit."))
         return cleaned
 
     def sections(self):
         groups = [
             (
-                "Item",
+                _("Item"),
                 [
                     "name",
                     "category",
@@ -76,7 +84,7 @@ class ItemForm(forms.ModelForm):
                 ],
             ),
             (
-                "Optional details",
+                _("Optional details"),
                 ["expiration_date", "min_age_months", "max_age_months", "notes"],
             ),
         ]
@@ -88,28 +96,33 @@ class ItemForm(forms.ModelForm):
 
 class MovementForm(forms.Form):
     action = forms.ChoiceField(
-        choices=[("use", "Use stock"), ("add", "Restock"), ("set", "Correct count")]
+        label=_("Action"),
+        choices=[
+            ("use", _("Use stock")),
+            ("add", _("Restock")),
+            ("set", _("Correct count")),
+        ],
     )
     amount = forms.DecimalField(min_value=0, max_digits=12, decimal_places=3)
-    note = forms.CharField(required=False, max_length=160)
+    note = forms.CharField(label=_("Note"), required=False, max_length=160)
     token = forms.UUIDField(widget=forms.HiddenInput, initial=uuid.uuid4)
 
     def __init__(self, *args, item, **kwargs):
         self.item = item
         super().__init__(*args, **kwargs)
-        self.fields["amount"].label = f"Quantity ({item.unit})"
+        self.fields["amount"].label = _("Quantity (%(unit)s)") % {"unit": item.unit}
 
     def clean(self):
         cleaned = super().clean()
         amount = cleaned.get("amount")
         if amount is not None:
             if cleaned.get("action") != "set" and amount <= 0:
-                self.add_error("amount", "Enter a quantity greater than zero.")
+                self.add_error("amount", _("Enter a quantity greater than zero."))
             if (
                 self.item.unit not in {"mL", "fl oz", "g", "oz"}
                 and amount != amount.to_integral_value()
             ):
-                self.add_error("amount", "Use a whole number for this unit.")
+                self.add_error("amount", _("Use a whole number for this unit."))
         return cleaned
 
     @transaction.atomic
@@ -122,14 +135,14 @@ class MovementForm(forms.Form):
         previous = StockMovement.objects.filter(token=data["token"]).first()
         if previous:
             if previous.item_id != item.pk:
-                raise ValidationError("This stock update has already been used.")
+                raise ValidationError(_("This stock update has already been used."))
             return
         if item.archived:
-            raise ValidationError("Restore this item before changing stock.")
+            raise ValidationError(_("Restore this item before changing stock."))
         amount, action = data["amount"], data["action"]
         if action == "add" and item.expired:
             raise ValidationError(
-                "This batch is expired. Add a new inventory item for the new batch."
+                _("This batch is expired. Add a new inventory item for the new batch.")
             )
         change = (
             amount
@@ -138,10 +151,10 @@ class MovementForm(forms.Form):
         )
         if item.quantity + change < 0:
             raise ValidationError(
-                "There is not enough stock. Correct the count if needed."
+                _("There is not enough stock. Correct the count if needed.")
             )
         if item.quantity + change > 999999999:
-            raise ValidationError("The resulting quantity is too large.")
+            raise ValidationError(_("The resulting quantity is too large."))
         updated = StockItem.objects.filter(pk=item.pk, quantity=item.quantity).update(
             quantity=F("quantity") + change,
             snoozed_until=None,
@@ -149,7 +162,7 @@ class MovementForm(forms.Form):
         )
         if not updated:
             raise ValidationError(
-                "Stock changed while you were editing. Refresh and try again."
+                _("Stock changed while you were editing. Refresh and try again.")
             )
         StockMovement.objects.create(
             item=item,
@@ -164,7 +177,7 @@ class MovementForm(forms.Form):
 
 class DiaperSupplyChoice(forms.ModelChoiceField):
     def label_from_instance(self, item):
-        size = item.size or "Size not set"
+        size = item.size or _("Size not set")
         return f"{item.name} · {size} · {item.quantity:g} {item.unit}"
 
 
@@ -172,8 +185,8 @@ class SizeForm(forms.ModelForm):
     diaper_stock = DiaperSupplyChoice(
         queryset=StockItem.objects.none(),
         required=False,
-        label="Diaper supply",
-        empty_label="Automatic — matching size or age range",
+        label=_("Diaper supply"),
+        empty_label=_("Automatic — matching size or age range"),
     )
 
     def __init__(self, *args, **kwargs):
@@ -194,7 +207,7 @@ class SizeForm(forms.ModelForm):
         if item and not supply_available(item):
             self.add_error(
                 "diaper_stock",
-                "Choose an available diaper supply.",
+                _("Choose an available diaper supply."),
             )
         if item and "diaper_stock" not in self.errors:
             cleaned["diaper_size"] = item.size
@@ -203,13 +216,73 @@ class SizeForm(forms.ModelForm):
     class Meta:
         model = ChildSupplyProfile
         fields = ["diaper_size", "auto_deduct_diapers", "diaper_stock", "clothing_size"]
-        labels = {"diaper_size": "Diaper size / weight range"}
+        labels = {
+            "diaper_size": _("Diaper size / weight range"),
+            "clothing_size": _("Clothing size"),
+        }
         widgets = {
             "diaper_size": forms.TextInput(
                 attrs={
                     "list": "diaper-sizes",
-                    "placeholder": "Choose a package weight range or type a size",
+                    "placeholder": _("Choose a package weight range or type a size"),
                 }
             ),
             "clothing_size": forms.TextInput(attrs={"list": "clothing-sizes"}),
+        }
+
+
+class EquipmentForm(forms.ModelForm):
+    hide_field_help = True
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        from core.access import scoped
+        from core.models import Child
+
+        self.fields["children"].queryset = scoped(Child.objects.all(), self.user)
+        # Preserve assignments the editor is not allowed to view.
+        from core.access import unscoped
+
+        with unscoped():
+            self.hidden_children = (
+                list(
+                    self.instance.children.exclude(
+                        pk__in=self.fields["children"].queryset
+                    ).values_list("pk", flat=True)
+                )
+                if self.instance.pk
+                else []
+            )
+
+    def _save_m2m(self):
+        super()._save_m2m()
+        if self.hidden_children:
+            self.instance.children.add(*self.hidden_children)
+
+    class Meta:
+        from .models import Equipment
+
+        model = Equipment
+        fields = [
+            "name",
+            "children",
+            "weight_limit",
+            "weight_unit",
+            "height_limit",
+            "height_unit",
+            "instructions",
+            "manual_review",
+            "archived",
+        ]
+        labels = {
+            "name": _("Name"),
+            "children": _("Children"),
+            "weight_unit": _("Weight unit"),
+            "height_unit": _("Height unit"),
+            "archived": _("Archived"),
+        }
+        widgets = {
+            "children": forms.CheckboxSelectMultiple,
+            "instructions": forms.Textarea(attrs={"rows": 3}),
         }

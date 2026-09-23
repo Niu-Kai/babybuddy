@@ -1,0 +1,13 @@
+{% load i18n %}
+{% if not form.top_up_enabled.is_hidden %}
+    <fieldset class="top-up-fields border rounded p-3 mb-3" data-top-up>
+        <legend class="float-none w-auto px-2 h5">{% trans "Top-up bottle" %}</legend>
+        {% for field in fieldset.fields %}
+            {% if field.name == "top_up_enabled" %}
+                <div class="mb-3">{% include "babybuddy/form_field_no_label.html" %}</div>
+            {% else %}
+                <div data-top-up-detail>{% include "babybuddy/form_field.html" %}</div>
+            {% endif %}
+        {% endfor %}
+    </fieldset>
+{% endif %}

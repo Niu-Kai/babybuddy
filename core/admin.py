@@ -12,6 +12,18 @@ from core import models
 
 
 class ExportActionMixin(BaseExportActionMixin):
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        from core.batch_delete import EXCLUDED, start_batch
+
+        if "delete_selected" in actions and self.model._meta.model_name not in EXCLUDED:
+            actions["delete_selected"] = (
+                start_batch,
+                "delete_selected",
+                start_batch.short_description,
+            )
+        return actions
+
     def get_export_data(self, file_format, request, queryset, **kwargs):
         content = super().get_export_data(file_format, request, queryset, **kwargs)
         if file_format.get_title() in {"csv", "tsv"}:

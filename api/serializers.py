@@ -25,6 +25,18 @@ class CoreModelSerializer(serializers.HyperlinkedModelSerializer):
         source="created_by_display", read_only=True, required=False
     )
 
+    def get_fields(self):
+        from core.access import scoped
+
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request:
+            for name in ("child", "timer"):
+                field = fields.get(name)
+                if field is not None and field.queryset is not None:
+                    field.queryset = scoped(field.queryset, request.user)
+        return fields
+
     def create(self, validated_data):
         # Record who added the entry (#900).
         request = self.context.get("request")
@@ -96,9 +108,13 @@ class CoreModelWithDurationSerializer(CoreModelSerializer):
             if timer.child and self.Meta.model is not models.Pumping:
                 attrs["child"] = timer.child
 
+            if timer.context.get("activity") == self.Meta.model._meta.model_name:
+                for key in ("type", "method"):
+                    if key in timer.context:
+                        attrs.setdefault(key, timer.context[key])
             # Overwrites values provided directly!
             attrs["start"] = timer.start
-            attrs["end"] = timezone.now()
+            attrs["end"] = timer.start + timer.duration()
 
         # The "child", "start", and "end" field should all be set at this
         # point. If one is not, model validation will fail because they are
@@ -115,6 +131,10 @@ class CoreModelWithDurationSerializer(CoreModelSerializer):
             if len(errors) > 0:
                 raise ValidationError(errors)
 
+        if self.Meta.model is models.Feeding:
+            for field in ("type", "method"):
+                if not attrs.get(field, getattr(self.instance, field, None)):
+                    raise ValidationError({field: "This field is required."})
         attrs = super().validate(attrs)
 
         self.timer = timer
@@ -161,6 +181,29 @@ class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
     # Retained for older API clients; new sessions belong to the household.
     child = serializers.PrimaryKeyRelatedField(read_only=True)
 
+    amount = serializers.FloatField(required=False)
+
+    def validate(self, attrs):
+        from copy import copy
+        from core.pumping import set_pumping_total
+
+        entry = copy(self.instance) if self.instance else models.Pumping(amount=None)
+        for name in ("amount", "left_amount", "right_amount"):
+            if name in attrs:
+                setattr(entry, name, attrs[name])
+        if (
+            self.instance
+            and "amount" in attrs
+            and not {"left_amount", "right_amount"}.intersection(attrs)
+        ):
+            entry.left_amount = entry.right_amount = None
+            attrs.update(left_amount=None, right_amount=None)
+        set_pumping_total(entry)
+        attrs["amount"] = entry.amount
+        if entry.left_amount is not None or entry.right_amount is not None:
+            attrs["side"] = entry.side
+        return super().validate(attrs)
+
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Pumping
         fields = (
@@ -168,6 +211,8 @@ class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
             "id",
             "child",
             "amount",
+            "left_amount",
+            "right_amount",
             "side",
             "start",
             "end",
@@ -179,6 +224,15 @@ class PumpingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
 
 
 class ChildSerializer(serializers.HyperlinkedModelSerializer):
+    def validate_picture(self, value):
+        from core.photos import prepare_photo
+        from django.core.exceptions import ValidationError as PhotoError
+
+        try:
+            return prepare_photo(value)
+        except PhotoError as error:
+            raise serializers.ValidationError(error.messages)
+
     class Meta:
         model = models.Child
         fields = (
@@ -211,10 +265,88 @@ class DiaperChangeSerializer(CoreModelSerializer, TaggableSerializer):
         )
 
 
+class MealFoodListField(serializers.ListField):
+    def to_representation(self, value):
+        return [
+            {"id": food.pk, "name": food.name, "reaction": food.reaction or ""}
+            for food in value.all()
+        ]
+
+
 class FeedingSerializer(CoreModelWithDurationSerializer, TaggableSerializer):
+    foods = MealFoodListField(
+        child=serializers.DictField(), required=False, max_length=20
+    )
+
+    def get_fields(self):
+        fields = super().get_fields()
+        request = self.context.get("request")
+        if request and not request.user.has_perm("core.view_food"):
+            fields.pop("foods", None)
+        return fields
+
+    def validate(self, attrs):
+        from copy import copy
+        from core.meal_foods import normalize_foods, validate_meal_foods
+
+        from core.top_ups import TOP_UP_FIELDS
+
+        if self.instance and not self.partial:
+            for field in TOP_UP_FIELDS:
+                attrs.setdefault(field, getattr(self.instance, field))
+        supplied = attrs.pop("foods", None)
+        attrs = super().validate(attrs)
+        meal = copy(self.instance) if self.instance else models.Feeding()
+        for key in ("type", "secondary_type"):
+            if key in attrs:
+                setattr(meal, key, attrs[key])
+        if supplied is not None:
+            self.meal_foods = normalize_foods(supplied)
+            validate_meal_foods(meal, self.meal_foods, self.context["request"].user)
+        elif (
+            meal.pk
+            and meal.foods.exists()
+            and "solid food" not in (meal.type, meal.secondary_type)
+        ):
+            raise ValidationError(
+                {
+                    "foods": "Remove the foods before changing this meal to a liquid feeding."
+                }
+            )
+        return attrs
+
+    def create(self, validated_data):
+        from core.meal_foods import save_meal_foods
+
+        instance = super().create(validated_data)
+        if hasattr(self, "meal_foods"):
+            save_meal_foods(instance, self.meal_foods, self.context["request"].user)
+        return instance
+
+    def update(self, instance, validated_data):
+        from core.meal_foods import save_meal_foods
+
+        instance = super().update(instance, validated_data)
+        if hasattr(self, "meal_foods"):
+            save_meal_foods(instance, self.meal_foods, self.context["request"].user)
+        return instance
+
+    type = serializers.ChoiceField(
+        choices=models.Feeding._meta.get_field("type").choices, required=False
+    )
+    method = serializers.ChoiceField(
+        choices=models.Feeding._meta.get_field("method").choices, required=False
+    )
+
     class Meta(CoreModelWithDurationSerializer.Meta):
         model = models.Feeding
         fields = (
+            "top_up_at",
+            "top_up_type",
+            "top_up_amount",
+            "top_up_secondary_type",
+            "top_up_secondary_amount",
+            "foods",
             "secondary_type",
             "secondary_amount",
             "last_breast",
@@ -346,7 +478,16 @@ class TimerSerializer(CoreModelSerializer):
 
     class Meta:
         model = models.Timer
-        fields = ("id", "child", "name", "start", "duration", "paused", "user")
+        fields = (
+            "id",
+            "child",
+            "name",
+            "start",
+            "duration",
+            "paused",
+            "user",
+            "context",
+        )
 
     def validate(self, attrs):
         attrs = super(TimerSerializer, self).validate(attrs)
@@ -473,9 +614,12 @@ class RefluxSerializer(CoreModelSerializer, TaggableSerializer):
 
 
 class FoodSerializer(CoreModelSerializer, TaggableSerializer):
+    feeding = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = models.Food
         fields = (
+            "feeding",
             "created_by",
             "id",
             "child",
@@ -485,4 +629,26 @@ class FoodSerializer(CoreModelSerializer, TaggableSerializer):
             "reaction",
             "notes",
             "tags",
+        )
+
+
+class CustomActivitySerializer(CoreModelWithDurationSerializer):
+    activity_type = serializers.PrimaryKeyRelatedField(
+        queryset=models.ActivityType.objects.all()
+    )
+
+    class Meta(CoreModelWithDurationSerializer.Meta):
+        model = models.CustomActivity
+        fields = (
+            "id",
+            "child",
+            "activity_type",
+            "start",
+            "end",
+            "amount",
+            "choice",
+            "checked",
+            "text",
+            "notes",
+            "created_by",
         )

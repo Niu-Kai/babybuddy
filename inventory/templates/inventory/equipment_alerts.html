@@ -1,0 +1,2 @@
+{% load i18n %}
+{% if equipment_alerts %}<div class="alert alert-warning" role="status"><strong>{% trans "Equipment needs review" %}</strong>{% for alert in equipment_alerts %}<div><a href="{% url 'inventory:equipment' %}">{{ alert.item.name }}</a> · {{ alert.result.child }} · {{ alert.result.status }}</div>{% endfor %}</div>{% endif %}

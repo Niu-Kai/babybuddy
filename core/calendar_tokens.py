@@ -30,6 +30,10 @@ def feed_user(value, child):
     user = get_user_model().objects.filter(pk=int(match[1]), is_active=True).first()
     if not user or access_expired(user) or not user.has_perm("core.view_appointment"):
         return None
+    from core.access import can_access
+
+    if not can_access(user, child.pk):
+        return None
     key = Token.objects.filter(user=user).first()
     if key and constant_time_compare(value, _token(user.pk, child.pk, key.key)):
         return user

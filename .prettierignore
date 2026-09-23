@@ -3,3 +3,12 @@ vendor
 *.html
 *.css
 *.scss
+# Generated local translation audit reports.
+data/i18n-audit.json
+data/*-i18n-audit.json
+data/localization-coverage.json
+data/translation-drafts-*.json
+data/translation-originals/
+
+# Private database, offline translation tools and generated review artifacts.
+data/

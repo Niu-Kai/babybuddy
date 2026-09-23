@@ -8,9 +8,19 @@ from django.utils.translation import gettext_lazy as _
 
 from .models import DASHBOARD_CARDS, Settings, timezone_choices
 from .widgets import DateInput
+from core.models import Child
 
 
 class BabyBuddyUserForm(forms.ModelForm):
+    restrict_children = forms.BooleanField(
+        required=False, label=_("Restrict to selected children")
+    )
+    allowed_children = forms.ModelMultipleChoiceField(
+        queryset=Child.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label=_("Allowed children"),
+    )
     is_read_only = forms.BooleanField(
         required=False,
         label=_("Read only"),
@@ -22,7 +32,7 @@ class BabyBuddyUserForm(forms.ModelForm):
         help_text=_(
             "Allows adding and editing care entries (feedings, diaper changes, "
             "sleep, timers, medication, temperature, weight, notes and tummy "
-            "time) for every child. Cannot delete entries or reach pumping, "
+            "time) for allowed children. Cannot delete entries or reach pumping, "
             "height, BMI, head circumference, user management or settings."
         ),
     )
@@ -45,6 +55,8 @@ class BabyBuddyUserForm(forms.ModelForm):
             "is_caregiver",
             "is_active",
             "access_expires",
+            "restrict_children",
+            "allowed_children",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -80,6 +92,8 @@ class BabyBuddyUserForm(forms.ModelForm):
                         name=settings.BABY_BUDDY["CAREGIVER_GROUP_NAME"]
                     ).exists(),
                     "access_expires": user.settings.access_expires,
+                    "restrict_children": user.settings.restrict_children,
+                    "allowed_children": user.settings.allowed_children.all(),
                 }
             )
         super(BabyBuddyUserForm, self).__init__(*args, **kwargs)
@@ -112,6 +126,18 @@ class BabyBuddyUserForm(forms.ModelForm):
                 "is_caregiver",
                 _("A user cannot be both staff and caregiver."),
             )
+        if cleaned_data.get("restrict_children") and (
+            cleaned_data.get("is_staff")
+            or not (
+                cleaned_data.get("is_read_only") or cleaned_data.get("is_caregiver")
+            )
+        ):
+            self.add_error(
+                "restrict_children",
+                _(
+                    "Use a caregiver or read-only account without staff access for child restrictions."
+                ),
+            )
         return cleaned_data
 
     def save(self, commit=True):
@@ -125,7 +151,13 @@ class BabyBuddyUserForm(forms.ModelForm):
         if commit:
             user.save()
             user.settings.access_expires = self.cleaned_data.get("access_expires")
-            user.settings.save(update_fields=["access_expires"])
+            user.settings.restrict_children = self.cleaned_data.get(
+                "restrict_children", False
+            )
+            user.settings.save(update_fields=["access_expires", "restrict_children"])
+            user.settings.allowed_children.set(
+                self.cleaned_data.get("allowed_children", [])
+            )
         readonly_group = Group.objects.get(
             name=settings.BABY_BUDDY["READ_ONLY_GROUP_NAME"]
         )
@@ -163,6 +195,20 @@ class UserPasswordForm(PasswordChangeForm):
 
 
 class UserSettingsForm(forms.ModelForm):
+    from core.feature_preferences import OPTIONAL_FIELDS, activity_choices
+
+    shown_activities = forms.MultipleChoiceField(
+        required=False,
+        choices=activity_choices,
+        widget=forms.CheckboxSelectMultiple,
+        label=_("Activities to show"),
+    )
+    shown_entry_fields = forms.MultipleChoiceField(
+        required=False,
+        choices=[(key, value[0]) for key, value in OPTIONAL_FIELDS.items()],
+        widget=forms.CheckboxSelectMultiple,
+        label=_("Optional fields to show"),
+    )
     hide_field_help = True
     unit_fields = ("liquid_unit", "length_unit", "weight_unit", "temperature_unit")
     timezone = forms.ChoiceField(label=_("Timezone"))
@@ -176,6 +222,15 @@ class UserSettingsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["timezone"].choices = timezone_choices()
+        for shown, hidden in (
+            ("shown_activities", "hidden_activities"),
+            ("shown_entry_fields", "hidden_entry_fields"),
+        ):
+            self.initial[shown] = [
+                key
+                for key, _label in self.fields[shown].choices
+                if key not in (getattr(self.instance, hidden) or [])
+            ]
         self.fields["dashboard_refresh_rate"].label = _("Refresh dashboard")
         self.fields["pagination_count"].label = _("Entries per page")
         # Older clients may not send a theme; keep the default rather than fail.
@@ -198,6 +253,23 @@ class UserSettingsForm(forms.ModelForm):
         return self.cleaned_data.get("theme") or "dark"
 
     def save(self, commit=True):
+        # The marker distinguishes "show nothing" from older clients that do
+        # not submit these preferences at all. Keep the existing stored format.
+        for shown, hidden in (
+            ("shown_activities", "hidden_activities"),
+            ("shown_entry_fields", "hidden_entry_fields"),
+        ):
+            if self.data.get("entry_preferences_present") == "1":
+                selected = set(self.cleaned_data[shown])
+                setattr(
+                    self.instance,
+                    hidden,
+                    [
+                        key
+                        for key, _label in self.fields[shown].choices
+                        if key not in selected
+                    ],
+                )
         # The checkbox list is absent from the POST both when every card is
         # unchecked and when a client never sent it; a marker tells them apart.
         if self.data.get("dashboard_cards_present"):

@@ -1,2 +1,3 @@
-{% if inventory_reminders %}<div class="inventory-reminder" role="status"><strong>Supplies need attention</strong><span>{{ inventory_reminders|length }} item{{ inventory_reminders|length|pluralize }} to restock or review</span><a class="btn btn-sm btn-outline-primary"
-   href="{% url 'inventory:list' %}?view=shopping">View shopping list</a></div>{% endif %}
+{% load i18n %}
+{% if inventory_reminders %}<div class="inventory-reminder" role="status"><strong>{% trans "Supplies need attention" %}</strong><span>{% blocktrans count count=inventory_reminders|length %}{{ count }} item to restock or review{% plural %}{{ count }} items to restock or review{% endblocktrans %}</span><a class="btn btn-sm btn-outline-primary"
+   href="{% url 'inventory:list' %}?view=shopping">{% trans "View shopping list" %}</a></div>{% endif %}

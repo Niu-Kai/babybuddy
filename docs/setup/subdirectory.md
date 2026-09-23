@@ -59,3 +59,11 @@ the static `location`.
 -    location /media {
 +    location /babybuddy/media {
 ```
+
+## Installed app, shortcuts, and offline logging
+
+The app now serves a dynamic `app.webmanifest`. Its identity, launch URL, scope, and shortcuts follow Django's application mount path; icons follow `STATIC_URL`. `SUB_PATH` also sets `FORCE_SCRIPT_NAME` for generated URLs. Continue mounting/stripping the prefix at the web server as shown above: `FORCE_SCRIPT_NAME` does not make a plain development server route incoming prefixed paths by itself.
+
+For `/babybuddy`, verify `/babybuddy/app.webmanifest`, `/babybuddy/sw.js`, `/babybuddy/offline/`, and `/babybuddy/static/` through the actual proxy. The worker's allowed scope is `/babybuddy/`; static caches and offline IndexedDB storage are separate for each mount. Unrelated pages and API requests are never cached as offline content. HTTPS (or localhost for development) is required for service workers.
+
+An icon installed from an older manifest may retain its old launch address. Remove that old installed shortcut and install again from the correct URL. Before changing an existing installation's path, sync pending entries at the old address; pending entries are not moved between installation paths automatically.

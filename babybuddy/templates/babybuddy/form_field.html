@@ -1,6 +1,11 @@
 {% load widget_tweaks %}
 {% if field.is_hidden %}
     {{ field }}
+{% elif field|widget_type == "checkboxselectmultiple" %}
+    <fieldset class="preference-group mb-3">
+        <legend class="fs-6">{{ field.label }}</legend>
+        {% include "babybuddy/form_field_no_label.html" %}
+    </fieldset>
 {% else %}
     <div class="row mb-3">
         <label for="{{ field.id_for_label }}"

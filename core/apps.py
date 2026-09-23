@@ -15,6 +15,7 @@ from django.db.models.signals import post_migrate
 # over months (height, BMI, head circumference), and everything administrative
 # — children, users, tags and site settings. `delete` is never granted.
 CAREGIVER_VIEW_MODELS = (
+    "activitytype",
     "child",
     "timer",
     "feeding",
@@ -29,6 +30,7 @@ CAREGIVER_VIEW_MODELS = (
     "bathtime",
     "reflux",
     "food",
+    "customactivity",
 )
 
 CAREGIVER_ADD_CHANGE_MODELS = (
@@ -45,6 +47,7 @@ CAREGIVER_ADD_CHANGE_MODELS = (
     "bathtime",
     "reflux",
     "food",
+    "customactivity",
 )
 
 

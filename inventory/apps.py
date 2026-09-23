@@ -12,7 +12,11 @@ def grant_inventory_permissions(sender, **kwargs):
     ]:
         group = Group.objects.filter(name=settings.BABY_BUDDY[setting]).first()
         if group:
-            codes = [f"{action}_stockitem" for action in actions] + [
+            codes = [
+                f"{action}_{model}"
+                for action in actions
+                for model in ("stockitem", "equipment")
+            ] + [
                 "view_stockmovement",
                 "view_childsupplyprofile",
             ]
