@@ -35,18 +35,18 @@ For installation, browse the [setup guides](docs/setup). Use the
 installation. The [upstream integration record](docs/development/upstream-sync-2026-09-23.md)
 explains how recent upstream changes were adapted to this fork.
 
-## Original Baby Buddy overview
+## Current dashboard
 
-The screenshots and public demo below show the upstream project, rather than
-this fork's redesigned interface.
+Screenshots of this fork, captured September 23, 2026 with fictional sample data.
+Dashboard panels can be shown, hidden, and reordered in **Edit dashboard**.
 
-A buddy for babies! Helps caregivers track sleep, feedings, diaper changes,
-tummy time and more to learn about and predict baby's needs without (_as much_)
-guess work.
+### Single-child dashboard
 
-![Baby Buddy desktop view](screenshot.png)
+![Current Baby Buddy dashboard with quick actions, latest measurements, and care panels](docs/images/dashboard.png)
 
-![Baby Buddy mobile views](screenshot_mobile.png)
+### Side-by-side comparison
+
+![Current Baby Buddy dashboard comparing two children side by side](docs/images/dashboard-comparison.png)
 
 ## 👾 Upstream demo
 
