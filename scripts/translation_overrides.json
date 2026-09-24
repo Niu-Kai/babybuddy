@@ -167,7 +167,10 @@
     "Field": "Camp",
     "Number": "Nombre",
     "Yes,No": "Sí,No",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Aquest temporitzador ha canviat. Revisa’l abans de reiniciar-lo.",
+    "Restarting resets the elapsed time.": "En reiniciar, el temps transcorregut torna a zero.",
+    "In progress": "En curs"
   },
   "cs": {
     "Caregiver fed": "Krmeno pečující osobou",
@@ -355,7 +358,10 @@
     "Field": "Pole",
     "Number": "Číslo",
     "Yes,No": "Ano,Ne",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Tento časovač se změnil. Před restartováním ho zkontrolujte.",
+    "Restarting resets the elapsed time.": "Restartování vynuluje uplynulý čas.",
+    "In progress": "Probíhá"
   },
   "da": {
     "Caregiver fed": "Madet af en omsorgsperson",
@@ -521,7 +527,10 @@
     "Field": "Felt",
     "Number": "Tal",
     "Yes,No": "Ja,Nej",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Timeren er ændret. Kontrollér den, før du genstarter den.",
+    "Restarting resets the elapsed time.": "Genstart nulstiller den forløbne tid.",
+    "In progress": "I gang"
   },
   "de": {
     "Caregiver fed": "Von einer Betreuungsperson gefüttert",
@@ -690,7 +699,26 @@
     "Field": "Feld",
     "Number": "Zahl",
     "Yes,No": "Ja,Nein",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Dieser Timer wurde geändert. Prüfen Sie ihn vor dem Neustart.",
+    "Restarting resets the elapsed time.": "Beim Neustart wird die verstrichene Zeit auf null gesetzt.",
+    "Wet": "Urin",
+    "wet": "Urin",
+    "Solid": "Stuhlgang",
+    "solid": "Stuhlgang",
+    "Save": "Speichern",
+    "Submit": "Speichern",
+    "%(time_ago)s ago": "vor %(time_ago)s",
+    "%(since)s ago (%(time)s)": "vor %(since)s (%(time)s)",
+    "%(since)s since previous": "%(since)s seit dem vorherigen Eintrag",
+    "ago": "zuvor",
+    "Wet + solid": "Urin und Stuhlgang",
+    "Solid only": "Nur Stuhlgang",
+    "Time since previous change": "Zeit seit dem vorherigen Windelwechsel",
+    "Time since previous change (hours)": "Zeit seit dem vorherigen Windelwechsel (Stunden)",
+    "Time since previous session": "Zeit seit der vorherigen Sitzung",
+    "Choose caregiver fed or self fed for solid food.": "Wählen Sie bei fester Nahrung, ob das Kind gefüttert wurde oder selbst gegessen hat.",
+    "In progress": "Läuft"
   },
   "es": {
     "Caregiver fed": "Alimentado por un cuidador",
@@ -855,7 +883,10 @@
     "Field": "Campo",
     "Number": "Número",
     "Yes,No": "Sí,No",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Este temporizador ha cambiado. Revísalo antes de reiniciarlo.",
+    "Restarting resets the elapsed time.": "Al reiniciar, el tiempo transcurrido vuelve a cero.",
+    "In progress": "En curso"
   },
   "fi": {
     "Caregiver fed": "Hoitajan syöttämä",
@@ -1027,7 +1058,10 @@
     "Field": "Kenttä",
     "Number": "Luku",
     "Yes,No": "Kyllä,Ei",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Tämä ajastin on muuttunut. Tarkista se ennen uudelleenkäynnistystä.",
+    "Restarting resets the elapsed time.": "Uudelleenkäynnistys nollaa kuluneen ajan.",
+    "In progress": "Käynnissä"
   },
   "fr": {
     "Caregiver fed": "Nourri par une personne qui s'en occupe",
@@ -1196,7 +1230,10 @@
     "Units in file": "Unités dans le fichier",
     "The preview expired. Upload the file again.": "L’aperçu a expiré. Envoyez à nouveau le fichier.",
     "Showing the first 20 rows. All rows have been validated.": "Les 20 premières lignes sont affichées. Toutes les lignes ont été validées.",
-    "Fix these rows and upload the file again. Nothing was imported.": "Corrigez ces lignes et envoyez à nouveau le fichier. Aucune donnée n’a été importée."
+    "Fix these rows and upload the file again. Nothing was imported.": "Corrigez ces lignes et envoyez à nouveau le fichier. Aucune donnée n’a été importée.",
+    "This timer changed. Review it before restarting.": "Ce chronomètre a été modifié. Vérifiez-le avant de le redémarrer.",
+    "Restarting resets the elapsed time.": "Le redémarrage remet le temps écoulé à zéro.",
+    "In progress": "En cours"
   },
   "he": {
     "Caregiver fed": "האכלה על ידי מטפל או מטפלת",
@@ -1367,7 +1404,10 @@
     "Field": "שדה",
     "Number": "מספר",
     "Yes,No": "כן,לא",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "הטיימר הזה השתנה. יש לבדוק אותו לפני הפעלה מחדש.",
+    "Restarting resets the elapsed time.": "הפעלה מחדש מאפסת את הזמן שחלף.",
+    "In progress": "בתהליך"
   },
   "hr": {
     "Caregiver fed": "Hranila osoba koja skrbi o djetetu",
@@ -1553,7 +1593,10 @@
     "Yes,No": "Da,Ne",
     "Use true or false.": "true / false",
     "Row %(row)s has the wrong number of columns.": "Redak %(row)s ima pogrešan broj stupaca.",
-    "Row %(row)s repeats an earlier row.": "Redak %(row)s ponavlja prethodni redak."
+    "Row %(row)s repeats an earlier row.": "Redak %(row)s ponavlja prethodni redak.",
+    "This timer changed. Review it before restarting.": "Ovaj je mjerač vremena promijenjen. Provjerite ga prije ponovnog pokretanja.",
+    "Restarting resets the elapsed time.": "Ponovno pokretanje vraća proteklo vrijeme na nulu.",
+    "In progress": "U tijeku"
   },
   "hu": {
     "Caregiver fed": "Gondozó etette",
@@ -1726,7 +1769,10 @@
     "Field": "Mező",
     "Number": "Szám",
     "Yes,No": "Igen,Nem",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Ez az időzítő megváltozott. Ellenőrizze, mielőtt újraindítja.",
+    "Restarting resets the elapsed time.": "Az újraindítás lenullázza az eltelt időt.",
+    "In progress": "Folyamatban"
   },
   "it": {
     "Caregiver fed": "Nutrito da chi si prende cura del bambino",
@@ -1898,7 +1944,11 @@
     "Field": "Campo",
     "Number": "Numero",
     "Yes,No": "Sì,No",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Questo timer è stato modificato. Controllalo prima di riavviarlo.",
+    "Restarting resets the elapsed time.": "Il riavvio azzera il tempo trascorso.",
+    "This timer is no longer available.": "Questo timer non è più disponibile.",
+    "In progress": "In corso"
   },
   "ja": {
     "Caregiver fed": "保護者などによる食事介助",
@@ -2073,7 +2123,12 @@
     "CSV, UTF-8, up to 500 rows and 2 MB. Import one entry type and child at a time.": "UTF-8 の CSV ファイルで、500 行・2 MB まで。一度に一人のお子さんの一種類の記録をインポートできます。",
     "Entries are added as new records. File IDs and child columns are ignored; the selected child is used. Imported history does not reduce current diaper stock.": "新しい記録として追加します。ファイル内の ID と子どもの列は使用せず、選択したお子さんに登録します。過去の記録をインポートしても、現在のおむつ在庫は減りません。",
     "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm, mL, and °C.": "数値の列で使用されている単位を選択してください。Baby Buddy のエクスポートでは kg、cm、mL、°C を使用します。",
-    "Fix these rows and upload the file again. Nothing was imported.": "該当する行を修正して、再度アップロードしてください。データはまだインポートされていません。"
+    "Fix these rows and upload the file again. Nothing was imported.": "該当する行を修正して、再度アップロードしてください。データはまだインポートされていません。",
+    "This timer changed. Review it before restarting.": "このタイマーは変更されています。再スタートする前に確認してください。",
+    "Restarting resets the elapsed time.": "再スタートすると、経過時間がゼロに戻ります。",
+    "This timer is no longer available.": "このタイマーは利用できなくなりました。",
+    "%(timer)s restarted.": "%(timer)sを再スタートしました。",
+    "In progress": "進行中"
   },
   "ko": {
     "Caregiver fed": "보호자가 먹임",
@@ -2234,7 +2289,11 @@
     "Field": "항목",
     "Number": "숫자",
     "Yes,No": "예,아니요",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "이 타이머가 변경되었습니다. 다시 시작하기 전에 확인하세요.",
+    "Restarting resets the elapsed time.": "다시 시작하면 경과 시간이 0으로 초기화됩니다.",
+    "%(timer)s restarted.": "%(timer)s: 다시 시작되었습니다.",
+    "In progress": "진행 중"
   },
   "nb": {
     "Caregiver fed": "Matet av en omsorgsperson",
@@ -2397,7 +2456,10 @@
     "Field": "Felt",
     "Number": "Tall",
     "Yes,No": "Ja,Nei",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Denne timeren er endret. Kontroller den før du starter den på nytt.",
+    "Restarting resets the elapsed time.": "Omstart nullstiller tiden som har gått.",
+    "In progress": "Pågår"
   },
   "nl": {
     "Caregiver fed": "Gevoed door een verzorger",
@@ -2564,7 +2626,10 @@
     "Field": "Veld",
     "Number": "Getal",
     "Yes,No": "Ja,Nee",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Deze timer is gewijzigd. Controleer hem voordat je hem opnieuw start.",
+    "Restarting resets the elapsed time.": "Opnieuw starten zet de verstreken tijd op nul.",
+    "In progress": "Bezig"
   },
   "pl": {
     "Caregiver fed": "Karmione przez opiekuna",
@@ -2758,7 +2823,11 @@
     "Field": "Pole",
     "Number": "Liczba",
     "Yes,No": "Tak,Nie",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Ten minutnik został zmieniony. Sprawdź go przed ponownym uruchomieniem.",
+    "Restarting resets the elapsed time.": "Ponowne uruchomienie zeruje zmierzony czas.",
+    "This timer is no longer available.": "Ten minutnik nie jest już dostępny.",
+    "In progress": "W toku"
   },
   "pt": {
     "Caregiver fed": "Alimentado por um cuidador",
@@ -2928,7 +2997,10 @@
     "Field": "Campo",
     "Number": "Número",
     "Yes,No": "Sim,Não",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Este temporizador foi alterado. Verifique-o antes de o reiniciar.",
+    "Restarting resets the elapsed time.": "Ao reiniciar, o tempo decorrido volta a zero.",
+    "In progress": "Em curso"
   },
   "pt_BR": {
     "Caregiver fed": "Alimentado por um cuidador",
@@ -3098,7 +3170,10 @@
     "Field": "Campo",
     "Number": "Número",
     "Yes,No": "Sim,Não",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Este temporizador foi alterado. Verifique-o antes de reiniciá-lo.",
+    "Restarting resets the elapsed time.": "Ao reiniciar, o tempo decorrido volta a zero.",
+    "In progress": "Em andamento"
   },
   "ru": {
     "Caregiver fed": "Покормил ухаживающий взрослый",
@@ -3279,7 +3354,11 @@
     "Field": "Поле",
     "Number": "Число",
     "Yes,No": "Да,Нет",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Этот таймер был изменён. Проверьте его перед перезапуском.",
+    "Restarting resets the elapsed time.": "При перезапуске прошедшее время обнуляется.",
+    "%(timer)s restarted.": "%(timer)s перезапущен.",
+    "In progress": "В процессе"
   },
   "sr": {
     "Caregiver fed": "Хранила особа која брине о детету",
@@ -3462,7 +3541,10 @@
     "Field": "Поље",
     "Number": "Број",
     "Yes,No": "Да,Не",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Овај тајмер је промењен. Проверите га пре поновног покретања.",
+    "Restarting resets the elapsed time.": "Поновно покретање враћа протекло време на нулу.",
+    "In progress": "У току"
   },
   "sv": {
     "Caregiver fed": "Matad av en omsorgsperson",
@@ -3633,7 +3715,11 @@
     "Field": "Fält",
     "Number": "Tal",
     "Yes,No": "Ja,Nej",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Timern har ändrats. Kontrollera den innan du startar om den.",
+    "Restarting resets the elapsed time.": "Omstart nollställer den förflutna tiden.",
+    "%(timer)s restarted.": "%(timer)s har startats om.",
+    "In progress": "Pågår"
   },
   "tr": {
     "Caregiver fed": "Bakım veren tarafından beslendi",
@@ -3800,7 +3886,10 @@
     "Field": "Alan",
     "Number": "Sayı",
     "Yes,No": "Evet,Hayır",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Bu zamanlayıcı değiştirildi. Yeniden başlatmadan önce kontrol edin.",
+    "Restarting resets the elapsed time.": "Yeniden başlatma, geçen süreyi sıfırlar.",
+    "In progress": "Devam ediyor"
   },
   "uk": {
     "Caregiver fed": "Годувала особа, що доглядає за дитиною",
@@ -3981,7 +4070,10 @@
     "Field": "Поле",
     "Number": "Число",
     "Yes,No": "Так,Ні",
-    "Use true or false.": "true / false"
+    "Use true or false.": "true / false",
+    "This timer changed. Review it before restarting.": "Цей таймер було змінено. Перевірте його перед перезапуском.",
+    "Restarting resets the elapsed time.": "Перезапуск обнуляє час, що минув.",
+    "In progress": "Триває"
   },
   "zh_Hans": {
     "Caregiver fed": "由照护者喂食",
@@ -4248,7 +4340,12 @@
     "Entries are added as new records. File IDs and child columns are ignored; the selected child is used. Imported history does not reduce current diaper stock.": "数据会添加为新记录。文件中的 ID 和孩子列将被忽略，改用所选的孩子。导入历史记录不会扣除当前的尿布库存。",
     "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm, mL, and °C.": "请选择数值列使用的单位。Baby Buddy 导出的数据使用 kg、cm、mL 和 °C。",
     "Fix these rows and upload the file again. Nothing was imported.": "请修正这些行后重新上传文件。目前未导入任何数据。",
-    "Import up to 500 rows at a time.": "每次最多导入 500 行。"
+    "Import up to 500 rows at a time.": "每次最多导入 500 行。",
+    "This timer changed. Review it before restarting.": "此计时器已更改。请先检查，再重新开始计时。",
+    "Restarting resets the elapsed time.": "重新开始计时会将已计时长归零。",
+    "This timer is no longer available.": "此计时器已不可用。",
+    "%(timer)s restarted.": "%(timer)s已重新开始计时。",
+    "In progress": "进行中"
   },
   "zh_Hant": {
     "Caregiver fed": "由照顧者餵食",
@@ -4520,7 +4617,12 @@
     "Entries are added as new records. File IDs and child columns are ignored; the selected child is used. Imported history does not reduce current diaper stock.": "資料會新增為紀錄。檔案中的 ID 和孩子欄位會被忽略，改用所選的孩子。匯入歷史紀錄不會扣除目前的尿布庫存。",
     "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm, mL, and °C.": "請選擇數值欄位使用的單位。Baby Buddy 匯出的資料使用 kg、cm、mL 和 °C。",
     "Fix these rows and upload the file again. Nothing was imported.": "請修正這些列後重新上傳檔案。目前未匯入任何資料。",
-    "Import up to 500 rows at a time.": "每次最多匯入 500 列。"
+    "Import up to 500 rows at a time.": "每次最多匯入 500 列。",
+    "This timer changed. Review it before restarting.": "此計時器已變更。請先檢查，再重新開始計時。",
+    "Restarting resets the elapsed time.": "重新開始計時會將已計時長歸零。",
+    "This timer is no longer available.": "此計時器已無法使用。",
+    "%(timer)s restarted.": "%(timer)s已重新開始計時。",
+    "In progress": "進行中"
   },
   "zh_TW": {
     "Caregiver fed": "由照顧者餵食",
@@ -4792,6 +4894,14 @@
     "Entries are added as new records. File IDs and child columns are ignored; the selected child is used. Imported history does not reduce current diaper stock.": "資料會新增為紀錄。檔案中的 ID 和孩子欄位會被忽略，改用所選的孩子。匯入歷史紀錄不會扣除目前的尿布庫存。",
     "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm, mL, and °C.": "請選擇數值欄位使用的單位。Baby Buddy 匯出的資料使用 kg、cm、mL 和 °C。",
     "Fix these rows and upload the file again. Nothing was imported.": "請修正這些列後重新上傳檔案。目前未匯入任何資料。",
-    "Import up to 500 rows at a time.": "每次最多匯入 500 列。"
+    "Import up to 500 rows at a time.": "每次最多匯入 500 列。",
+    "This timer changed. Review it before restarting.": "此計時器已變更。請先檢查，再重新開始計時。",
+    "Restarting resets the elapsed time.": "重新開始計時會將已計時長歸零。",
+    "This timer is no longer available.": "此計時器已無法使用。",
+    "%(timer)s restarted.": "%(timer)s已重新開始計時。",
+    "In progress": "進行中"
+  },
+  "en_GB": {
+    "In progress": "In progress"
   }
 }

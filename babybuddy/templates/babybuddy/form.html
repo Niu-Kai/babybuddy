@@ -7,7 +7,21 @@
           enctype="multipart/form-data"
           {% if offline_activity %}data-queued-entry="{{ offline_activity }}" data-entry-timezone="{{ offline_timezone }}" data-entry-timer="{{ offline_timer }}"{% endif %}>
         {% csrf_token %}
-        {% if form.errors %}<div class="alert alert-danger" role="alert">{% trans "Please check the highlighted fields." %}{{ form.non_field_errors }}{% for hidden in form.hidden_fields %}{{ hidden.errors }}{% endfor %}</div>{% endif %}
+        {% if form.errors %}
+            <div class="alert alert-danger form-error-summary"
+                 role="alert"
+                 tabindex="-1"
+                 data-form-errors>
+                <strong>{% trans "Please check the highlighted fields." %}</strong>
+                {{ form.non_field_errors }}
+                {% for hidden in form.hidden_fields %}{{ hidden.errors }}{% endfor %}
+                <ul class="mb-0">
+                    {% for field in form.visible_fields %}
+                        {% for error in field.errors %}<li><a href="#{{ field.id_for_label }}">{{ field.label }}: {{ error }}</a></li>{% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
         {% if form.fieldsets %}
             {% for fieldset in form.hydrated_fielsets %}
                 {% with "forms/layouts/"|add:fieldset.layout|add:".html" as template %}

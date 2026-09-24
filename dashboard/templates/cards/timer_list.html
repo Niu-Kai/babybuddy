@@ -1,5 +1,5 @@
 {% extends "cards/base.html" %}
-{% load i18n %}
+{% load duration i18n %}
 {% block header %}
     <a href="{% url "core:timer-list" %}?scope={{ child.slug|urlencode }}">{% trans "Timers" %}</a>
 {% endblock %}
@@ -18,6 +18,7 @@
             <a href="{% url 'core:timer-detail' timer.id %}"
                class="list-group-item list-group-item-action">
                 <strong>{{ timer.title_with_child }}</strong>
+                <p class="m-0">{{ timer.duration|duration_string }} · {% if timer.is_paused %}{% trans "Paused" %}{% else %}{% trans "Running" %}{% endif %}</p>
                 <p class="text-body-secondary small m-0">
                     {% blocktrans trimmed with start=timer.start|time user=timer.user_username %}
                         Started by {{ user }} at {{ start }}

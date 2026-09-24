@@ -9,7 +9,7 @@ const config = {
     },
     images: {
       dest: basePath + "img/",
-      files: "**/static_src/img/**/*",
+      files: "*/static_src/img/**/*",
     },
     logo: {
       dest: basePath + "logo/",

@@ -8,6 +8,7 @@
                 {% if not unique_child %}
                     <th data-column="child">{% trans "Child" %}</th>
                 {% endif %}
+                <th data-column="duration">{% trans "Duration" %}</th>
                 <th data-column="user">{% trans "User" %}</th>
             </tr>
         </thead>
@@ -25,11 +26,12 @@
                             {% endif %}
                         </td>
                     {% endif %}
+                    <td data-column="duration">{{ timer.duration|duration_string }} · {% if timer.is_paused %}{% trans "Paused" %}{% else %}{% trans "Running" %}{% endif %}</td>
                     <td data-column="user">{{ timer.user_username }}</td>
                 </tr>
             {% empty %}
                 <tr>
-                    <th colspan="{% if not unique_child %}4{% else %}3{% endif %}">{% trans "No timer entries found." %}</th>
+                    <th colspan="{% if not unique_child %}5{% else %}4{% endif %}">{% trans "No timer entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

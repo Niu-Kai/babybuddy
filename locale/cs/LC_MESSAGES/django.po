@@ -12,15 +12,15 @@ msgstr ""
 "X-Generator: POEditor.com\n"
 
 #: babybuddy/admin.py:12 babybuddy/admin.py:13
-#: babybuddy/templates/babybuddy/nav-dropdown.html:103
-#: babybuddy/templates/babybuddy/offline.html:25
-#: babybuddy/templates/babybuddy/offline.html:70
+#: babybuddy/templates/babybuddy/nav-dropdown.html:108
+#: babybuddy/templates/babybuddy/offline.html:26
+#: babybuddy/templates/babybuddy/offline.html:73
 #: babybuddy/templates/babybuddy/user_settings_form.html:8
 #: babybuddy/templates/dbsettings/site_settings.html:8
 msgid "Settings"
 msgstr "Nastavení"
 
-#: babybuddy/admin.py:17 babybuddy/templates/babybuddy/nav-dropdown.html:27
+#: babybuddy/admin.py:17 babybuddy/templates/babybuddy/nav-dropdown.html:26
 #: babybuddy/templates/babybuddy/user_settings_form.html:100
 #: dashboard/templates/dashboard/child.html:4
 #: dashboard/templates/dashboard/child.html:8
@@ -103,8 +103,8 @@ msgid "Language"
 msgstr "Jazyk"
 
 #: babybuddy/forms.py:214 babybuddy/models.py:239
-#: babybuddy/templates/babybuddy/import.html:16
-#: babybuddy/templates/babybuddy/import.html:43
+#: babybuddy/templates/babybuddy/import.html:18
+#: babybuddy/templates/babybuddy/import.html:71
 msgid "Timezone"
 msgstr "Časové pásmo"
 
@@ -316,7 +316,7 @@ msgstr ""
 
 #: babybuddy/templates/admin/base_site.html:4
 #: babybuddy/templates/admin/base_site.html:8
-#: babybuddy/templates/babybuddy/nav-dropdown.html:109
+#: babybuddy/templates/babybuddy/nav-dropdown.html:115
 msgid "Database Admin"
 msgstr "Správce databáze"
 
@@ -344,7 +344,7 @@ msgstr "Přidat"
 # Previous inactive fuzzy translation: "Chyba"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:49
+#: babybuddy/templates/babybuddy/import.html:87
 #: babybuddy/templates/babybuddy/messages.html:19
 #: babybuddy/templates/babybuddy/messages.html:24
 #: babybuddy/templates/babybuddy/user_settings_form.html:18
@@ -367,10 +367,10 @@ msgstr "Některá pole mají chyby. Podrobnosti jsou uvedeny níže."
 msgid "Diaper Change"
 msgstr "Výměna plenky"
 
-#: core/forms.py:1133 core/forms.py:1312 core/models.py:564 core/models.py:568
-#: core/models.py:1432 core/presentation.py:101
-#: dashboard/templates/dashboard/child_content.html:39 reports/views.py:630
-#: reports/templates/reports/report_list.html:37
+#: core/forms.py:1141 core/forms.py:1320 core/models.py:564 core/models.py:568
+#: core/models.py:1099 core/models.py:1440 core/presentation.py:101
+#: core/timeline.py:241 dashboard/templates/dashboard/child_content.html:39
+#: reports/views.py:630 reports/templates/reports/report_list.html:37
 msgid "Feeding"
 msgstr "Krmení"
 
@@ -383,7 +383,7 @@ msgstr "Celkem krmení"
 # Previous inactive fuzzy translation: "Přidat krmení"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1316 core/models.py:1309 core/models.py:1338
+#: core/forms.py:1324 core/models.py:1317 core/models.py:1346
 #: core/presentation.py:120 core/views.py:875
 #: core/templates/core/medication_confirm_delete.html:8
 #: core/templates/core/medication_form.html:12
@@ -394,9 +394,10 @@ msgstr "Celkem krmení"
 msgid "Medication"
 msgstr "Léky"
 
-#: core/forms.py:1135 core/forms.py:1315 core/lactation.py:59
+#: core/forms.py:1143 core/forms.py:1323 core/lactation.py:59
 #: core/models.py:945 core/models.py:946 core/models.py:949
-#: core/presentation.py:104 core/timeline.py:584 core/views.py:870
+#: core/models.py:1100 core/presentation.py:104 core/timeline.py:476
+#: core/timeline.py:480 core/views.py:870
 #: core/templates/core/pumping_confirm_delete.html:8
 #: core/templates/core/pumping_form.html:12
 #: core/templates/core/pumping_list.html:4
@@ -411,9 +412,10 @@ msgstr "Odsávání mléka"
 msgid "Note"
 msgstr "Poznámka"
 
-#: core/forms.py:1134 core/forms.py:1313 core/models.py:1001
-#: core/models.py:1002 core/models.py:1005 core/presentation.py:111
-#: core/views.py:869 core/templates/core/sleep_confirm_delete.html:8
+#: core/forms.py:1142 core/forms.py:1321 core/models.py:1001
+#: core/models.py:1002 core/models.py:1005 core/models.py:1101
+#: core/presentation.py:111 core/timeline.py:186 core/views.py:869
+#: core/templates/core/sleep_confirm_delete.html:8
 #: core/templates/core/sleep_form.html:12
 #: core/templates/core/sleep_list.html:4 core/templates/core/sleep_list.html:7
 #: core/templates/core/sleep_list.html:11
@@ -423,16 +425,16 @@ msgstr "Poznámka"
 msgid "Sleep"
 msgstr "Spánek"
 
-#: core/models.py:1197 core/models.py:1198 core/models.py:1201
+#: core/models.py:1205 core/models.py:1206 core/models.py:1209
 #: core/templates/core/tummytime_confirm_delete.html:8
 #: core/templates/core/tummytime_form.html:12
 #: core/templates/core/tummytime_list.html:4
 #: core/templates/core/tummytime_list.html:7
 #: core/templates/core/tummytime_list.html:11 reports/views.py:631
 msgid "Tummy Time"
-msgstr "Doba na břiše"
+msgstr "Čas na bříšku"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:29
+#: babybuddy/templates/babybuddy/nav-dropdown.html:28
 #: core/templates/timeline/timeline.html:4
 #: core/templates/timeline/timeline.html:7
 #: core/templates/timeline/timeline.html:10
@@ -446,14 +448,14 @@ msgstr "Časová osa"
 msgid "Children"
 msgstr "Děti"
 
-#: babybuddy/imports.py:88 babybuddy/templates/babybuddy/import.html:14
-#: babybuddy/templates/babybuddy/offline.html:34 core/custom_activities.py:54
+#: babybuddy/imports.py:88 babybuddy/templates/babybuddy/import.html:16
+#: babybuddy/templates/babybuddy/offline.html:35 core/custom_activities.py:54
 #: core/models.py:219 core/models.py:298 core/models.py:378 core/models.py:458
 #: core/models.py:667 core/models.py:699 core/models.py:777 core/models.py:811
 #: core/models.py:900 core/models.py:977 core/models.py:1031
-#: core/models.py:1066 core/models.py:1172 core/models.py:1221
-#: core/models.py:1258 core/models.py:1347 core/models.py:1391
-#: core/models.py:1438 core/templates/core/custom_list.html:2
+#: core/models.py:1066 core/models.py:1180 core/models.py:1229
+#: core/models.py:1266 core/models.py:1355 core/models.py:1399
+#: core/models.py:1446 core/templates/core/custom_list.html:2
 #: core/templates/core/lists/appointment_list.html:8
 #: core/templates/core/lists/bathtime_list.html:9
 #: core/templates/core/lists/bmi_list.html:8
@@ -474,12 +476,12 @@ msgid "Child"
 msgstr "Dítě"
 
 #: babybuddy/templates/babybuddy/filter.html:40 core/custom_activities.py:56
-#: core/feature_preferences.py:17 core/forms.py:1321 core/models.py:242
+#: core/feature_preferences.py:17 core/forms.py:1329 core/models.py:242
 #: core/models.py:401 core/models.py:554 core/models.py:675 core/models.py:705
 #: core/models.py:794 core/models.py:819 core/models.py:937 core/models.py:992
-#: core/models.py:1039 core/models.py:1189 core/models.py:1233
-#: core/models.py:1302 core/models.py:1361 core/models.py:1406
-#: core/models.py:1457 core/presentation.py:125 core/presentation.py:127
+#: core/models.py:1039 core/models.py:1197 core/models.py:1241
+#: core/models.py:1310 core/models.py:1369 core/models.py:1414
+#: core/models.py:1465 core/presentation.py:125 core/presentation.py:127
 #: core/views.py:876 core/templates/core/note_confirm_delete.html:8
 #: core/templates/core/note_form.html:12 core/templates/core/note_list.html:4
 #: core/templates/core/note_list.html:7 core/templates/core/note_list.html:11
@@ -522,7 +524,7 @@ msgstr "záznam BMI"
 #: reports/templates/reports/head_circumference_change.html:15
 #: reports/templates/reports/report_list.html:25
 msgid "Head Circumference"
-msgstr "obvod hlavy"
+msgstr "Obvod hlavy"
 
 #: babybuddy/templates/babybuddy/nav-dropdown.html:190
 msgid "Head Circumference entry"
@@ -538,7 +540,7 @@ msgstr "záznam obvodu hlavy"
 #: core/templates/core/lists/bmi_list.html:12
 #: core/templates/core/lists/height_list.html:11
 #: dashboard/templatetags/cards.py:1113 reports/growth.py:24
-#: reports/graphs/height_change.py:32 reports/graphs/height_change.py:83
+#: reports/graphs/height_change.py:42 reports/graphs/height_change.py:94
 #: reports/templates/reports/height_change.html:4
 #: reports/templates/reports/height_change.html:9
 #: reports/templates/reports/height_change.html:15
@@ -550,9 +552,9 @@ msgstr "Výška/délka"
 msgid "Height entry"
 msgstr "záznam výšky"
 
-#: babybuddy/models.py:218 core/forms.py:1322 core/models.py:1034
+#: babybuddy/models.py:218 core/forms.py:1330 core/models.py:1034
 #: core/models.py:1047 core/models.py:1048 core/models.py:1051
-#: core/presentation.py:96 core/timeline.py:456 core/views.py:861
+#: core/presentation.py:96 core/timeline.py:379 core/views.py:861
 #: core/templates/core/temperature_confirm_delete.html:8
 #: core/templates/core/temperature_form.html:12
 #: core/templates/core/temperature_list.html:4
@@ -573,8 +575,8 @@ msgstr "Teplota"
 msgid "Temperature reading"
 msgstr "Teplotní údaj"
 
-#: babybuddy/models.py:212 core/models.py:1223 core/models.py:1241
-#: core/models.py:1242 core/models.py:1245 core/presentation.py:88
+#: babybuddy/models.py:212 core/models.py:1231 core/models.py:1249
+#: core/models.py:1250 core/models.py:1253 core/presentation.py:88
 #: core/views.py:854 core/templates/core/weight_confirm_delete.html:8
 #: core/templates/core/weight_form.html:12
 #: core/templates/core/weight_list.html:4
@@ -583,7 +585,7 @@ msgstr "Teplotní údaj"
 #: core/templates/core/lists/bmi_list.html:11
 #: core/templates/core/lists/weight_list.html:11
 #: dashboard/templatetags/cards.py:1112 reports/growth.py:23
-#: reports/graphs/weight_change.py:32 reports/graphs/weight_change.py:83
+#: reports/graphs/weight_change.py:42 reports/graphs/weight_change.py:94
 #: reports/templates/reports/report_list.html:33
 #: reports/templates/reports/weight_change.html:4
 #: reports/templates/reports/weight_change.html:9
@@ -633,36 +635,36 @@ msgstr "Položka doby na břiše"
 #: babybuddy/templates/babybuddy/user_list.html:24
 #: babybuddy/templates/babybuddy/user_password_form.html:7
 #: babybuddy/templates/babybuddy/user_settings_form.html:7 core/models.py:1085
-#: core/templates/core/lists/timer_list.html:11
+#: core/templates/core/lists/timer_list.html:12
 msgid "User"
 msgstr "Uživatel"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:92
+#: babybuddy/templates/babybuddy/nav-dropdown.html:97
 msgid "Password"
 msgstr "Heslo"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:94
+#: babybuddy/templates/babybuddy/nav-dropdown.html:99
 #: babybuddy/templates/babybuddy/user_add_device.html:4
 #: babybuddy/templates/babybuddy/user_add_device.html:8
 #: babybuddy/templates/babybuddy/user_add_device.html:11
 msgid "Add a device"
 msgstr "Přidat zařízení"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:97
+#: babybuddy/templates/babybuddy/nav-dropdown.html:102
 msgid "Logout"
 msgstr "Odhlásit"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:99
+#: babybuddy/templates/babybuddy/nav-dropdown.html:104
 #: babybuddy/templates/dbsettings/site_settings.html:7
 msgid "Site"
 msgstr "Stránka"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:100
+#: babybuddy/templates/babybuddy/nav-dropdown.html:105
 msgid "API Browser"
 msgstr "Prohlížeč API"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:104
-#: core/feature_preferences.py:18 core/forms.py:339 core/models.py:143
+#: babybuddy/templates/babybuddy/nav-dropdown.html:109
+#: core/feature_preferences.py:18 core/forms.py:347 core/models.py:143
 #: core/templates/core/tag_confirm_delete.html:8
 #: core/templates/core/tag_detail.html:3 core/templates/core/tag_form.html:12
 #: core/templates/core/tag_list.html:4 core/templates/core/tag_list.html:7
@@ -685,7 +687,7 @@ msgstr "Prohlížeč API"
 msgid "Tags"
 msgstr "Značky"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:108
+#: babybuddy/templates/babybuddy/nav-dropdown.html:114
 #: babybuddy/templates/babybuddy/user_confirm_delete.html:8
 #: babybuddy/templates/babybuddy/user_confirm_unlock.html:8
 #: babybuddy/templates/babybuddy/user_form.html:12
@@ -695,15 +697,15 @@ msgstr "Značky"
 msgid "Users"
 msgstr "Uživatelé"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:111
+#: babybuddy/templates/babybuddy/nav-dropdown.html:117
 msgid "Support"
 msgstr "Podpora"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:113
+#: babybuddy/templates/babybuddy/nav-dropdown.html:119
 msgid "Source Code"
 msgstr "Zdrojové kódy"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:115
+#: babybuddy/templates/babybuddy/nav-dropdown.html:121
 msgid "Chat / Support"
 msgstr "Chat / podpora"
 
@@ -750,12 +752,12 @@ msgid "Authentication Methods"
 msgstr "Způsob ověření"
 
 #: babybuddy/templates/babybuddy/user_add_device.html:16
-#: babybuddy/templates/babybuddy/user_settings_form.html:141
+#: babybuddy/templates/babybuddy/user_settings_form.html:149
 msgid "Key"
 msgstr "Klíč"
 
 #: babybuddy/templates/babybuddy/user_add_device.html:23
-#: babybuddy/templates/babybuddy/user_settings_form.html:146
+#: babybuddy/templates/babybuddy/user_settings_form.html:154
 msgid "Regenerate"
 msgstr "Znovu vytvořit"
 
@@ -818,11 +820,11 @@ msgstr "Smazat uživatel"
 msgid "Delete"
 msgstr "Smazat"
 
-#: babybuddy/templates/babybuddy/form.html:36
-#: babybuddy/templates/babybuddy/import.html:25
+#: babybuddy/templates/babybuddy/form.html:53
+#: babybuddy/templates/babybuddy/import.html:42
 #: babybuddy/templates/babybuddy/user_confirm_delete.html:20
 #: babybuddy/templates/babybuddy/user_confirm_unlock.html:20
-#: babybuddy/templates/babybuddy/user_settings_form.html:156
+#: babybuddy/templates/babybuddy/user_settings_form.html:164
 #: core/templates/core/appointment_confirm_delete.html:19
 #: core/templates/core/bathtime_confirm_delete.html:19
 #: core/templates/core/bmi_confirm_delete.html:18
@@ -841,6 +843,7 @@ msgstr "Smazat"
 #: core/templates/core/tag_confirm_delete.html:37
 #: core/templates/core/temperature_confirm_delete.html:19
 #: core/templates/core/timer_confirm_delete.html:22
+#: core/templates/core/timer_confirm_restart.html:17
 #: core/templates/core/tummytime_confirm_delete.html:19
 #: core/templates/core/weight_confirm_delete.html:18
 #: dashboard/templates/dashboard/arrange.html:13
@@ -980,7 +983,7 @@ msgstr "Nastavení uživatele"
 msgid "User Profile"
 msgstr "Uživatelský profil"
 
-#: babybuddy/templates/babybuddy/user_settings_form.html:139
+#: babybuddy/templates/babybuddy/user_settings_form.html:147
 msgid "API"
 msgstr "API"
 
@@ -1034,7 +1037,7 @@ msgstr ""
 #: core/templates/core/child_form.html:20
 #: core/templates/core/child_form.html:29
 msgid "Add a Child"
-msgstr "Přidat dítě"
+msgstr "Přidat: Dítě"
 
 #: babybuddy/templates/dbsettings/site_settings.html:4
 #: babybuddy/templates/dbsettings/site_settings.html:11
@@ -1276,7 +1279,7 @@ msgstr ""
 msgid "Tag"
 msgstr "Značka"
 
-#: core/forms.py:344
+#: core/forms.py:352
 msgid ""
 "Click on the tags to add (+) or remove (-) tags or use the text editor to "
 "create new tags."
@@ -1284,19 +1287,19 @@ msgstr ""
 "Klikněte na značku, abyste ji přidali (+) nebo odebrali (-), případně "
 "použijte textové pole pro přidání nové značky."
 
-#: core/forms.py:532
+#: core/forms.py:540
 msgid "Name does not match child name."
 msgstr "Jméno se neshoduje se jménem dítěte."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:716
+#: core/forms.py:724
 msgid "Time Until Next Dosage"
 msgstr "Čas do další dávky"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:720
+#: core/forms.py:728
 msgid "Optional: Hours until next dose can be given"
 msgstr "Fakultativní: Hodiny do další dávky"
 
@@ -1337,9 +1340,9 @@ msgstr "Barva"
 msgid "Last used"
 msgstr "Naposledy použité"
 
-#: babybuddy/templates/babybuddy/offline.html:38 core/entry_timing.py:110
-#: core/forms.py:839 core/models.py:240 core/models.py:673 core/models.py:703
-#: core/models.py:1225 core/templates/core/custom_list.html:2
+#: babybuddy/templates/babybuddy/offline.html:39 core/entry_timing.py:110
+#: core/forms.py:847 core/models.py:240 core/models.py:673 core/models.py:703
+#: core/models.py:1233 core/templates/core/custom_list.html:2
 #: core/templates/core/lists/bmi_list.html:6
 #: core/templates/core/lists/head_circumference_list.html:7
 #: core/templates/core/lists/height_list.html:7
@@ -1353,11 +1356,11 @@ msgstr "Naposledy použité"
 #: reports/graphs/feeding_amounts.py:101 reports/graphs/feeding_duration.py:30
 #: reports/graphs/feeding_intervals.py:44
 #: reports/graphs/head_circumference_change.py:47
-#: reports/graphs/height_change.py:84
+#: reports/graphs/height_change.py:97
 #: reports/graphs/medication_frequency.py:37
 #: reports/graphs/medication_intervals.py:44
 #: reports/graphs/pumping_amounts.py:26 reports/graphs/sleep_totals.py:59
-#: reports/graphs/tummytime_duration.py:42 reports/graphs/weight_change.py:84
+#: reports/graphs/tummytime_duration.py:42 reports/graphs/weight_change.py:97
 #: inventory/templates/inventory/detail.html:45
 msgid "Date"
 msgstr "Datum"
@@ -1381,7 +1384,7 @@ msgstr "Datum narození"
 msgid "Birth time"
 msgstr "Čas narození"
 
-#: core/forms.py:438 core/models.py:285
+#: core/forms.py:446 core/models.py:285
 msgid "Slug"
 msgstr "Unikátní klíč"
 
@@ -1389,9 +1392,9 @@ msgstr "Unikátní klíč"
 msgid "Picture"
 msgstr "Obrázek"
 
-#: babybuddy/templates/babybuddy/offline.html:42 core/entry_timing.py:113
+#: babybuddy/templates/babybuddy/offline.html:43 core/entry_timing.py:113
 #: core/models.py:381 core/models.py:781 core/models.py:1037
-#: core/models.py:1230 core/models.py:1394 core/models.py:1441
+#: core/models.py:1238 core/models.py:1402 core/models.py:1449
 #: core/templates/core/lists/diaperchange_list.html:6
 #: core/templates/core/lists/food_list.html:6
 #: core/templates/core/lists/note_list.html:6
@@ -1454,7 +1457,7 @@ msgid "Yellow"
 msgstr "Žlutá"
 
 #: core/models.py:400 core/models.py:495 core/models.py:919
-#: core/models.py:1444 core/timeline.py:260 core/timeline.py:552
+#: core/models.py:1452 core/timeline.py:227 core/timeline.py:447
 #: core/top_ups.py:123 core/templates/core/lists/diaperchange_list.html:12
 #: core/templates/core/lists/feeding_list.html:18
 #: core/templates/core/lists/food_list.html:11
@@ -1463,23 +1466,24 @@ msgstr "Žlutá"
 msgid "Amount"
 msgstr "Množství"
 
-#: core/entry_timing.py:113 core/forms.py:841 core/models.py:464
+#: core/entry_timing.py:113 core/forms.py:849 core/models.py:464
 #: core/models.py:815 core/models.py:906 core/models.py:983
-#: core/models.py:1072 core/models.py:1178 core/models.py:1353
+#: core/models.py:1072 core/models.py:1186 core/models.py:1361
 msgid "Start time"
 msgstr "Okamžik zahájení"
 
 #: core/models.py:467 core/models.py:817 core/models.py:912 core/models.py:986
-#: core/models.py:1181 core/models.py:1356
+#: core/models.py:1189 core/models.py:1364
 msgid "End time"
 msgstr "Okamžik ukončení"
 
 #: core/models.py:470 core/models.py:917 core/models.py:990
-#: core/models.py:1184 core/models.py:1359
+#: core/models.py:1192 core/models.py:1367
 #: core/templates/core/lists/bathtime_list.html:11
 #: core/templates/core/lists/feeding_list.html:19
 #: core/templates/core/lists/pumping_list.html:10
 #: core/templates/core/lists/sleep_list.html:11
+#: core/templates/core/lists/timer_list.html:11
 #: core/templates/core/lists/tummytime_list.html:11
 msgid "Duration"
 msgstr "Trvání"
@@ -1491,7 +1495,7 @@ msgstr "Mateřské mléko"
 #: core/models.py:475 core/models.py:500 core/models.py:521 core/models.py:535
 #: inventory/models.py:55
 msgid "Formula"
-msgstr "Umělé mléko"
+msgstr "Kojenecká výživa"
 
 #: core/models.py:476 core/models.py:501 core/models.py:522 core/models.py:536
 msgid "Fortified breast milk"
@@ -1535,13 +1539,13 @@ msgstr "Metoda"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:735 core/models.py:761 core/models.py:1493
+#: core/models.py:735 core/models.py:761 core/models.py:1501
 msgid "Girl"
 msgstr "Děvče ."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:736 core/models.py:762 core/models.py:1494
+#: core/models.py:736 core/models.py:762 core/models.py:1502
 msgid "Boy"
 msgstr "Chlapec."
 
@@ -1568,13 +1572,12 @@ msgstr "Nastavení šlofíku"
 msgid "Name"
 msgstr "Název"
 
-#: core/forms.py:223 core/models.py:1093
-#: core/templates/core/timer_detail.html:12
+#: core/forms.py:223 core/models.py:1093 core/models.py:1104
 #: core/templates/core/timer_form.html:4
 msgid "Timer"
 msgstr "Časovač"
 
-#: babybuddy/models.py:50 babybuddy/templates/babybuddy/nav-dropdown.html:46
+#: babybuddy/models.py:50 babybuddy/templates/babybuddy/nav-dropdown.html:45
 #: core/models.py:1094 core/templates/core/timer_confirm_delete.html:8
 #: core/templates/core/timer_detail.html:7
 #: core/templates/core/timer_form.html:8 core/templates/core/timer_list.html:4
@@ -1590,89 +1593,89 @@ msgstr "Časovače"
 msgid "Timer #{id}"
 msgstr "Časovač č.{id}"
 
-#: core/models.py:1187 core/templates/core/lists/tummytime_list.html:13
+#: core/models.py:1195 core/templates/core/lists/tummytime_list.html:13
 msgid "Milestone"
 msgstr "Milník"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1266 core/templates/core/lists/medication_list.html:10
+#: core/models.py:1274 core/templates/core/lists/medication_list.html:10
 msgid "Medication Name"
 msgstr "Název přípravku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1267
+#: core/models.py:1275
 msgid "Name of the medication administered"
 msgstr "Název podávaného léku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1273 core/timeline.py:376
+#: core/models.py:1281 core/timeline.py:299
 #: core/templates/core/lists/medication_list.html:11
 msgid "Dosage"
 msgstr "Dávkování"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1274
+#: core/models.py:1282
 msgid "Amount of medication given"
 msgstr "Množství podaného léku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1279
+#: core/models.py:1287
 msgid "MG"
 msgstr "MG"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1280
+#: core/models.py:1288
 msgid "ML"
 msgstr "ML"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1281
+#: core/models.py:1289
 msgid "Tablets"
 msgstr "Tablety"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1282
+#: core/models.py:1290
 msgid "Drops"
 msgstr "Kapky"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1287
+#: core/models.py:1295
 msgid "Dosage Unit"
 msgstr "Jednotka dávkování"
 
 # Previous inactive fuzzy translation: "Akce časovače"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1293
+#: core/models.py:1301
 #| msgid "Timer actions"
 msgid "Time Taken"
 msgstr "Čas potřebný"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1299 core/templates/core/lists/medication_list.html:12
+#: core/models.py:1307 core/templates/core/lists/medication_list.html:12
 msgid "Next Dose Interval"
 msgstr "Další interval mezi dávkami"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1300
+#: core/models.py:1308
 msgid "Time until next dose can be given"
 msgstr "Čas do podání další dávky"
 
 # Previous inactive fuzzy translation: "Akce"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1310
+#: core/models.py:1318
 #| msgid "Actions"
 msgid "Medications"
 msgstr "Léky"
@@ -1696,7 +1699,7 @@ msgstr "Žádné položky BMI nenalezeny."
 
 #: core/templates/core/child_confirm_delete.html:4
 msgid "Delete a Child"
-msgstr "Smazat dítě"
+msgstr "Smazat: Dítě"
 
 #: core/templates/core/child_confirm_delete.html:21
 msgid "To confirm this action. Type the full name of the child below."
@@ -1715,7 +1718,7 @@ msgstr "Věk"
 #: babybuddy/templates/babybuddy/welcome.html:13
 #: core/templates/core/child_list.html:14
 msgid "Add Child"
-msgstr "Přidat dítě"
+msgstr "Přidat: Dítě"
 
 #: core/templates/core/child_list.html:29
 msgid "Birth Date"
@@ -1789,11 +1792,11 @@ msgstr "Nenalezeny žádné výměny plenek."
 
 #: core/templates/core/feeding_confirm_delete.html:4
 msgid "Delete a Feeding"
-msgstr "Vymazat krmení"
+msgstr "Smazat: Krmení"
 
 #: core/templates/core/feeding_form.html:5
 msgid "Update a Feeding"
-msgstr "Aktualizovat krmení"
+msgstr "Upravit: Krmení"
 
 # Previous inactive fuzzy translation: "Přidat krmení"
 # Offline machine-assisted draft; contextual review, not certified
@@ -1806,11 +1809,11 @@ msgstr "Přidejte krmení z lahve"
 #: core/templates/core/feeding_form.html:9
 #: core/templates/core/feeding_form.html:30
 msgid "Add a Feeding"
-msgstr "Přidat krmení"
+msgstr "Přidat: Krmení"
 
 #: core/templates/core/feeding_list.html:14
 msgid "Add Feeding"
-msgstr "Přidat krmení"
+msgstr "Přidat: Krmení"
 
 #: core/templates/core/feeding_list.html:18
 #, fuzzy
@@ -1821,23 +1824,23 @@ msgstr "Přidat krmení"
 msgid "Amt."
 msgstr "Množ."
 
-#: core/templates/core/lists/feeding_list.html:77
+#: core/templates/core/lists/feeding_list.html:81
 msgid "No feedings found."
 msgstr "Nenalezena žádná krmení."
 
 #: core/templates/core/head_circumference_confirm_delete.html:4
 msgid "Delete a Head Circumference Entry"
-msgstr "Smazat záznam obvodu hlavy"
+msgstr "Smazat: Obvod hlavy"
 
 #: core/templates/core/head_circumference_form.html:7
 #: core/templates/core/head_circumference_form.html:17
 #: core/templates/core/head_circumference_form.html:26
 msgid "Add a Head Circumference Entry"
-msgstr "Přidat záznam obvodu hlavy"
+msgstr "Přidat: Obvod hlavy"
 
 #: core/templates/core/head_circumference_list.html:15
 msgid "Add Head Circumference"
-msgstr "Přidat obvod hlavy"
+msgstr "Přidat: Obvod hlavy"
 
 #: core/templates/core/lists/head_circumference_list.html:62
 msgid "No head circumference entries found."
@@ -1904,19 +1907,19 @@ msgstr "Žádné léky nebyly nalezeny."
 
 #: core/templates/core/note_confirm_delete.html:4
 msgid "Delete a Note"
-msgstr "Vymazat poznámku"
+msgstr "Smazat: Poznámka"
 
 #: core/templates/core/note_form.html:5
 msgid "Update a Note"
-msgstr "Aktualizovat poznámku"
+msgstr "Upravit: Poznámka"
 
 #: core/templates/core/note_form.html:7 core/templates/core/note_form.html:26
 msgid "Add a Note"
-msgstr "Přidat poznámku"
+msgstr "Přidat: Poznámka"
 
 #: core/templates/core/note_list.html:14
 msgid "Add Note"
-msgstr "Přidat poznámku"
+msgstr "Přidat: Poznámka"
 
 #: core/templates/core/lists/note_list.html:63
 msgid "No notes found."
@@ -1924,17 +1927,17 @@ msgstr "Nenalezeny žádné poznámky."
 
 #: core/templates/core/pumping_confirm_delete.html:4
 msgid "Delete a Pumping Entry"
-msgstr "Smazat záznam odsátí mléka"
+msgstr "Smazat: Odsávání mléka"
 
 #: core/templates/core/pumping_form.html:7
 #: core/templates/core/pumping_form.html:17
 #: core/templates/core/pumping_form.html:26
 msgid "Add a Pumping Entry"
-msgstr "Přidat záznam odsátí mléka"
+msgstr "Přidat: Odsávání mléka"
 
 #: core/templates/core/pumping_list.html:14
 msgid "Add Pumping Entry"
-msgstr "Přidat záznam odsátí mléka"
+msgstr "Přidat: Odsávání mléka"
 
 #: core/templates/core/lists/pumping_list.html:69
 msgid "No pumping entries found."
@@ -1966,7 +1969,7 @@ msgstr "Přidat položku spánku"
 
 #: core/templates/core/sleep_list.html:14
 msgid "Add Sleep"
-msgstr "Přidat spánek"
+msgstr "Přidat: Spánek"
 
 #: core/templates/core/timer_form.html:16
 #: core/templates/core/lists/bathtime_list.html:6
@@ -2057,7 +2060,7 @@ msgstr "Akce časovače"
 #: core/templates/core/timer_form.html:22
 #: core/templates/core/tummytime_form.html:23
 #: core/templates/core/weight_form.html:23
-#: core/templates/timeline/_timeline.html:48
+#: core/templates/timeline/_timeline.html:75
 #: core/templates/core/lists/appointment_list.html:45
 #: core/templates/core/lists/bathtime_list.html:37
 #: core/templates/core/lists/diaperchange_list.html:55
@@ -2194,6 +2197,9 @@ msgstr "%(timer)s vytvořil(a) %(user)s"
 msgid "Timer actions"
 msgstr "Akce časovače"
 
+#: core/templates/core/timer_confirm_restart.html:4
+#: core/templates/core/timer_confirm_restart.html:7
+#: core/templates/core/timer_confirm_restart.html:15
 #: core/templates/core/timer_detail.html:108
 #: core/templates/core/timer_detail.html:111
 #: core/templates/core/timer_detail.html:112
@@ -2207,7 +2213,7 @@ msgstr "Restartovat časovač"
 msgid "Start Timer"
 msgstr "Spustit časovač"
 
-#: core/templates/core/lists/timer_list.html:32
+#: core/templates/core/lists/timer_list.html:34
 msgid "No timer entries found."
 msgstr "Nenalezeny žádné položky časovačů."
 
@@ -2244,20 +2250,20 @@ msgstr "Žádné"
 
 #: core/templates/core/tummytime_confirm_delete.html:4
 msgid "Delete a Tummy Time Entry"
-msgstr "Smazat položku doby na břiše"
+msgstr "Smazat: Čas na bříšku"
 
 #: core/templates/core/tummytime_form.html:5
 msgid "Update a Tummy Time Entry"
-msgstr "Aktualizovat položku doby na břiše"
+msgstr "Upravit: Čas na bříšku"
 
 #: core/templates/core/tummytime_form.html:7
 #: core/templates/core/tummytime_form.html:26
 msgid "Add a Tummy Time Entry"
-msgstr "Přidat položku doby na břiše"
+msgstr "Přidat: Čas na bříšku"
 
 #: core/templates/core/tummytime_list.html:14
 msgid "Add Tummy Time"
-msgstr "Přidat dobu na břiše"
+msgstr "Přidat: Čas na bříšku"
 
 #: core/templates/core/lists/tummytime_list.html:75
 msgid "No tummy time entries found."
@@ -2328,7 +2334,7 @@ msgstr ""
 msgid "%(since)s ago (%(time)s)"
 msgstr "před %(since)s (%(time)s)"
 
-#: core/templates/timeline/_timeline.html:31
+#: core/templates/timeline/_timeline.html:58
 #, python-format
 msgid "Duration: %(duration)s"
 msgstr "Trvání: %(duration)s"
@@ -2403,7 +2409,7 @@ msgstr "%(child)s dokončeno krmení."
 msgid "%(child)s had a feeding."
 msgstr "%(child)s měl krmení."
 
-#: core/timeline.py:345
+#: core/timeline.py:268
 #, python-format
 msgid "%(child)s had a %(type)s diaper change."
 msgstr "%(child)s byl/a přebalen/a. Nálož: %(type)s"
@@ -2411,7 +2417,7 @@ msgstr "%(child)s byl/a přebalen/a. Nálož: %(type)s"
 # Previous inactive fuzzy translation: "%(child)s – zahájeno krmení."
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/timeline.py:390
+#: core/timeline.py:313
 #, python-format
 #| msgid "%(child)s started feeding."
 msgid "%(child)s took %(medication)s."
@@ -2420,13 +2426,13 @@ msgstr "%(child)s vzal %(medication)s."
 # Previous inactive fuzzy translation: "%(child)s – zahájeno krmení."
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/timeline.py:408
+#: core/timeline.py:331
 #, python-format
 #| msgid "%(child)s started feeding."
 msgid "%(child)s's %(medication)s dose wore off."
 msgstr "%(child)s: interval mezi dávkami pro %(medication)s."
 
-#: core/timeline.py:461
+#: core/timeline.py:384
 #, python-format
 msgid "%(child)s had a temperature measurement."
 msgstr "Dítěti %(child)s byla změřena teplota."
@@ -2625,7 +2631,7 @@ msgstr "Žádné poznámky"
 
 #: dashboard/templates/cards/pumping_last.html:4
 msgid "Last Pumping"
-msgstr "Poslední odsávání mléka"
+msgstr "Poslední odsávání"
 
 # Previous inactive fuzzy translation: "Nedávná krmení"
 # Offline machine-assisted draft; contextual review, not certified
@@ -2702,7 +2708,7 @@ msgstr[0] "%(count)s časovač"
 msgstr[1] "%(count)s časovačů"
 msgstr[2] "%(count)s časovačů"
 
-#: dashboard/templates/cards/timer_list.html:22
+#: dashboard/templates/cards/timer_list.html:23
 #, python-format
 msgid "Started by %(user)s at %(start)s"
 msgstr "Zahájil(a) %(user)s v %(start)s"
@@ -2730,7 +2736,7 @@ msgstr "Nikdy"
 msgid "Child actions"
 msgstr "Akce dítěte"
 
-#: babybuddy/templates/babybuddy/nav-dropdown.html:38
+#: babybuddy/templates/babybuddy/nav-dropdown.html:37
 #: dashboard/templates/dashboard/child_button_group.html:18
 #: dashboard/templates/dashboard/statistics.html:18
 #: reports/templates/reports/breadcrumb_common_chunk.html:4
@@ -2916,35 +2922,35 @@ msgstr "Denní doba"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: reports/graphs/head_circumference_change.py:63
-#: reports/graphs/height_change.py:48 reports/graphs/weight_change.py:48
+#: reports/graphs/height_change.py:59 reports/graphs/weight_change.py:59
 msgid "P3"
 msgstr "P3"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: reports/graphs/head_circumference_change.py:62
-#: reports/graphs/height_change.py:54 reports/graphs/weight_change.py:54
+#: reports/graphs/height_change.py:65 reports/graphs/weight_change.py:65
 msgid "P15"
 msgstr "P15"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: reports/graphs/head_circumference_change.py:61
-#: reports/graphs/height_change.py:60 reports/graphs/weight_change.py:60
+#: reports/graphs/height_change.py:71 reports/graphs/weight_change.py:71
 msgid "P50"
 msgstr "P50"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: reports/graphs/head_circumference_change.py:60
-#: reports/graphs/height_change.py:66 reports/graphs/weight_change.py:66
+#: reports/graphs/height_change.py:77 reports/graphs/weight_change.py:77
 msgid "P85"
 msgstr "P85"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: reports/graphs/head_circumference_change.py:59
-#: reports/graphs/height_change.py:72 reports/graphs/weight_change.py:72
+#: reports/graphs/height_change.py:83 reports/graphs/weight_change.py:83
 msgid "P97"
 msgstr "P97"
 
@@ -3475,7 +3481,7 @@ msgstr "Jak je uvedeno"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: babybuddy/templates/babybuddy/filter.html:15
-#: reports/templates/reports/filters.html:46
+#: reports/templates/reports/filters.html:56
 msgid "Display units"
 msgstr "Zobrazované jednotky"
 
@@ -3492,7 +3498,7 @@ msgstr "Konvertovat zobrazení"
 #: core/templates/core/appointment_calendar.html:17
 #: core/templates/core/custom_list.html:2
 #: core/templates/timeline/timeline.html:27
-#: reports/templates/reports/filters.html:53
+#: reports/templates/reports/filters.html:63
 #: inventory/templates/inventory/list.html:30
 msgid "Apply filters"
 msgstr "Použití filtrů"
@@ -3510,7 +3516,7 @@ msgstr "Více filtrů"
 #: core/templates/core/appointment_calendar.html:19
 #: core/templates/core/custom_list.html:2
 #: core/templates/timeline/timeline.html:29
-#: reports/templates/reports/filters.html:55
+#: reports/templates/reports/filters.html:65
 #: inventory/templates/inventory/list.html:31
 msgid "Clear filters"
 msgstr "Čisté filtry"
@@ -3544,13 +3550,13 @@ msgstr "Zkontrolujte výše uvedené filtry, abyste si prohlédli své záznamy.
 # translation.
 #: babybuddy/templates/babybuddy/filter.html:63
 #: core/templates/timeline/timeline.html:43
-#: reports/templates/reports/filters.html:63
+#: reports/templates/reports/filters.html:73
 msgid "Same period for every child"
 msgstr "Stejné období pro každé dítě"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/form.html:9
+#: babybuddy/templates/babybuddy/form.html:15
 #: inventory/templates/inventory/form.html:11
 msgid "Please check the highlighted fields."
 msgstr "Prosím, zkontrolujte zvýrazněná pole."
@@ -3558,7 +3564,7 @@ msgstr "Prosím, zkontrolujte zvýrazněná pole."
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 # Retained reviewed wording from the bundled Django language catalog.
-#: babybuddy/templates/babybuddy/form.html:34
+#: babybuddy/templates/babybuddy/form.html:51
 #: inventory/templates/inventory/form.html:14
 msgid "Save"
 msgstr "Uložit"
@@ -3579,7 +3585,7 @@ msgstr "Přehodit navigaci"
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 # Context reviewed: navigation and offline care terminology.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:34
+#: babybuddy/templates/babybuddy/nav-dropdown.html:33
 #: core/templates/core/appointment_calendar.html:4
 #: core/templates/core/appointment_calendar.html:7
 #: core/templates/core/appointment_list.html:20
@@ -3588,70 +3594,77 @@ msgstr "Kalendář"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:47
+#: babybuddy/templates/babybuddy/nav-dropdown.html:46
+#: core/templates/core/timer_confirm_restart.html:11
 #: core/templates/core/timer_detail.html:23
+#: core/templates/timeline/_timeline.html:28
+#: core/templates/core/lists/timer_list.html:29
+#: dashboard/templates/cards/timer_list.html:21
 msgid "Paused"
 msgstr "Zastavení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:47
+#: babybuddy/templates/babybuddy/nav-dropdown.html:46
+#: core/templates/core/timer_confirm_restart.html:11
+#: core/templates/core/lists/timer_list.html:29
+#: dashboard/templates/cards/timer_list.html:21
 msgid "Running"
 msgstr "Běhání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:47
+#: babybuddy/templates/babybuddy/nav-dropdown.html:46
 msgid "No active timers"
 msgstr "Žádné aktivní časovače"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:50
-#: babybuddy/templates/babybuddy/nav-dropdown.html:57
-#: babybuddy/templates/babybuddy/offline.html:67
+#: babybuddy/templates/babybuddy/nav-dropdown.html:49
+#: babybuddy/templates/babybuddy/nav-dropdown.html:56
+#: babybuddy/templates/babybuddy/offline.html:70
 msgid "Start timer"
 msgstr "Počáteční časovač"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:52
+#: babybuddy/templates/babybuddy/nav-dropdown.html:51
 msgid "View all timers"
 msgstr "Zobrazit všechny časovače"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:67
+#: babybuddy/templates/babybuddy/nav-dropdown.html:72
 msgid "Choose child and view"
 msgstr "Vyberte dítě a zobrazení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:68
+#: babybuddy/templates/babybuddy/nav-dropdown.html:73
 msgid "Viewing"
 msgstr "Prohlížení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:70
+#: babybuddy/templates/babybuddy/nav-dropdown.html:75
 msgid "All children — combined"
 msgstr "Všechny děti dohromady"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:71
+#: babybuddy/templates/babybuddy/nav-dropdown.html:76
 msgid "All children — side by side"
 msgstr "Všechny děti vedle sebe"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:84
+#: babybuddy/templates/babybuddy/nav-dropdown.html:89
 msgid "My account"
 msgstr "Můj účet."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:87
+#: babybuddy/templates/babybuddy/nav-dropdown.html:92
 #: core/templates/core/child_list.html:4 core/templates/core/child_list.html:7
 #: core/templates/core/child_list.html:11
 msgid "Manage children"
@@ -3659,13 +3672,13 @@ msgstr "Vedení dětí"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:90
+#: babybuddy/templates/babybuddy/nav-dropdown.html:95
 msgid "My profile & preferences"
 msgstr "Můj profil a preference"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:107
+#: babybuddy/templates/babybuddy/nav-dropdown.html:113
 msgid "Export data"
 msgstr "Exportovat data"
 
@@ -3695,7 +3708,7 @@ msgstr "Upravit: Přehled"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/user_settings_form.html:154
+#: babybuddy/templates/babybuddy/user_settings_form.html:162
 msgid "Save preferences"
 msgstr "Uložení preferencí"
 
@@ -3762,37 +3775,37 @@ msgstr "10 minut."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:45 core/forms.py:943
+#: core/entry_timing.py:45 core/forms.py:951
 msgid "15 minutes"
 msgstr "15 minut ."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:46 core/forms.py:944
+#: core/entry_timing.py:46 core/forms.py:952
 msgid "30 minutes"
 msgstr "30 minut."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:47 core/forms.py:945
+#: core/entry_timing.py:47 core/forms.py:953
 msgid "45 minutes"
 msgstr "45 minut."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:48 core/forms.py:946
+#: core/entry_timing.py:48 core/forms.py:954
 msgid "1 hour (60 minutes)"
 msgstr "1 hodina (60 minut)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:49 core/forms.py:947
+#: core/entry_timing.py:49 core/forms.py:955
 msgid "1.5 hours (90 minutes)"
 msgstr "1,5 hodiny (90 minut)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:50 core/forms.py:948
+#: core/entry_timing.py:50 core/forms.py:956
 msgid "2 hours (120 minutes)"
 msgstr "2 hodiny (120 minut)"
 
@@ -3804,20 +3817,20 @@ msgstr "Bez doby trvání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:57 core/forms.py:951
+#: core/entry_timing.py:57 core/forms.py:959
 msgid "Choose a duration"
 msgstr "Vyberte dobu trvání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:50 core/entry_timing.py:125
-#: core/forms.py:847
+#: babybuddy/templates/babybuddy/offline.html:51 core/entry_timing.py:125
+#: core/forms.py:855
 msgid "Duration (minutes)"
 msgstr "Doba trvání (minuty)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:131 core/forms.py:852
+#: core/entry_timing.py:131 core/forms.py:860
 msgid ""
 "Choose a duration or type the number of minutes. Leave blank if unknown."
 msgstr ""
@@ -3832,7 +3845,7 @@ msgstr "Vyberte si délku nebo zadejte počet minut."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/entry_timing.py:204 core/forms.py:886
+#: core/entry_timing.py:204 core/forms.py:894
 msgid "Choose a valid date, time, and duration."
 msgstr "Vyberte platný datum, čas a dobu trvání."
 
@@ -3865,25 +3878,25 @@ msgstr "Ušetřit i když se překrývá s jiným záznamem"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:272
+#: core/forms.py:280
 msgid "This timer does not exist."
 msgstr "Ten časovač neexistuje."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:275 core/forms.py:296
+#: core/forms.py:283 core/forms.py:304
 msgid "You do not have permission to consume timers."
 msgstr "Nemáte povolení používat časovače."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:292
+#: core/forms.py:300
 msgid "This timer no longer exists."
 msgstr "Ten časovač už neexistuje."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:442
+#: core/forms.py:450
 msgid ""
 "Used in this child's web addresses. Leave empty to derive it from the name."
 msgstr ""
@@ -3892,13 +3905,13 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:509
+#: core/forms.py:517
 msgid "Another child already uses this slug."
 msgstr "Další dítě už tuhle kulku používá."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:568 core/models.py:1466 core/presentation.py:105
+#: core/forms.py:576 core/models.py:1474 core/presentation.py:105
 #: core/views.py:874 core/templates/core/food_confirm_delete.html:8
 #: core/templates/core/food_form.html:12 core/templates/core/food_list.html:4
 #: core/templates/core/food_list.html:7 core/templates/core/food_list.html:11
@@ -3907,109 +3920,109 @@ msgstr "Potraviny"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:599
+#: core/forms.py:607
 msgid "Leave blank to record the feeding without a duration."
 msgstr "Nechte prázdné, aby se zaznamenalo krmení bez délky trvání."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:705
+#: core/forms.py:713
 msgid "The WHO percentile report expects centimeters."
 msgstr "Zpráva WHO o percentilu očekává centimetry."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:795
+#: core/forms.py:803
 msgid "Total amount"
 msgstr "Celkové množství"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:844
+#: core/forms.py:852
 msgid "Choose a time or type one, such as 1:30 PM or 13:30."
 msgstr "Vyberte si čas nebo ho napište, například 13:30 nebo 13:30."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:937
+#: core/forms.py:945
 msgid "Choose a start time"
 msgstr "Vyberte si čas začátku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:949
+#: core/forms.py:957
 msgid "No end time"
 msgstr "Žádný čas konce"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:988
+#: core/forms.py:996
 msgid "Type a location or choose one used in a previous appointment."
 msgstr ""
 "Zadejte místo nebo vyberte místo, které jste použili při předchozí schůzce."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1208
+#: core/forms.py:1216
 msgid "The WHO percentile report expects kilograms."
 msgstr "Zpráva WHO o percentilu očekává kilogramy."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1280 core/templates/core/custom_list.html:2
+#: core/forms.py:1288 core/templates/core/custom_list.html:2
 msgid "Period"
 msgstr "Období"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 # Retained reviewed wording from the bundled Django language catalog.
-#: core/forms.py:1282 core/templates/core/period_picker.html:10
+#: core/forms.py:1290 core/templates/core/period_picker.html:10
 #: core/templates/timeline/timeline.html:61
 msgid "All dates"
 msgstr "Všechna data"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1283 core/templates/core/period_picker.html:11
+#: core/forms.py:1291 core/templates/core/period_picker.html:11
 msgid "Day"
 msgstr "Denní"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1284 core/templates/core/period_picker.html:12
+#: core/forms.py:1292 core/templates/core/period_picker.html:12
 #: core/templates/timeline/timeline.html:33
 msgid "Week"
 msgstr "Týden"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1285 core/templates/core/period_picker.html:27
+#: core/forms.py:1293 core/templates/core/period_picker.html:27
 msgid "Month"
 msgstr "Měsíc"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1286 core/templates/core/period_picker.html:14
+#: core/forms.py:1294 core/templates/core/period_picker.html:14
 #: core/templates/core/period_picker.html:33
 msgid "Year"
 msgstr "Ročník"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1292 core/templates/core/period_picker.html:5
+#: core/forms.py:1300 core/templates/core/period_picker.html:5
 msgid "Date in period"
 msgstr "Datum v období"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:30 core/forms.py:1130
-#: core/forms.py:1297 core/templates/core/custom_list.html:2
+#: babybuddy/templates/babybuddy/offline.html:31 core/forms.py:1138
+#: core/forms.py:1305 core/templates/core/custom_list.html:2
 msgid "Activity"
 msgstr "Aktivita"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1314 core/presentation.py:112 core/views.py:868
+#: core/forms.py:1322 core/presentation.py:112 core/views.py:868
 #: reports/graphs/diaperchange_amounts.py:19
 #: reports/graphs/diaperchange_amounts.py:27
 #: reports/graphs/diaperchange_types.py:40
@@ -4018,34 +4031,35 @@ msgstr "Změna plen"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1136 core/forms.py:1317 core/presentation.py:113
-#: core/views.py:871
+#: core/forms.py:1144 core/forms.py:1325 core/models.py:1102
+#: core/presentation.py:113 core/timeline.py:173 core/views.py:871
 msgid "Tummy time"
 msgstr "Čas na bříšku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1318 core/presentation.py:114 core/views.py:872
+#: core/forms.py:1326 core/models.py:1103 core/presentation.py:114
+#: core/timeline.py:406 core/views.py:872
 msgid "Bath time"
 msgstr "Čas koupání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1319 core/models.py:1414 core/models.py:1418
+#: core/forms.py:1327 core/models.py:1422 core/models.py:1426
 #: core/presentation.py:121 core/views.py:873
 msgid "Reflux"
 msgstr "Reflux"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1320 core/models.py:1443 core/models.py:1465
+#: core/forms.py:1328 core/models.py:1451 core/models.py:1473
 #: core/templates/core/lists/food_list.html:10 inventory/models.py:56
 msgid "Food"
 msgstr "Potraviny"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1323 core/presentation.py:128
+#: core/forms.py:1331 core/presentation.py:128
 #: core/templates/core/custom_confirm_delete.html:8
 #: core/templates/core/custom_list.html:2
 msgid "Custom activities"
@@ -4053,49 +4067,49 @@ msgstr "Celní činnosti"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1325
+#: core/forms.py:1333
 msgid "All activities"
 msgstr "Všechny činnosti"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1358
+#: core/forms.py:1366
 msgid "Choose a date within a complete calendar period."
 msgstr "Vyberte datum v rámci celého kalendářního období."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1387
+#: core/forms.py:1395
 msgid "Show a reminder in the app"
 msgstr "Zobrazit připomínku v aplikaci"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1389
+#: core/forms.py:1397
 msgid "Remind me after (minutes)"
 msgstr "Připomeňte mi po (minutách)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1395
+#: core/forms.py:1403
 msgid "Count from the end of"
 msgstr "Počítání od konce"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1397
+#: core/forms.py:1405
 msgid "Last pumping or nursing session"
 msgstr "Poslední čerpání mateřského mléka nebo kojení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1398 core/forms.py:1411
+#: core/forms.py:1406 core/forms.py:1419
 msgid "Last pumping session"
 msgstr "Poslední čerpání mateřského mléka"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1417
+#: core/forms.py:1425
 msgid "Enter a reminder interval."
 msgstr "Zadejte interval připomínek."
 
@@ -4189,7 +4203,7 @@ msgstr "Nastavení výměny plínek"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:61 core/models.py:445
+#: babybuddy/templates/babybuddy/offline.html:62 core/models.py:445
 #: core/units.py:78
 msgid "Entry unit"
 msgstr "Jednotka zadání"
@@ -4319,19 +4333,19 @@ msgstr "Čas pauzy"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1231
+#: core/models.py:1239
 msgid "Optional, e.g. to tell several weigh-ins on one day apart."
 msgstr "Volitelné, např. pro oddělení několika vážení v jeden den."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1369 core/models.py:1373
+#: core/models.py:1377 core/models.py:1381
 msgid "Bath Time"
 msgstr "Čas koupání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1370 core/templates/core/bathtime_confirm_delete.html:8
+#: core/models.py:1378 core/templates/core/bathtime_confirm_delete.html:8
 #: core/templates/core/bathtime_form.html:12
 #: core/templates/core/bathtime_list.html:4
 #: core/templates/core/bathtime_list.html:7
@@ -4341,31 +4355,31 @@ msgstr "Časy koupání"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1398
+#: core/models.py:1406
 msgid "Mild"
 msgstr "Mírné"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1399
+#: core/models.py:1407
 msgid "Moderate"
 msgstr "Střední"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1400
+#: core/models.py:1408
 msgid "Severe"
 msgstr "Závažné"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1404 core/templates/core/lists/reflux_list.html:10
+#: core/models.py:1412 core/templates/core/lists/reflux_list.html:10
 msgid "Severity"
 msgstr "Závažnost"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1415 core/templates/core/reflux_confirm_delete.html:8
+#: core/models.py:1423 core/templates/core/reflux_confirm_delete.html:8
 #: core/templates/core/reflux_form.html:12
 #: core/templates/core/reflux_list.html:4
 #: core/templates/core/reflux_list.html:7
@@ -4375,31 +4389,31 @@ msgstr "Refluxní epizody"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1448
+#: core/models.py:1456
 msgid "Liked it"
 msgstr "Líbilo se mi to."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1449
+#: core/models.py:1457
 msgid "Neutral"
 msgstr "Neutrální"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1450
+#: core/models.py:1458
 msgid "Disliked it"
 msgstr "Nelíbilo se mi to."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1451
+#: core/models.py:1459
 msgid "Allergic reaction"
 msgstr "Alergická reakce"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1455 core/templates/core/lists/food_list.html:12
+#: core/models.py:1463 core/templates/core/lists/food_list.html:12
 #: core/templates/core/widgets/meal_foods.html:24
 #: core/templates/core/widgets/meal_foods.html:25
 msgid "Reaction"
@@ -4443,13 +4457,13 @@ msgstr "%(child)s dokončil koupel."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/timeline.py:529
+#: core/timeline.py:424
 msgid "%(child)s had a reflux episode."
 msgstr "%(child)s měl epizodu refluxu."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/timeline.py:560
+#: core/timeline.py:455
 msgid "%(child)s tried %(name)s."
 msgstr "%(child)s zkoušel %(name)s."
 
@@ -4519,13 +4533,13 @@ msgstr "Obvod hlavy"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/views.py:1128
+#: core/views.py:1187
 msgid "%(timer)s paused."
 msgstr "%(timer)s přerušen."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/views.py:1142
+#: core/views.py:1201
 msgid "%(timer)s resumed."
 msgstr "%(timer)s pokračuje."
 
@@ -4672,7 +4686,8 @@ msgstr "Zadejte plné jméno dítěte, abyste potvrdili vymazání."
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: core/templates/core/child_detail.html:28
-#: dashboard/templates/dashboard/child_content.html:26
+#: dashboard/templates/dashboard/child_content.html:26 reports/growth.py:86
+#: reports/graphs/height_change.py:96 reports/graphs/weight_change.py:96
 #: reports/templates/reports/growth.html:17
 msgid "Corrected age"
 msgstr "Korigovaný věk"
@@ -4915,19 +4930,19 @@ msgstr "události"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/timeline/_timeline.html:40
+#: core/templates/timeline/_timeline.html:67
 msgid "%(since)s since previous feeding"
 msgstr "Čas od posledního krmení: %(since)s"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/timeline/_timeline.html:59
+#: core/templates/timeline/_timeline.html:86
 msgid "No events match this period and activity."
 msgstr "Žádné události neodpovídají tomuto období a aktivitě."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/timeline/_timeline.html:61
+#: core/templates/timeline/_timeline.html:88
 msgid "No events match these filters yet."
 msgstr "Žádné události se ještě neshodují s těmito filtry."
 
@@ -5224,7 +5239,7 @@ msgstr "Trendy"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: dashboard/templates/cards/feeding_last.html:26
+#: dashboard/templates/cards/feeding_last.html:28
 #: dashboard/templates/cards/feeding_last_method.html:17
 msgid "Start next on"
 msgstr "Příště začít na straně"
@@ -5646,7 +5661,7 @@ msgstr "Obvod hlavy (cm)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/graphs/height_change.py:86
+#: reports/graphs/height_change.py:99
 msgid "Height (cm)"
 msgstr "Výška (cm)"
 
@@ -5682,7 +5697,7 @@ msgstr "Srovnání denního spánku"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/graphs/weight_change.py:86
+#: reports/graphs/weight_change.py:99
 msgid "Weight (kg)"
 msgstr "Hmotnost (kg)"
 
@@ -5742,7 +5757,7 @@ msgstr "Děvčata"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/templates/reports/filters.html:58
+#: reports/templates/reports/filters.html:68
 msgid "Check the filters above to view your report."
 msgstr "Zkontrolujte výše uvedené filtry, abyste si prohlédli svou zprávu."
 
@@ -6346,7 +6361,7 @@ msgstr "Přidat: Vybavení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:41
+#: babybuddy/templates/babybuddy/nav-dropdown.html:40
 #: inventory/templates/inventory/detail.html:3
 #: inventory/templates/inventory/list.html:4
 #: inventory/templates/inventory/list.html:8
@@ -6729,25 +6744,25 @@ msgstr "Umožnit záznam v režimu offline"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:66
+#: babybuddy/templates/babybuddy/offline.html:67
 msgid "Save entry"
 msgstr "Uložit: Záznam"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/user_settings_form.html:134
+#: babybuddy/templates/babybuddy/user_settings_form.html:139
 msgid "Sync now"
 msgstr "Synchronizace"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/user_settings_form.html:135
+#: babybuddy/templates/babybuddy/user_settings_form.html:143
 msgid "Clear this device"
 msgstr "Vyčistěte to zařízení."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:72
+#: babybuddy/templates/babybuddy/offline.html:78
 msgid "Pending entries"
 msgstr "Záznamy čekající na synchronizaci"
 
@@ -6831,13 +6846,13 @@ msgstr "Vyberte platné výchozí nastavení."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1132
+#: core/forms.py:1140
 msgid "Choose when stopping"
 msgstr "Vyberte si, kdy zastavit"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/forms.py:1137
+#: core/forms.py:1145
 msgid "Bath"
 msgstr "Koupel"
 
@@ -6903,79 +6918,79 @@ msgstr "Nemáte povolení dělat tyto změny v jídle."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1477
+#: core/models.py:1485
 msgid "Change this meal's child or time from its Feeding entry."
 msgstr "Změňte dítě nebo čas tohoto jídla z jeho položky krmení."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1511
+#: core/models.py:1519
 msgid "Track duration"
 msgstr "Trvání trasy"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1512
+#: core/models.py:1520
 msgid "Number field label"
 msgstr "Označení pole čísel"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1513
+#: core/models.py:1521
 msgid "Number unit"
 msgstr "Číselná jednotka"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1514
+#: core/models.py:1522
 msgid "Dropdown label"
 msgstr "Rozbalovací štítek"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1515
+#: core/models.py:1523
 msgid "Dropdown options (one per line)"
 msgstr "Vkládající možnosti (jedna na řádek)"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1516
+#: core/models.py:1524
 msgid "Yes/no field label"
 msgstr "Ano/ne označení pole"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1517
+#: core/models.py:1525
 msgid "Text field label"
 msgstr "Označení textového pole"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1536
+#: core/models.py:1544
 msgid "Add at least one dropdown option."
 msgstr "Přidejte alespoň jednu rozbalovací možnost."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1542
+#: core/models.py:1550
 msgid "Use up to 50 options, each 120 characters or fewer."
 msgstr "Použijte až 50 možností, z nichž každá má 120 znaků nebo méně."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1580
+#: core/models.py:1588
 msgid "This activity type is archived."
 msgstr "Tento typ činnosti je archivován."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1590
+#: core/models.py:1598
 msgid "Choose a configured option."
 msgstr "Vyberte nastavenou možnost."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/models.py:1594
+#: core/models.py:1602
 msgid "Enter a finite number."
 msgstr "Zadejte konečné číslo."
 
@@ -7030,12 +7045,12 @@ msgstr "Přidejte typ aktivity, abyste ji mohli sledovat."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/templates/reports/filters.html:61
+#: reports/templates/reports/filters.html:71
 msgid "to"
 msgstr "na"
 
 # Context reviewed: navigation and offline care terminology.
-#: babybuddy/templates/babybuddy/nav-dropdown.html:60
+#: babybuddy/templates/babybuddy/nav-dropdown.html:65
 msgid "+ Add entry"
 msgstr "+ Přidat: Záznam"
 
@@ -7073,7 +7088,7 @@ msgstr "Spojení..."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:46 core/local_times.py:28
+#: babybuddy/templates/babybuddy/offline.html:47 core/local_times.py:28
 #: core/top_ups.py:116
 msgid "Which occurrence?"
 msgstr "Která událost?"
@@ -7086,7 +7101,7 @@ msgstr "Aktivity pro osvěžení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:71
+#: babybuddy/templates/babybuddy/offline.html:75
 msgid "Timers on this device"
 msgstr "Časovače na tomto zařízení"
 
@@ -7243,13 +7258,13 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:5
+#: core/templates/admin/batch_delete.html:11
 msgid "Deletion finished."
 msgstr "Smazání dokončeno."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:5
+#: core/templates/admin/batch_delete.html:12
 msgid ""
 "Stopped. Completed batches remain deleted. You can retry the remaining "
 "entries."
@@ -7259,25 +7274,25 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:8
+#: core/templates/admin/batch_delete.html:16
 msgid "Deleted: %(deleted)s · Skipped: %(skipped)s · Selected: %(total)s"
 msgstr "Vymazáno: %(deleted)s · Přeskočeno: %(skipped)s · Vybrané: %(total)s"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:9
+#: core/templates/admin/batch_delete.html:17
 msgid "Confirm and delete"
 msgstr "Potvrdit a vymazat"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:10
+#: core/templates/admin/batch_delete.html:18
 msgid "Stop after this batch"
 msgstr "Zastavte po této dávce."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:11
+#: core/templates/admin/batch_delete.html:19
 msgid "Back to entries"
 msgstr "Zpět k záznamům"
 
@@ -7309,19 +7324,19 @@ msgstr "Reference WHO"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/templates/reports/filters.html:33
+#: reports/templates/reports/filters.html:39
 msgid "Show percentiles"
 msgstr "Zobrazit percentily"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:5
+#: core/templates/admin/batch_delete.html:7
 msgid "deleted"
 msgstr "zrušeno"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/templates/admin/batch_delete.html:5
+#: core/templates/admin/batch_delete.html:8
 msgid "skipped"
 msgstr "vynechané"
 
@@ -7422,6 +7437,7 @@ msgstr "Uveďte objem druhého typu mléka."
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
 #: core/top_ups.py:86 core/templatetags/presentation.py:108
+#: core/templates/timeline/_timeline.html:44
 #: core/templates/forms/layouts/top_up.html:4
 #: reports/graphs/feeding_amounts.py:34
 msgid "Top-up bottle"
@@ -7459,37 +7475,37 @@ msgstr "Krmivo %(number)s"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/templates/reports/filters.html:37
+#: reports/templates/reports/filters.html:45
 msgid "Group by"
 msgstr "Seskupit podle"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: core/top_ups.py:122 reports/templates/reports/filters.html:39
+#: core/top_ups.py:122 reports/templates/reports/filters.html:48
 msgid "Milk type"
 msgstr "Druh mléka"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: reports/templates/reports/filters.html:40
+#: reports/templates/reports/filters.html:50
 msgid "Feeding session"
 msgstr "Krmení"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:75
+#: babybuddy/templates/babybuddy/offline.html:81
 msgid "Recent entries"
 msgstr "Nedávné záznamy"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:76
+#: babybuddy/templates/babybuddy/offline.html:82
 msgid "Last updated"
 msgstr "Poslední aktualizace"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/offline.html:77
+#: babybuddy/templates/babybuddy/offline.html:83
 msgid "Last 7 days · up to 200 entries"
 msgstr "Posledních 7 dnů · až 200 záznamů"
 
@@ -7507,7 +7523,7 @@ msgstr "Offline přístup"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/user_settings_form.html:133
+#: babybuddy/templates/babybuddy/user_settings_form.html:135
 msgid "Enable on this device"
 msgstr "Povolit na tomto zařízení"
 
@@ -7521,13 +7537,13 @@ msgstr "Zobrazovaná volitelná pole"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/imports.py:86 babybuddy/templates/babybuddy/import.html:12
+#: babybuddy/imports.py:86 babybuddy/templates/babybuddy/import.html:14
 msgid "Entry type"
 msgstr "Typ záznamu"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/imports.py:90 babybuddy/templates/babybuddy/import.html:15
+#: babybuddy/imports.py:90 babybuddy/templates/babybuddy/import.html:17
 msgid "Units in file"
 msgstr "Jednotky v souboru"
 
@@ -7617,7 +7633,7 @@ msgstr "Písmo"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/imports.py:373 babybuddy/templates/babybuddy/import.html:9
+#: babybuddy/imports.py:373 babybuddy/templates/babybuddy/import.html:11
 msgid "This file has already been imported."
 msgstr "Tento soubor již byl importován."
 
@@ -7633,15 +7649,15 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:3
-#: babybuddy/templates/babybuddy/import.html:5
-#: babybuddy/templates/babybuddy/nav-dropdown.html:105
+#: babybuddy/templates/babybuddy/import.html:4
+#: babybuddy/templates/babybuddy/import.html:7
+#: babybuddy/templates/babybuddy/nav-dropdown.html:111
 msgid "Import data"
 msgstr "Importovat data"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:11
+#: babybuddy/templates/babybuddy/import.html:13
 msgid "Review import"
 msgstr "Zkontrolovat import"
 
@@ -7651,44 +7667,44 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:18
-#: babybuddy/templates/babybuddy/import.html:49
+#: babybuddy/templates/babybuddy/import.html:23
+#: babybuddy/templates/babybuddy/import.html:85
 msgid "Row"
 msgstr "Řádek"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:18
+#: babybuddy/templates/babybuddy/import.html:24
 msgid "Entries"
 msgstr "Údaje"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:22
+#: babybuddy/templates/babybuddy/import.html:33
 msgid "Showing the first 20 rows. All rows have been validated."
 msgstr "Prvních 20 řádků. Všechny řádky byly ověřeny."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:24
+#: babybuddy/templates/babybuddy/import.html:40
 msgid "Confirm import"
 msgstr "Potvrdit import"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:28
+#: babybuddy/templates/babybuddy/import.html:46
 msgid "Import another file"
 msgstr "Import dalšího souboru"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:32
+#: babybuddy/templates/babybuddy/import.html:53
 msgid "Choose"
 msgstr "Vyberte si."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:40
+#: babybuddy/templates/babybuddy/import.html:68
 msgid ""
 "CSV, UTF-8, up to 500 rows and 2 MB. Import one entry type and child at a "
 "time."
@@ -7698,7 +7714,7 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:41
+#: babybuddy/templates/babybuddy/import.html:69
 msgid ""
 "Entries are added as new records. File IDs and child columns are ignored; "
 "the selected child is used. Imported history does not reduce current diaper "
@@ -7710,7 +7726,7 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:42
+#: babybuddy/templates/babybuddy/import.html:70
 msgid ""
 "Choose the units used in the numeric columns. Baby Buddy exports use kg, cm,"
 " mL, and °C."
@@ -7720,50 +7736,50 @@ msgstr ""
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:44
+#: babybuddy/templates/babybuddy/import.html:73
 msgid "Preview import"
 msgstr "Náhled importu"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:45
+#: babybuddy/templates/babybuddy/import.html:75
 msgid "Download CSV template"
 msgstr "Stáhnout šablonu CSV"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:48
+#: babybuddy/templates/babybuddy/import.html:80
 msgid "Fix these rows and upload the file again. Nothing was imported."
 msgstr "Opravte tyto řádky a znovu nahrávejte soubor. Nic nebylo dovezeno."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:49
-#: babybuddy/templates/babybuddy/import.html:54
+#: babybuddy/templates/babybuddy/import.html:86
+#: babybuddy/templates/babybuddy/import.html:102
 msgid "Field"
 msgstr "Pole"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:53
+#: babybuddy/templates/babybuddy/import.html:97
 msgid "Columns and accepted values"
 msgstr "Sloupce a přijaté hodnoty"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:54
+#: babybuddy/templates/babybuddy/import.html:103
 msgid "Required"
 msgstr "Požadované"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:54
+#: babybuddy/templates/babybuddy/import.html:104
 msgid "Format"
 msgstr "Formát"
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:55
+#: babybuddy/templates/babybuddy/import.html:108
 msgid "Yes,No"
 msgstr "Ano,Ne"
 
@@ -7775,10 +7791,38 @@ msgstr "Dovozené položky: %(count)s."
 
 # Offline machine-assisted draft; contextual review, not certified
 # translation.
-#: babybuddy/templates/babybuddy/import.html:13
+#: babybuddy/templates/babybuddy/import.html:15
 msgid "Entries ready to import: %(count)s. No records have been saved yet."
 msgstr ""
 "Údaje připravené k dovozu: %(count)s. Žádné záznamy ještě nebyly uloženy."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/views.py:1046
+msgid "This timer is no longer available."
+msgstr "Tento časovač už není k dispozici."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/views.py:1154
+msgid "%(timer)s restarted."
+msgstr "%(timer)s znovu spuštěn."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/views.py:1160
+msgid "This timer changed. Review it before restarting."
+msgstr "Tento časovač se změnil. Před restartováním ho zkontrolujte."
+
+# Offline machine-assisted draft; contextual review, not certified
+# translation.
+#: core/templates/core/timer_confirm_restart.html:12
+msgid "Restarting resets the elapsed time."
+msgstr "Restartování vynuluje uplynulý čas."
+
+#: core/templates/timeline/_timeline.html:30
+msgid "In progress"
+msgstr "Probíhá"
 
 #, python-format
 #~ msgid "Amount: %(amount).0f"

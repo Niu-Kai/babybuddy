@@ -8,18 +8,45 @@
                 </li>
             {% endifchanged %}
             <li class="timeline-event">
-                <div class="timeline-badge {% if object.type == "start" %}bg-success{% elif object.type == "end" %}bg-danger{% else %}bg-info{% endif %}">
+                <div class="timeline-badge bg-info">
                     <i class="icon-{{ object.model_name }}" aria-hidden="true"></i>
                 </div>
                 <div class="card">
                     <div class="card-body">
-                        <time class="timeline-time" datetime="{{ object.time|date:'c' }}">{{ object.time|time }}</time>
+                        <div class="timeline-time">
+                            <time datetime="{{ object.time|date:'c' }}">{{ object.time|time }}{% if object.clock_change %} {{ object.time|date:"T" }}{% endif %}</time>
+                            {% if object.session_end %}
+                                <span aria-hidden="true">–</span>
+                                <time datetime="{{ object.session_end|date:'c' }}">
+                                    {% if object.session_end.date != object.time.date %}{{ object.session_end|date:"SHORT_DATE_FORMAT" }}{% endif %}
+                                    {{ object.session_end|time }}{% if object.clock_change %} {{ object.session_end|date:"T" }}{% endif %}
+                                </time>
+                            {% endif %}
+                            {% if object.in_progress %}
+                                <span class="badge text-bg-secondary">
+                                    {% if object.paused %}
+                                        {% trans "Paused" %}
+                                    {% else %}
+                                        {% trans "In progress" %}
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
                         <div class="timeline-event-title">{{ object.event }}</div>
                         {% for detail in object.details %}
                             <div>
                                 <small>{{ detail }}</small>
                             </div>
                         {% endfor %}
+                        {% if object.top_up_at %}
+                            <div>
+                                <small>
+                                    {% trans "Top-up bottle" %} ·
+                                    {% if object.top_up_at.date != object.time.date %}{{ object.top_up_at|date:"SHORT_DATE_FORMAT" }}{% endif %}
+                                    {{ object.top_up_at|time }} · {{ object.top_up_summary }}
+                                </small>
+                            </div>
+                        {% endif %}
                         {% if object.tags %}
                             <div>{% include "core/render_tag_list.html" with tags=object.tags %}</div>
                         {% endif %}

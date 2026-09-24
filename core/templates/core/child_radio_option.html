@@ -3,5 +3,5 @@
 <label {% if widget.attrs.id %}for="{{ widget.attrs.id }}"{% endif %}
        class="btn btn-outline-light btn-no-hover">
     {% include "core/child_thumbnail.html" with child=widget %}
-    {{ widget.label }}
+    <span class="child-choice-name">{{ widget.label }}</span>
 </label>

@@ -1650,7 +1650,12 @@ class NewActivityTypesTestCase(FormsTestCaseBase):
                 self.child.slug, timezone.localtime(bath.end).date().isoformat()
             )
         )
-        self.assertContains(page, "finished a bath")
+        self.assertContains(page, self.child.first_name + " · Bath time")
+        self.assertContains(page, 'class="timeline-event"', count=1)
+        self.assertContains(page, "Duration: 15 minutes")
+        event = page.context["timeline_objects"][0]
+        self.assertEqual(event["time"], bath.start)
+        self.assertEqual(event["session_end"], bath.end)
 
     def test_reflux(self):
         params = {

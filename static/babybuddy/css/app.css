@@ -11971,6 +11971,35 @@ textarea.form-control-lg {
   outline-offset: 2px;
 }
 
+.child-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.child-choices > label.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 1 auto;
+  max-width: 100%;
+  margin: 0;
+  border-radius: 0.5rem;
+}
+.child-choices img {
+  flex-shrink: 0;
+}
+.child-choices .child-choice-name {
+  overflow-wrap: anywhere;
+}
+
+.form-error-summary {
+  scroll-margin-top: 6rem;
+}
+.form-error-summary a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .breadcrumb {
   margin-bottom: 0;
 }
@@ -12071,6 +12100,15 @@ html:has([data-no-pull-refresh]), body:has([data-no-pull-refresh]) {
 
 .meal-food-reaction {
   min-width: 12rem;
+}
+
+.icon-diaperchange::before {
+  content: "";
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  background-color: currentcolor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 5h18l-2 10c-1 4-4 6-7 6s-6-2-7-6L3 5Zm0 0 4 5h10l4-5M5 13c4 0 5 4 5 7m9-7c-4 0-5 4-5 7' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
 .calendar-toolbar .calendar-add {
@@ -12772,6 +12810,11 @@ html:has([data-no-pull-refresh]), body:has([data-no-pull-refresh]) {
 
 .card-food {
   --card-accent: #3ecf83;
+}
+
+.card-dashboard .card-header a {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .dash {

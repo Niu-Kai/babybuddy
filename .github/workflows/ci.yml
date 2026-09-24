@@ -20,6 +20,7 @@ jobs:
       - run: npm install --location=global gulp-cli
       - run: npm install
       - run: gulp lint
+      - run: pipenv run python -m unittest scripts.test_setup_app
       - run: gulp coverage
       - name: Submit results to Coveralls
         uses: AndreMiras/coveralls-python-action@develop

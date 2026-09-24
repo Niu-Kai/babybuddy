@@ -1,0 +1,20 @@
+{% extends "babybuddy/page.html" %}
+{% load duration i18n %}
+{% block title %}
+    {% trans "Restart timer" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Restart timer" %}</h1>
+    <form method="post" class="confirmation-form">
+        {% csrf_token %}
+        <h2>{{ object.title_with_child }}</h2>
+        <p>{{ object.duration|duration_string }} · {% if object.is_paused %}{% trans "Paused" %}{% else %}{% trans "Running" %}{% endif %}</p>
+        <p>{% trans "Restarting resets the elapsed time." %}</p>
+        <input type="hidden" name="confirmation" value="{{ confirmation }}">
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">{% trans "Restart timer" %}</button>
+            <a class="btn btn-outline-secondary"
+               href="{% url 'core:timer-detail' object.pk %}">{% trans "Cancel" %}</a>
+        </div>
+    </form>
+{% endblock %}

@@ -13,10 +13,7 @@ class TimelineTestCase(TestCase):
         )
 
     def test_cross_midnight_events(self):
-        """
-        Events that span across midnight should split their start and end
-        dictionaries accurately across the two respective days.
-        """
+        """Overnight sessions appear once, with their full range on either day."""
         day_1 = timezone.make_aware(datetime.datetime(2023, 1, 1))
         day_2 = timezone.make_aware(datetime.datetime(2023, 1, 2))
 
@@ -43,15 +40,12 @@ class TimelineTestCase(TestCase):
                 events_day_1 = get_objects(date=day_1, child=self.child)
                 events_day_2 = get_objects(date=day_2, child=self.child)
 
-                # Day 1: should only contain the "start" event
-                self.assertEqual(len(events_day_1), 1)
-                self.assertEqual(events_day_1[0]["type"], "start")
-                self.assertEqual(events_day_1[0]["time"], start_time)
-
-                # Day 2: should only contain the "end" event
-                self.assertEqual(len(events_day_2), 1)
-                self.assertEqual(events_day_2[0]["type"], "end")
-                self.assertEqual(events_day_2[0]["time"], end_time)
+                for events in (events_day_1, events_day_2):
+                    self.assertEqual(len(events), 1)
+                    self.assertEqual(events[0]["time"], start_time)
+                    self.assertEqual(events[0]["session_end"], end_time)
+                    self.assertIn("2", events[0]["duration"])
+                self.assertEqual(len(get_objects(child=self.child)), 1)
 
                 instance.delete()
 
@@ -74,7 +68,7 @@ class TimelineTestCase(TestCase):
 
         events = get_objects(date=day, child=self.child)
 
-        self.assertEqual(len(events), 2)
+        self.assertEqual(len(events), 1)
         for event in events:
             self.assertIn("Lifted head", event["details"])
             self.assertIn("Seemed tired today", event["details"])
@@ -391,3 +385,187 @@ class TimelineHistoryViewsTestCase(TestCase):
         )
         self.assertContains(response, "DST included")
         self.assertNotContains(response, "DST excluded")
+
+
+class TimelineSessionCardsTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from django.contrib.auth import get_user_model
+
+        cls.user = get_user_model().objects.create_user(
+            "session-timeline", is_superuser=True
+        )
+        cls.child = models.Child.objects.create(
+            first_name="Avery", last_name="Example", birth_date="2023-01-01"
+        )
+        cls.other = models.Child.objects.create(
+            first_name="Riley", last_name="Example", birth_date="2023-01-01"
+        )
+        cls.day = timezone.make_aware(datetime.datetime(2024, 1, 2))
+
+    def test_long_session_matches_middle_day_without_truncation(self):
+        entry = models.Sleep.objects.create(
+            child=self.child,
+            start=self.day - datetime.timedelta(hours=2),
+            end=self.day + datetime.timedelta(days=1, hours=2),
+        )
+        events = get_objects(self.day, self.child, activity="sleep")
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["time"], entry.start)
+        self.assertEqual(events[0]["session_end"], entry.end)
+        self.assertEqual(
+            get_objects(
+                self.day + datetime.timedelta(days=2), self.child, activity="sleep"
+            ),
+            [],
+        )
+
+    def test_all_saved_duration_activities_use_one_range(self):
+        activity_type = models.ActivityType.objects.create(name="Reading")
+        for model in (
+            models.Sleep,
+            models.Feeding,
+            models.Pumping,
+            models.TummyTime,
+            models.BathTime,
+            models.CustomActivity,
+        ):
+            with self.subTest(model=model.__name__):
+                kwargs = dict(
+                    start=self.day, end=self.day + datetime.timedelta(minutes=30)
+                )
+                if model is models.Pumping:
+                    kwargs["amount"] = 60
+                else:
+                    kwargs["child"] = self.child
+                if model is models.Feeding:
+                    kwargs.update(type="formula", method="bottle")
+                if model is models.CustomActivity:
+                    kwargs["activity_type"] = activity_type
+                entry = model.objects.create(**kwargs)
+                events = get_objects(self.day, activity=entry.model_name)
+                self.assertEqual(len(events), 1)
+                self.assertEqual(events[0]["session_end"], entry.end)
+                self.assertIn("30", events[0]["duration"])
+                self.assertNotIn("in_progress", events[0])
+                entry.delete()
+
+    def test_durationless_feeding_is_not_in_progress(self):
+        models.Feeding.objects.create(
+            child=self.child,
+            start=self.day,
+            end=self.day,
+            type="formula",
+            method="bottle",
+        )
+        event = get_objects(self.day, self.child, activity="feeding")[0]
+        self.assertIsNone(event["session_end"])
+        self.assertNotIn("in_progress", event)
+        self.assertEqual(
+            get_objects(
+                self.day + datetime.timedelta(days=1), self.child, activity="feeding"
+            ),
+            [],
+        )
+
+    def test_active_and_paused_timers_respect_permissions_and_child(self):
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import Permission
+
+        now = timezone.now()
+        current = models.Timer.objects.create(
+            user=self.user,
+            child=self.child,
+            start=now - datetime.timedelta(minutes=45),
+            context={"activity": "sleep"},
+        )
+        models.Timer.objects.create(
+            user=self.user, child=self.other, start=now, context={"activity": "sleep"}
+        )
+        models.Timer.objects.create(
+            user=self.user, start=now, context={"activity": "pumping"}
+        )
+        viewer = get_user_model().objects.create_user("restricted-session-viewer")
+        viewer.settings.restrict_children = True
+        viewer.settings.save()
+        viewer.settings.allowed_children.add(self.child)
+        viewer.user_permissions.add(
+            Permission.objects.get(codename="view_timer"),
+            Permission.objects.get(codename="view_sleep"),
+        )
+        events = get_objects(user=viewer)
+        timers = [event for event in events if event.get("in_progress")]
+        self.assertEqual(len(timers), 1)
+        self.assertIn("Avery", str(timers[0]["event"]))
+        self.assertFalse(timers[0]["paused"])
+        current.paused_at = now - datetime.timedelta(minutes=10)
+        current.paused_total = datetime.timedelta(minutes=5)
+        current.save()
+        events = get_objects(child=self.child, user=viewer, activity="sleep")
+        self.assertTrue(events[0]["paused"])
+        self.assertIn("30", events[0]["duration"])
+        self.assertEqual(get_objects(user=viewer, activity="feeding"), [])
+        self.client.force_login(viewer)
+        response = self.client.get(
+            "/timeline/", {"scope": self.child.slug, "activity": "sleep"}
+        )
+        self.assertContains(response, "Paused")
+        self.assertNotContains(response, "Riley")
+
+    def test_timer_replaced_by_saved_entry_and_not_shown_without_permission(self):
+        from django.contrib.auth import get_user_model
+        from django.contrib.auth.models import Permission
+
+        timer = models.Timer.objects.create(
+            user=self.user,
+            child=self.child,
+            start=self.day,
+            context={"activity": "sleep"},
+        )
+        self.assertTrue(
+            get_objects(self.day, self.child, self.user, "sleep")[0]["in_progress"]
+        )
+        viewer = get_user_model().objects.create_user("no-timer-permission")
+        viewer.user_permissions.add(Permission.objects.get(codename="view_sleep"))
+        self.assertEqual(get_objects(self.day, self.child, viewer, "sleep"), [])
+        timer.delete()
+        models.Sleep.objects.create(
+            child=self.child,
+            start=self.day,
+            end=self.day + datetime.timedelta(minutes=30),
+        )
+        events = get_objects(self.day, self.child, self.user, "sleep")
+        self.assertEqual(len(events), 1)
+        self.assertNotIn("in_progress", events[0])
+
+    def test_clock_change_keeps_actual_duration_and_offsets(self):
+        from zoneinfo import ZoneInfo
+
+        zone = ZoneInfo("America/New_York")
+        start = datetime.datetime(2024, 11, 3, 1, 30, tzinfo=zone, fold=0)
+        end = datetime.datetime(2024, 11, 3, 1, 30, tzinfo=zone, fold=1)
+        models.Sleep.objects.create(child=self.child, start=start, end=end)
+        with timezone.override(zone):
+            event = get_objects(child=self.child, activity="sleep")[0]
+            self.assertTrue(event["clock_change"])
+            self.assertIsNotNone(event["session_end"])
+            self.assertIn("1", event["duration"])
+
+    def test_rendered_range_uses_preferred_clock_and_keeps_end_date(self):
+        self.user.settings.timezone = "UTC"
+        self.user.settings.time_format = "24"
+        self.user.settings.save()
+        models.Sleep.objects.create(
+            child=self.child,
+            start=self.day.replace(hour=23),
+            end=self.day + datetime.timedelta(days=1, hours=1),
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(
+            "/timeline/", {"scope": self.child.slug, "activity": "sleep"}
+        )
+        self.assertContains(response, 'class="timeline-event"', count=1)
+        self.assertContains(response, 'datetime="2024-01-03T01:00:00+00:00"')
+        self.assertContains(response, "23:00")
+        self.assertContains(response, "01:00")
+        self.assertNotContains(response, "woke up")

@@ -117,3 +117,13 @@ html:has([data-no-pull-refresh]), body:has([data-no-pull-refresh]) {
 .meal-food-reaction {
     min-width: 12rem;
 }
+
+// A diaper shape distinguishes logging care from deleting a record.
+.icon-diaperchange::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-color: currentcolor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 5h18l-2 10c-1 4-4 6-7 6s-6-2-7-6L3 5Zm0 0 4 5h10l4-5M5 13c4 0 5 4 5 7m9-7c-4 0-5 4-5 7' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}

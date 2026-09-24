@@ -7,7 +7,7 @@
 /* {% load static i18n %}{% get_current_language as LANGUAGE_CODE %} */
 var APP_ROOT = "{% url 'babybuddy:root-router' %}";
 var CACHE_PREFIX = "babybuddy-static-" + encodeURIComponent(APP_ROOT) + "-";
-var CACHE = CACHE_PREFIX + "v10-{{ LANGUAGE_CODE }}";
+var CACHE = CACHE_PREFIX + "v11-{{ LANGUAGE_CODE }}";
 var STATIC_ROOT = new URL("{% get_static_prefix %}", self.location.origin);
 var CATALOG_ROOT = APP_ROOT + "i18n/";
 var OFFLINE = "{% url 'babybuddy:entry-add' %}";

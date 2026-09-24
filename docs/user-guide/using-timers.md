@@ -1,58 +1,36 @@
-# Using Timers
+# Using timers
 
-## Starting a Timer
+Timers count elapsed time upward; they are not countdown alarms.
 
-From the top navigation bar select the clock icon to start a timer. A new screen
-will appear with a timer, the date and buttons to assign this timer to a
-feeding, sleep or tummy time activity. On the bottom of the timer is a red
-button to delete the timer, a blue button to edit the timer and add a name or
-change the start time, an orange button to restart the timer and a yellow button
-to stop the timer.
+## Start and identify a timer
 
-## Editing a Timer
+Use **Start Timer** on the child's dashboard or the **Timers** menu. Choose a
+child and an activity, and optionally give the timer a name. The timer page and
+navigation show the name/activity and child. Unnamed timers are labeled Timer
+instead of a database number. The dashboard and timer list show elapsed time
+and whether the timer is running or paused.
 
-<video style="max-width: 320px;" autoplay controls loop muted playsinline>
-  <source src="../../assets/videos/timer_edit.mp4" type="video/mp4">
-</video>
+## Pause, resume, and restart
 
-## Deleting a Timer
+**Pause** freezes elapsed time; **Resume** continues without counting the pause.
+**Restart timer** first shows a confirmation page with the current elapsed time.
+Choose **Cancel** to keep it, or confirm to reset elapsed time to zero and run
+again. If another caregiver changes the timer, or the confirmation is more than
+ten minutes old, review a new confirmation before restarting. Reusing an old
+confirmation does not reset the timer again. There is no post-restart undo.
 
-<video style="max-width: 320px;" autoplay controls loop muted playsinline>
-  <source src="../../assets/videos/timer_delete.mp4" type="video/mp4">
-</video>
+## Save a care entry
 
-## Creating Entries from Timers
+Choose **Save feeding**, **Save sleep**, **Save pumping**, or another available
+activity on the timer page. The entry form displays the timer's name and child
+in a read-only field. Review the date, time, duration, and other details, then
+choose **Save**. Validation errors keep the entered fields available for
+correction. The error summary links to the affected fields.
 
-### Create a Feeding Entry
+## Delete or return to a finished timer
 
-<video style="max-width: 320px;" autoplay controls loop muted playsinline>
-  <source src="../../assets/videos/timer_feeding.mp4" type="video/mp4">
-</video>
-
-From the top navigation bar select the clock icon to start a timer. When the
-activity is complete, select Feeding. As necessary, modify the child and
-start/end time of the timer. Update the feed to reflect the type of feeding
-(i.e. breast milk, bottle, etc.), the feeding method and amount. When ready,
-select Submit.
-
-### Create a Sleep Entry
-
-<video style="max-width: 320px;" autoplay controls loop muted playsinline>
-  <source src="../../assets/videos/timer_sleep.mp4" type="video/mp4">
-</video>
-
-From the top navigation bar select the clock icon to start a timer. When the
-activity is complete, select Sleep. As necessary, modify the child and start/end
-time of the timer. Add any relevant notes to the sleep. When ready, select
-Submit.
-
-### Create a Tummy Time Entry
-
-<video style="max-width: 320px;" autoplay controls loop muted playsinline>
-  <source src="../../assets/videos/timer_tummy_time.mp4" type="video/mp4">
-</video>
-
-From the top navigation bar select the clock icon to start a timer. When the
-activity is complete, select Tummy Time. As necessary, modify the child and
-start/end time of the timer. Add any relevant tummy time milestones. When ready,
-select Submit.
+The trash button asks for confirmation before deleting a timer. If a timer has
+already been deleted or stopped, returning to its page redirects to Timers with
+a message instead of an exception. Stale pause/resume/restart requests behave
+the same way. Offline device timers remain on that device until saved and synced;
+they are not live shared household timers.

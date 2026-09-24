@@ -10,6 +10,7 @@ markdown_extensions:
 nav:
   - "index.md"
   - "Setup":
+      - "setup/first-run.md"
       - "setup/deployment.md"
       - "setup/ssl.md"
       - "setup/subdirectory.md"

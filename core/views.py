@@ -9,7 +9,7 @@ from django.contrib.messages.views import SuccessMessageMixin
 from django.db.models import Count
 from django.db.models.functions import Lower
 from django.forms import Form, ValidationError
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy, resolve, Resolver404
 from django.utils import timezone
@@ -1038,7 +1038,16 @@ class TimerList(PermissionRequiredMixin, BabyBuddyPaginatedView, BabyBuddyFilter
     filterset_fields = ("user",)
 
 
-class TimerDetail(PermissionRequiredMixin, DetailView):
+class TimerUnavailableMixin:
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super().dispatch(request, *args, **kwargs)
+        except Http404:
+            messages.info(request, _("This timer is no longer available."))
+            return HttpResponseRedirect(reverse("core:timer-list"))
+
+
+class TimerDetail(PermissionRequiredMixin, TimerUnavailableMixin, DetailView):
     model = models.Timer
     permission_required = ("core.view_timer",)
 
@@ -1062,7 +1071,7 @@ class TimerAdd(PermissionRequiredMixin, CreateView):
         return reverse("core:timer-detail", kwargs={"pk": self.object.pk})
 
 
-class TimerUpdate(CoreUpdateView):
+class TimerUpdate(TimerUnavailableMixin, CoreUpdateView):
     model = models.Timer
     permission_required = ("core.change_timer",)
     form_class = forms.TimerForm
@@ -1104,21 +1113,71 @@ class TimerAddQuick(PermissionRequiredMixin, RedirectView):
         return super(TimerAddQuick, self).get(request, *args, **kwargs)
 
 
-class TimerRestart(PermissionRequiredMixin, RedirectView):
+class TimerRestart(PermissionRequiredMixin, TimerUnavailableMixin, View):
     http_method_names = ["post"]
     permission_required = ("core.change_timer",)
 
     def post(self, request, *args, **kwargs):
-        instance = models.Timer.objects.get(id=kwargs["pk"])
-        instance.restart()
-        messages.success(request, "{} restarted.".format(instance))
-        return super(TimerRestart, self).get(request, *args, **kwargs)
+        from django.core import signing
+        from core.access import scoped
 
-    def get_redirect_url(self, *args, **kwargs):
-        return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
+        queryset = scoped(models.Timer.objects.all(), request.user)
+        instance = get_object_or_404(queryset, pk=kwargs["pk"])
+        state = {
+            "pk": instance.pk,
+            "user": request.user.pk,
+            "start": instance.start.isoformat(),
+            "paused_at": instance.paused_at.isoformat() if instance.paused_at else None,
+            "paused_total": instance.paused_total.total_seconds(),
+        }
+        token = request.POST.get("confirmation", "")
+        if token:
+            try:
+                confirmed = signing.loads(token, salt="timer-restart", max_age=600)
+            except signing.BadSignature:
+                confirmed = None
+            if confirmed == state:
+                # Compare and update atomically: another caregiver or a duplicate
+                # submission must not reset a timer changed since confirmation.
+                updated = queryset.filter(
+                    pk=instance.pk,
+                    start=instance.start,
+                    paused_at=instance.paused_at,
+                    paused_total=instance.paused_total,
+                ).update(
+                    start=timezone.now(),
+                    paused_at=None,
+                    paused_total=datetime.timedelta(),
+                )
+                if updated:
+                    messages.success(
+                        request, _("%(timer)s restarted.") % {"timer": instance}
+                    )
+                    return HttpResponseRedirect(
+                        reverse("core:timer-detail", args=[instance.pk])
+                    )
+            messages.warning(
+                request, _("This timer changed. Review it before restarting.")
+            )
+            instance = get_object_or_404(queryset, pk=instance.pk)
+            state.update(
+                start=instance.start.isoformat(),
+                paused_at=(
+                    instance.paused_at.isoformat() if instance.paused_at else None
+                ),
+                paused_total=instance.paused_total.total_seconds(),
+            )
+        return render(
+            request,
+            "core/timer_confirm_restart.html",
+            {
+                "object": instance,
+                "confirmation": signing.dumps(state, salt="timer-restart"),
+            },
+        )
 
 
-class TimerPause(PermissionRequiredMixin, RedirectView):
+class TimerPause(PermissionRequiredMixin, TimerUnavailableMixin, RedirectView):
     http_method_names = ["post"]
     permission_required = ("core.change_timer",)
 
@@ -1132,7 +1191,7 @@ class TimerPause(PermissionRequiredMixin, RedirectView):
         return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
 
 
-class TimerResume(PermissionRequiredMixin, RedirectView):
+class TimerResume(PermissionRequiredMixin, TimerUnavailableMixin, RedirectView):
     http_method_names = ["post"]
     permission_required = ("core.change_timer",)
 
@@ -1146,7 +1205,7 @@ class TimerResume(PermissionRequiredMixin, RedirectView):
         return reverse("core:timer-detail", kwargs={"pk": kwargs["pk"]})
 
 
-class TimerDelete(CoreDeleteView):
+class TimerDelete(TimerUnavailableMixin, CoreDeleteView):
     model = models.Timer
     permission_required = ("core.delete_timer",)
     success_url = reverse_lazy("core:timer-list")

@@ -30,7 +30,10 @@ unverified. Offline access covers supported new entries and limited recent
 history, not the entire application. Updated translations still benefit from
 native-speaker review.
 
-For installation, browse the [setup guides](docs/setup). Use the
+For a new Windows installation, extract the fork ZIP, double-click **Setup Baby Buddy.cmd**,
+then use **Start Baby Buddy.cmd**. See the [first-run guide](docs/setup/first-run.md).
+The guided setup uses the included web assets; Git and Node.js are not required.
+For other deployments, browse the [setup guides](docs/setup). Use the
 [update and backup workflow](docs/setup/updating.md) when updating an existing
 installation. The [upstream integration record](docs/development/upstream-sync-2026-09-23.md)
 explains how recent upstream changes were adapted to this fork.

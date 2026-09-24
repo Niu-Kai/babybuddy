@@ -1094,14 +1094,22 @@ class Timer(models.Model):
         verbose_name_plural = _("Timers")
 
     def __str__(self):
-        return self.name or str(format_lazy(_("Timer #{id}"), id=self.id))
+        return self.name or str(
+            {
+                "feeding": _("Feeding"),
+                "pumping": _("Pumping"),
+                "sleep": _("Sleep"),
+                "tummytime": _("Tummy time"),
+                "bathtime": _("Bath time"),
+            }.get(self.context.get("activity"), _("Timer"))
+        )
 
     @property
     def title_with_child(self):
         """Get Timer title with child name in parenthesis."""
         title = str(self)
-        # Only actually add the name if there is more than one Child instance.
-        if title and self.child and Child.count() > 1:
+        # Keep child context visible even when only one child is selected.
+        if title and self.child:
             title = format_lazy("{title} ({child})", title=title, child=self.child)
         return title
 

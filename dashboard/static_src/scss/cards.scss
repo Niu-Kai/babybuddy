@@ -313,3 +313,9 @@ $dashboard-accents: (
 .card-food {
     --card-accent: #3ecf83;
 }
+
+// Card headings navigate to the matching child history.
+.card-dashboard .card-header a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}

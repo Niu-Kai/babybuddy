@@ -131,7 +131,7 @@ class QueryEfficiencyTest(TestCase):
         with self.assertNumQueries(3):
             events = timeline.get_objects(child=self.child, activity="feeding")
             tags = [[value.pk for value in event["tags"]] for event in events]
-        self.assertEqual(len(events), 20)
+        self.assertEqual(len(events), 10)
         self.assertTrue(all(value == [tag.pk] for value in tags))
         self.assertTrue(
             all(

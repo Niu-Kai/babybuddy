@@ -9,7 +9,7 @@
     <li class="breadcrumb-item fw-bold">{{ object }}</li>
 {% endblock %}
 {% block content %}
-    <h1>{% trans "Timer" %}</h1>
+    <h1>{{ object.title_with_child }}</h1>
     <div class="timer-detail">
         <div class="container-fluid py-1">
             <h2 id="timer-status"

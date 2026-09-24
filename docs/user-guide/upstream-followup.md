@@ -245,3 +245,76 @@ Birth time now accepts and displays seconds in both 12-hour and 24-hour preferen
 The account menu's **Import data** opens a regular-app CSV workflow for staff with the appropriate add permissions. It provides per-type templates and accepted values, explicit child/unit selection, row validation, preview, and confirmation. All rows are revalidated and saved atomically; retries and repeat uploads of the same file/options do not duplicate records. Permission and child access are checked again at confirmation. Historical diaper imports do not charge current stock. See [Import/Export](../import-export.md) for supported scope and limits.
 
 These two tickets are implemented locally and removed from the deferred list. Validation: 805 application tests and 19 JavaScript tests passed, with isolated Chrome upload/preview/confirm and birth-time save/reload checks. Upstream GitHub tickets were not changed.
+
+## Twins feedback follow-up (#952), September 23
+
+See the [detailed assessment](feedback-952.md). Timer restarts now require
+confirmation bound to the account and the timer's current state. Repeated,
+stale, or expired confirmations do not reset it. Missing timer pages/actions
+return a friendly message. Dashboard/list timers show elapsed time, activity
+labels replace unnamed IDs, and child context stays visible.
+
+Validation summaries focus on load, preserve entered values, link to invalid
+fields, and reveal collapsed optional sections. Child choices wrap their
+avatar/name together, card headings look clickable, and a diaper icon replaces
+the trash-can glyph for logging care. German diaper/save/elapsed-time wording
+was corrected, including an erroneous years suffix.
+
+Timer names on entry forms (#862/#854) are now verified for feeding, sleep,
+pumping, tummy time, and bath time. Pumping needed a fieldset fix after child
+selection was removed. These two tickets leave the remaining list. Physical
+mobile checks remain separate. New installations can use the
+[first-run guide](../setup/first-run.md) and the guided Windows launchers described below.
+
+## Easy Windows setup and #952 verification tracking
+
+New installations can extract this fork's ZIP and double-click **Setup Baby Buddy.cmd**,
+then **Start Baby Buddy.cmd**. Setup detects Python 3.14 and offers Windows Package
+Manager installation if needed, creates a private environment, installs hash-verified
+runtime dependencies, migrates an empty database, and asks for a personal administrator
+account. It bypasses the legacy default-account migration hook. Shipped assets avoid a
+Node.js build for end users. Interrupted setup can resume; completed setup is unchanged
+on repeat runs. Existing unrelated databases and custom configuration are refused.
+
+Start verifies migrations and an active administrator before starting a loopback-only
+server. It chooses a free port, waits for readiness, then opens the browser. No paid
+hosting, public network exposure, or background Windows service is configured.
+
+Device checks, native-speaker German review, and a clean-machine prerequisite bootstrap
+check are under **Untested**. All four design decisions are settled: one-card timeline
+sessions were implemented; manual overlap correction, confirmation-only timer restarts,
+and the Baby Buddy name/logo were retained by user choice. #952 moves from partial
+to awaiting verification: 0 partial tickets and 22 awaiting verification, with 25
+remaining tickets in total.
+
+Validation: 13 installer safety tests passed, including existing-data refusal,
+interrupted setup, repeat runs, missing-database protection, simultaneous setup,
+and occupied ports. An isolated Windows installation in a folder containing
+spaces created a fresh virtual environment, installed locked dependencies,
+applied migrations, created exactly one administrator with no default account,
+and passed login, empty-household dashboard, startup, and CSS/JavaScript/chart
+asset checks (including gzip). The test server was stopped afterward; the
+existing household server and database were not changed. Windows launcher
+prerequisite checks passed. Automatic Python installation still requires a
+clean-machine test.
+
+## One timeline card per session
+
+Feeding, sleep, tummy time, bath time, pumping, and custom activities now show
+one card with their start/end range and duration, ordered by start time. Notes,
+tags, food details, feeding intervals, and linked top-up bottle details remain
+on that card. An overnight session appears once in an all-dates or multi-day
+view and also matches either day's filter; long sessions match intervening days.
+The complete original range stays visible, with an end date when it crosses midnight
+and timezone abbreviations when the clocks change.
+
+Active timers show **In progress** or **Paused**, with elapsed time excluding
+pauses. They require permission to view both timers and the activity, and respect
+child access. Saving a timer-backed entry replaces the timer with the completed
+entry. An entry recorded without duration is not labeled as ongoing.
+
+Validation: 85 focused timeline/integration/permission/query tests passed; all
+20 timeline tests passed again after the final elapsed-time formatting change.
+Browser checks verified a single overnight card, its range and duration, active
+status, comparison panels, and a 390px layout without horizontal overflow.
+Translation compilation reports zero missing active messages and valid placeholders.

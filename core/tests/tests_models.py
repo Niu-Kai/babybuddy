@@ -350,10 +350,10 @@ class TimerTestCase(TestCase):
         self.assertEqual(self.named, models.Timer.objects.get(name="Named"))
         self.assertEqual(str(self.named), "Named")
         self.assertEqual(self.unnamed, models.Timer.objects.get(name=None))
-        self.assertEqual(str(self.unnamed), "Timer #{}".format(self.unnamed.id))
+        self.assertEqual(str(self.unnamed), "Timer")
 
     def test_timer_title_with_child(self):
-        self.assertEqual(self.named.title_with_child, str(self.named))
+        self.assertEqual(self.named.title_with_child, "Named (First Last)")
 
         models.Child.objects.create(
             first_name="Child", last_name="Two", birth_date=timezone.localdate()

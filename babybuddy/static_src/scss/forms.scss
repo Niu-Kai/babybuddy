@@ -142,3 +142,29 @@
         outline-offset: 2px;
     }
 }
+
+// Keep each avatar with its child's whole name; wrap choices, not name fragments.
+.child-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+
+    > label.btn {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        flex: 0 1 auto;
+        max-width: 100%;
+        margin: 0;
+        border-radius: .5rem;
+    }
+
+    img { flex-shrink: 0; }
+    .child-choice-name { overflow-wrap: anywhere; }
+}
+
+.form-error-summary {
+    scroll-margin-top: 6rem;
+
+    a { color: inherit; text-decoration: underline; }
+}

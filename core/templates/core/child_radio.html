@@ -1,6 +1,6 @@
 {% with id=widget.attrs.id %}
     <div {% if id %}id="{{ id }}"{% endif %}
-         class="btn-group btn-group-toggle"
+         class="btn-group btn-group-toggle child-choices"
          data-bs-toggle="buttons">
         {% for group, options, index in widget.optgroups %}
             {% for option in options %}

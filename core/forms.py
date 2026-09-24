@@ -235,6 +235,14 @@ class CoreModelForm(forms.ModelForm):
                 }
                 for fieldset in self.fieldsets
             ]
+            # Household pumping has no child field to insert after.
+            if self.fieldsets and not any(
+                "timer" in fieldset["fields"] for fieldset in self.fieldsets
+            ):
+                self.fieldsets[0] = {
+                    **self.fieldsets[0],
+                    "fields": ["timer", *self.fieldsets[0]["fields"]],
+                }
 
     @staticmethod
     def move_after(fields, item, anchor):

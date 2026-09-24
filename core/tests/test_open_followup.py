@@ -238,7 +238,9 @@ class OpenFollowupTests(TestCase):
             self.child,
         )
         self.assertEqual(len(events), 1)
-        self.assertIn("top-up bottle", events[0]["event"])
+        self.assertEqual(events[0]["event"], self.child.first_name + " · Feeding")
+        self.assertEqual(events[0]["top_up_at"], entry.top_up_at)
+        self.assertTrue(events[0]["top_up_summary"])
 
     def test_root_and_subpath_manifest_and_worker(self):
         for prefix in ("", "/babybuddy", "/apps/baby"):
