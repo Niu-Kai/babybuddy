@@ -14,7 +14,7 @@ from babel.messages.extract import extract, DEFAULT_KEYWORDS
 from django.utils.translation import templatize
 
 ROOT = Path(__file__).resolve().parents[1]
-APPS = ("babybuddy", "core", "dashboard", "reports", "inventory", "api")
+APPS = ("babybuddy", "core", "dashboard", "reports", "inventory", "api", "prebirth")
 SKIP = {"migrations", "tests", "static", "__pycache__"}
 
 
@@ -71,7 +71,7 @@ def messages():
             for line, message, comments, context in extract(
                 method,
                 io.BytesIO(source),
-                keywords={**DEFAULT_KEYWORDS, "gettext_noop": None},
+                keywords={**DEFAULT_KEYWORDS, "gettext_noop": None, "tr": None},
                 comment_tags=("Translators:",),
             ):
                 if not message:

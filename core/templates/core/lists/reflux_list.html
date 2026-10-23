@@ -10,6 +10,7 @@
                 <th data-column="severity">{% trans "Severity" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -25,6 +26,7 @@
                     <td data-column="severity">{{ reflux.get_severity_display }}</td>
                     <td data-column="recorded-by">{{ reflux.created_by_display|default:"—" }}</td>
                     <td data-column="tags">{% include "core/render_tag_list.html" with tags=reflux.tags.all %}</td>
+                    <td data-column="notes" class="record-notes">{{ reflux.notes|default:"—"|linebreaksbr }}</td>
                     <td data-column="actions">
                         <div class="btn-group btn-group-sm"
                              role="group"
@@ -49,16 +51,9 @@
                         </div>
                     </td>
                 </tr>
-                {% if reflux.notes %}
-                    <tr class="row-details" data-column="notes">
-                        <td colspan="5">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ reflux.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="5">{% trans "No entries found." %}</th>
+                    <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

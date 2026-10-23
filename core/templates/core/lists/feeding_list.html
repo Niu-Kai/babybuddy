@@ -18,6 +18,7 @@
                 <th data-column="duration">{% trans "Duration" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -38,6 +39,7 @@
                         <td data-column="duration">{{ feeding.duration|duration_string }}</td>
                         <td data-column="recorded-by">{{ feeding.created_by_display|default:"—" }}</td>
                         <td data-column="tags">{% include "core/render_tag_list.html" with tags=feeding.tags.all %}</td>
+                        <td data-column="notes" class="record-notes">{{ feeding.notes|default:"—"|linebreaksbr }}</td>
                         <td data-column="actions">
                             <div class="btn-group btn-group-sm"
                                  role="group"
@@ -64,20 +66,13 @@
                     </tr>
                     {% if feeding.top_up_at %}
                         <tr class="row-details">
-                            <td colspan="11">{% top_up_details feeding %}</td>
-                        </tr>
-                    {% endif %}
-                    {% if feeding.notes %}
-                        <tr class="{{ row_class }} row-details" data-column="notes">
-                            <td colspan="10">
-                                <i class="icon-note me-2" aria-hidden="true"></i>{{ feeding.notes }}
-                            </td>
+                            <td colspan="{% if not unique_child %}12{% else %}11{% endif %}">{% top_up_details feeding %}</td>
                         </tr>
                     {% endif %}
                 {% endwith %}
             {% empty %}
                 <tr>
-                    <th colspan="{% if not unique_child %}11{% else %}10{% endif %}">{% trans "No feedings found." %}</th>
+                    <th colspan="{% if not unique_child %}12{% else %}11{% endif %}">{% trans "No feedings found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

@@ -144,6 +144,7 @@ def navigation(request):
             (match.url_name or "").startswith("pumping")
             or match.url_name == "report-pumping-amounts-child"
             or match.namespace == "inventory"
+            or match.namespace == "prebirth"
         )
     )
     context["household_page"] = household_page

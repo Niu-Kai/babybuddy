@@ -81,4 +81,5 @@ urlpatterns = [
     path("", include("dashboard.urls", namespace="dashboard")),
     path("", include("reports.urls", namespace="reports")),
     path("inventory/", include("inventory.urls", namespace="inventory")),
+    path("before-birth/", include("prebirth.urls", namespace="prebirth")),
 ]

@@ -1,0 +1,74 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n datetime %}
+{% block title %}
+    {% trans "Feeding reminders" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Feeding reminders" %}</h1>
+    <div class="care-toolbar">
+        <a class="btn btn-outline-primary" href="{% url 'core:feeding-list' %}">{% trans "Feedings" %}</a>
+        <button type="button"
+                class="btn btn-primary"
+                data-enable-feeding-alerts>{% trans "Enable sound & alerts on this device" %}</button>
+        <button type="button"
+                class="btn btn-outline-secondary"
+                data-disable-feeding-alerts>{% trans "Mute this device" %}</button>
+        <span class="small text-body-secondary"
+              data-feeding-device-status
+              role="status"></span>
+    </div>
+    <p class="text-body-secondary care-notice">{% trans "Keep Baby Buddy open and your device awake for alerts. Feed sooner when your baby shows hunger cues; follow your care team's feeding plan." %}</p>
+    <div class="care-grid">
+        {% for row in reminders %}
+            <section class="care-panel" id="child-{{ row.child.pk }}">
+                <div class="care-panel-heading"><h2>{{ row.child }}</h2><span class="badge text-bg-secondary">{% blocktrans count count=row.count %}{{ count }} milk feeding · past 24 hours{% plural %}{{ count }} milk feedings · past 24 hours{% endblocktrans %}</span></div>
+                <p>{{ row.guidance }}</p>
+                <div class="care-summary">
+                    <div><span>{% trans "Last milk feeding" %}</span><strong>{% if row.reference %}{{ row.reference|datetime_short }}{% else %}—{% endif %}</strong></div>
+                    <div><span>{% trans "Next reminder" %}</span><strong>{% if not row.plan.enabled %}{% trans "Off" %}{% elif not row.interval %}{% trans "Choose a custom interval" %}{% elif row.active %}{% trans "Feeding timer running" %}{% elif row.due %}{{ row.due|datetime_short }}{% else %}{% trans "Log a milk feeding first" %}{% endif %}</strong></div>
+                </div>
+                <form method="post" class="care-settings-form" data-feeding-plan>
+                    {% csrf_token %}
+                    <input type="hidden" name="child" value="{{ row.child.pk }}">
+                    {{ row.form.non_field_errors }}
+                    <div class="form-check mb-3">
+                        {{ row.form.enabled }}
+                        <label class="form-check-label"
+                               for="{{ row.form.enabled.id_for_label }}">{{ row.form.enabled.label }}</label>{{ row.form.enabled.errors }}
+                    </div>
+                    <div class="care-fields">
+                        <div>
+                            <label for="{{ row.form.milk.id_for_label }}">{{ row.form.milk.label }}</label>{{ row.form.milk }}{{ row.form.milk.errors }}
+                        </div>
+                        <div>
+                            <label for="{{ row.form.mode.id_for_label }}">{{ row.form.mode.label }}</label>{{ row.form.mode }}{{ row.form.mode.errors }}
+                        </div>
+                        <div data-custom-reminder>
+                            <label for="{{ row.form.minutes.id_for_label }}">{{ row.form.minutes.label }}</label>{{ row.form.minutes }}{{ row.form.minutes.errors }}
+                        </div>
+                    </div>
+                    {% if row.interval %}<p class="small text-body-secondary mt-3">{% blocktrans with minutes=row.interval %}Current interval: {{ minutes }} minutes, measured start to start.{% endblocktrans %}</p>{% endif %}
+                    <button class="btn btn-primary mt-3" type="submit">{% trans "Save reminder" %}</button>
+                </form>
+            </section>
+        {% empty %}
+            <section class="care-panel">
+                <p>{% trans "Add a child to set up feeding reminders." %}</p>
+                {% if perms.core.add_child %}
+                    <a class="btn btn-primary" href="{% url 'core:child-add' %}">{% trans "Add Child" %}</a>
+                {% endif %}
+            </section>
+        {% endfor %}
+    </div>
+    <details class="care-panel mt-4">
+        <summary>{% trans "About the suggestions" %}</summary>
+        <p class="mt-3">{% trans "Age-based intervals are optional starting points within general feeding ranges, not a minimum wait or a medical schedule. Mixed feeding uses the breast-milk suggestion. From 6 months, choose a custom interval as solids and routines change. For premature babies or a clinician's feeding plan, use that plan instead." %}</p>
+        <p>{% trans "Each caregiver has their own reminders. Milk feedings logged by any caregiver reset the clock; solid-food-only entries do not. A linked top-up bottle resets the clock at its own start time." %}</p>
+        <a href="https://www.cdc.gov/infant-toddler-nutrition/breastfeeding/how-much-and-how-often.html"
+           target="_blank"
+           rel="noopener noreferrer">{% trans "CDC: Breastfeeding frequency" %}</a> ·
+        <a href="https://www.cdc.gov/infant-toddler-nutrition/formula-feeding/how-much-and-how-often.html"
+           target="_blank"
+           rel="noopener noreferrer">{% trans "CDC: Formula feeding frequency" %}</a>
+    </details>
+{% endblock %}

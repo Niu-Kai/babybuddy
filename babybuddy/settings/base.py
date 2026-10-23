@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "dashboard",
     "reports",
     "inventory.apps.InventoryConfig",
+    "prebirth.apps.PrebirthConfig",
     "axes",
     "django_filters",
     "rest_framework",

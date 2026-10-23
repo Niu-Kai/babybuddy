@@ -9,6 +9,8 @@
 {% block content %}
     <h1>
         {% trans "Feedings" %}
+        <a href="{% url 'core:feeding-reminders' %}"
+           class="btn btn-sm btn-outline-primary">{% trans "Reminders" %}</a>
         {% if perms.core.add_feeding %}
             <a href="{% url 'core:feeding-add' %}" class="btn btn-sm btn-primary">
                 <i class="icon-feeding" aria-hidden="true"></i> {% trans "Add Feeding" %}

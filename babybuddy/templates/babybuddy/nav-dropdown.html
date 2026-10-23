@@ -28,6 +28,10 @@
    href="{% url 'core:timeline' %}">{% trans "Timeline" %}</a></li>
                     {% include "babybuddy/nav_group.html" with menu=measurement_menu label="Measurements" menu_id="measurements-menu" active=measurement_active %}
                     {% include "babybuddy/nav_group.html" with menu=activity_menu label="Activities" menu_id="activities-menu" active=activity_active %}
+                    {% if perms.prebirth.view_plan %}
+                        <li class="nav-item"><a class="nav-link{% if request.resolver_match.namespace == 'prebirth' %} active{% endif %}"
+   href="{% url 'prebirth:preparation' %}">{% trans "Before birth" %}</a></li>
+                    {% endif %}
                     {% if perms.core.view_appointment %}
                         <li class="nav-item"><a class="nav-link"
    href="{% url 'core:appointment-calendar' %}">{% trans "Calendar" %}</a></li>

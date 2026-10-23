@@ -46,7 +46,7 @@
                         data-columns-reset>{% trans "Show all columns" %}</button>
             </div>
         </details>
-        <span class="text-body-secondary">{{ record_count }} {% trans "entries" %}</span>
+        <span class="text-body-secondary">{% blocktrans count count=record_count %}{{ count }} entry{% plural %}{{ count }} entries{% endblocktrans %}</span>
         <div id="filter_form"
              class="collapse record-extra-filters{% if extra_filters_active %} show{% endif %}">
             {% for field in filter.form %}

@@ -19,10 +19,12 @@ with credit to its original authors and contributors. It retains the
 - Shared household inventory with diaper usage deductions and automatic restock reminders.
 - Household pumping, separate left/right amounts, food tracking, and supplemental feedings.
 - Calendar appointments, custom activities, child access permissions, and integration APIs.
+- Per-child feeding reminders, plus a shared pre-birth contraction timer, hospital-bag checklist, and birth notes.
 - Optional browser offline entry and synchronization; a separate phone app is not required.
 - Guided CSV imports with a validation preview, plus expanded interface translations.
 
 See [feature details](docs/user-guide/upstream-followup.md),
+[feeding reminders and before-birth preparation](docs/user-guide/feeding-reminders-and-before-birth.md),
 [import/export instructions](docs/import-export.md), and the
 [remaining verification and deferred issues](docs/upstream-remaining-issues-2026-09-22.md).
 Physical-phone offline/install testing and several external integrations remain

@@ -13,6 +13,7 @@
                 <th data-column="nap" class="text-center">{% trans "Nap" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -40,6 +41,7 @@
                         <td data-column="nap" class="text-center">{{ sleep.nap|bool_icon }}</td>
                         <td data-column="recorded-by">{{ sleep.created_by_display|default:"—" }}</td>
                         <td data-column="tags">{% include "core/render_tag_list.html" with tags=sleep.tags.all %}</td>
+                        <td data-column="notes" class="record-notes">{{ sleep.notes|default:"—"|linebreaksbr }}</td>
                         <td data-column="actions">
                             <div class="btn-group btn-group-sm"
                                  role="group"
@@ -64,17 +66,10 @@
                             </div>
                         </td>
                     </tr>
-                    {% if sleep.notes %}
-                        <tr class="{{ row_class }} row-details" data-column="notes">
-                            <td colspan="9">
-                                <i class="icon-note me-2" aria-hidden="true"></i>{{ sleep.notes }}
-                            </td>
-                        </tr>
-                    {% endif %}
                 {% endwith %}
             {% empty %}
                 <tr>
-                    <th colspan="{% if not unique_child %}9{% else %}8{% endif %}">{% trans "No sleep entries found." %}</th>
+                    <th colspan="{% if not unique_child %}10{% else %}9{% endif %}">{% trans "No sleep entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

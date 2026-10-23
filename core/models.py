@@ -6,7 +6,7 @@ import re
 
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, MinValueValidator, MaxValueValidator
 from django.db import models, transaction
 from django.db.models.functions import Lower
 from django.urls import reverse
@@ -1616,3 +1616,40 @@ class DeletionBatch(models.Model):
     skipped = models.PositiveIntegerField(default=0)
     confirmed = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+
+
+class FeedingReminder(models.Model):
+    """A caregiver's reminder plan; all caregivers' milk entries reset its clock."""
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    child = models.ForeignKey("Child", on_delete=models.CASCADE)
+    enabled = models.BooleanField(default=False)
+    milk = models.CharField(
+        max_length=16,
+        default="mixed",
+        choices=[
+            ("breast", _("Breast milk")),
+            ("formula", _("Formula")),
+            ("mixed", _("Breast milk + Formula")),
+        ],
+    )
+    mode = models.CharField(
+        max_length=12,
+        default="age",
+        choices=[("age", _("Age-based suggestion")), ("custom", _("Custom interval"))],
+    )
+    minutes = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(15), MaxValueValidator(1440)],
+    )
+    snoozed_until = models.DateTimeField(blank=True, null=True)
+    snoozed_reference = models.DateTimeField(blank=True, null=True)
+    objects = ChildAccessManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "child"], name="feeding_reminder_user_child"
+            )
+        ]

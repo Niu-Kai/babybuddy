@@ -48,3 +48,7 @@ devenv.local.nix
 .vscode
 # Private per-installation development signing key.
 .development-secret-key
+
+# Local browser review artifacts.
+/output/playwright/
+/.playwright-cli/

@@ -12297,6 +12297,180 @@ html:has([data-no-pull-refresh]), body:has([data-no-pull-refresh]) {
     min-width: 42rem;
   }
 }
+.care-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.care-panel {
+  min-width: 0;
+  padding: 1.5rem;
+  background: var(--dash-surface, var(--bs-body-bg));
+  border: 1px solid var(--bs-border-color);
+  border-radius: 1rem;
+}
+.care-panel h2, .care-panel .h2 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+.care-panel p {
+  line-height: 1.6;
+}
+
+.care-panel-heading, .care-toolbar, .feeding-alarm-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.care-panel-heading {
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.care-panel-heading h2, .care-panel-heading .h2 {
+  margin: 0;
+}
+
+.care-toolbar {
+  margin-bottom: 1rem;
+}
+
+.care-notice {
+  max-width: 65rem;
+}
+
+.care-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 1rem;
+}
+.care-fields label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.care-full-width {
+  grid-column: 1/-1;
+}
+
+.prebirth-plan {
+  grid-column: 1;
+}
+
+.care-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.care-summary div {
+  padding: 0.85rem;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.65rem;
+}
+.care-summary span {
+  display: block;
+  color: var(--bs-secondary-color);
+  font-size: 0.8rem;
+  margin-bottom: 0.35rem;
+}
+.care-summary strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.record-table .record-notes {
+  min-width: 12rem;
+  max-width: 26rem;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.feeding-alarm {
+  margin: 1rem clamp(1rem, 2vw, 2.5rem);
+  border: 1px solid var(--bs-primary);
+  border-radius: 0.75rem;
+  background: var(--bs-tertiary-bg);
+  padding: 1rem;
+}
+
+.feeding-alarm-row + .feeding-alarm-row {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.feeding-alarm-row strong {
+  margin-inline-end: auto;
+}
+
+.prebirth-grid {
+  grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 1fr);
+}
+
+.prebirth-grid #hospital-bag {
+  grid-column: 2;
+  grid-row: 1/span 2;
+}
+
+.contraction-clock {
+  text-align: center;
+  font-size: clamp(3rem, 6vw, 4.5rem);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--bs-primary);
+}
+
+.contraction-table {
+  font-size: 0.85rem;
+}
+.contraction-table td:first-child {
+  white-space: nowrap;
+}
+
+.packing-group {
+  margin: 1.25rem 0;
+}
+.packing-group legend {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color);
+}
+
+.packing-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.packing-toggle {
+  flex: 1;
+}
+.packing-toggle label {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  cursor: pointer;
+}
+.packing-toggle input:checked + span {
+  text-decoration: line-through;
+  color: var(--bs-secondary-color);
+}
+
+@media (max-width: 1000px) {
+  .prebirth-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .prebirth-grid #hospital-bag {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
 #view-core\:child .child-photo {
   max-width: 150px;
 }

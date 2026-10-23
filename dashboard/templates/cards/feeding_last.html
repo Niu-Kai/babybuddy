@@ -18,6 +18,8 @@
     {% endif %}
 {% endblock %}
 {% block content %}
+    <div class="mb-2"><a class="small"
+   href="{% url 'core:feeding-reminders' %}#child-{{ child.pk }}">{% trans "Feeding reminder" %}</a></div>
     {% if feeding %}
         {{ feeding.type_display }}, {{ feeding.get_method_display }}
         {% if feeding.total_amount %}({% feeding_amount feeding %}){% endif %}

@@ -12,6 +12,7 @@
                 <th data-column="reaction">{% trans "Reaction" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -29,6 +30,7 @@
                     <td data-column="reaction">{{ food.get_reaction_display }}</td>
                     <td data-column="recorded-by">{{ food.created_by_display|default:"—" }}</td>
                     <td data-column="tags">{% include "core/render_tag_list.html" with tags=food.tags.all %}</td>
+                    <td data-column="notes" class="record-notes">{{ food.notes|default:"—"|linebreaksbr }}</td>
                     <td data-column="actions">
                         <div class="btn-group btn-group-sm"
                              role="group"
@@ -53,16 +55,9 @@
                         </div>
                     </td>
                 </tr>
-                {% if food.notes %}
-                    <tr class="row-details" data-column="notes">
-                        <td colspan="7">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ food.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="7">{% trans "No entries found." %}</th>
+                    <th colspan="{% if not unique_child %}9{% else %}8{% endif %}">{% trans "No entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

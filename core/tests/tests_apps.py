@@ -53,6 +53,16 @@ class ReadOnlyGroupPermissionsTestCase(TestCase):
 
 
 class CaregiverGroupPermissionsTestCase(TestCase):
+    prebirth_codenames = {
+        "view_plan",
+        "change_plan",
+        "view_checklistitem",
+        "add_checklistitem",
+        "change_checklistitem",
+        "view_contraction",
+        "add_contraction",
+        "change_contraction",
+    }
     inventory_codenames = {
         "view_equipment",
         "add_equipment",
@@ -116,7 +126,11 @@ class CaregiverGroupPermissionsTestCase(TestCase):
     def test_fresh_group_has_exact_default_permissions(self):
         self.assertEqual(
             self.group.permissions.count(),
-            len(self.expected_codenames | self.inventory_codenames),
+            len(
+                self.expected_codenames
+                | self.inventory_codenames
+                | self.prebirth_codenames
+            ),
         )
         self.assertEqual(
             set(
@@ -125,7 +139,8 @@ class CaregiverGroupPermissionsTestCase(TestCase):
                 )
             ),
             {("core", codename) for codename in self.expected_codenames}
-            | {("inventory", codename) for codename in self.inventory_codenames},
+            | {("inventory", codename) for codename in self.inventory_codenames}
+            | {("prebirth", codename) for codename in self.prebirth_codenames},
         )
 
     def test_foreign_app_codename_collision_is_ignored(self):
@@ -156,7 +171,11 @@ class CaregiverGroupPermissionsTestCase(TestCase):
         )
         self.assertEqual(
             self.group.permissions.count(),
-            len(self.expected_codenames | self.inventory_codenames),
+            len(
+                self.expected_codenames
+                | self.inventory_codenames
+                | self.prebirth_codenames
+            ),
         )
 
     def test_missing_early_permission_is_skipped_until_next_sync(self):
@@ -195,7 +214,10 @@ class CaregiverGroupPermissionsTestCase(TestCase):
 
         self.assertEqual(
             set(self.group.permissions.values_list("codename", flat=True)),
-            self.expected_codenames | self.inventory_codenames | {"delete_feeding"},
+            self.expected_codenames
+            | self.inventory_codenames
+            | self.prebirth_codenames
+            | {"delete_feeding"},
         )
 
     def test_existing_member_receives_sync_updates_after_refetch(self):

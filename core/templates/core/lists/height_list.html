@@ -11,6 +11,7 @@
                 <th data-column="height">{% trans "Height" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -26,6 +27,7 @@
                     <td data-column="height">{% measurement height 'height' %}</td>
                     <td data-column="recorded-by">{{ height.created_by_display|default:"—" }}</td>
                     <td data-column="tags">{% include "core/render_tag_list.html" with tags=height.tags.all %}</td>
+                    <td data-column="notes" class="record-notes">{{ height.notes|default:"—"|linebreaksbr }}</td>
                     <td data-column="actions">
                         <div class="btn-group btn-group-sm"
                              role="group"
@@ -50,16 +52,9 @@
                         </div>
                     </td>
                 </tr>
-                {% if height.notes %}
-                    <tr class="{{ row_class }} row-details" data-column="notes">
-                        <td colspan="6">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ height.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No height entries found." %}</th>
+                    <th colspan="{% if not unique_child %}7{% else %}6{% endif %}">{% trans "No height entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

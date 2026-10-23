@@ -11,6 +11,7 @@
                 <th data-column="previous">{% trans "Previous pumping" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -33,6 +34,7 @@
                     </td>
                     <td data-column="recorded-by">{{ pumping.created_by_display|default:"—" }}</td>
                     <td data-column="tags">{% include "core/render_tag_list.html" with tags=pumping.tags.all %}</td>
+                    <td data-column="notes" class="record-notes">{{ pumping.notes|default:"—"|linebreaksbr }}</td>
                     <td data-column="actions">
                         <div class="btn-group btn-group-sm"
                              role="group"
@@ -57,16 +59,9 @@
                         </div>
                     </td>
                 </tr>
-                {% if pumping.notes %}
-                    <tr class="{{ row_class }} row-details" data-column="notes">
-                        <td colspan="8">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ pumping.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="8">{% trans "No pumping entries found." %}</th>
+                    <th colspan="9">{% trans "No pumping entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

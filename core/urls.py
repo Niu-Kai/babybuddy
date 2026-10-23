@@ -4,12 +4,23 @@ from core.medication_choices import MedicationChoices
 from django.urls import path
 
 from . import views
+from . import feeding_reminders
 
 app_name = "core"
 
 from core import custom_activities as custom
 
 urlpatterns = [
+    path(
+        "feedings/reminders/",
+        feeding_reminders.Reminders.as_view(),
+        name="feeding-reminders",
+    ),
+    path(
+        "feedings/reminders/status/",
+        feeding_reminders.ReminderStatus.as_view(),
+        name="feeding-reminder-status",
+    ),
     path("entries/delete-batch/<uuid:pk>/", BatchDelete.as_view(), name="batch-delete"),
     path(
         "custom-activities/potty-preset/",

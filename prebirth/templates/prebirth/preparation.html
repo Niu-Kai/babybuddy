@@ -1,0 +1,137 @@
+{% extends "babybuddy/page.html" %}
+{% load i18n %}
+{% block title %}
+    {% trans "Before birth" %}
+{% endblock %}
+{% block content %}
+    <h1>{% trans "Before birth" %}</h1>
+    <div class="care-grid prebirth-grid" data-no-pull-refresh>
+        {% if perms.prebirth.view_contraction %}
+            <section class="care-panel"
+                     id="contraction-timer"
+                     data-contractions
+                     data-url="{% url 'prebirth:contractions' %}"
+                     data-clock="{% if user.settings.use_24_hour_time %}24{% else %}12{% endif %}"
+                     data-can-start="{{ perms.prebirth.add_contraction|yesno:'true,false' }}"
+                     data-can-stop="{{ perms.prebirth.change_contraction|yesno:'true,false' }}"
+                     data-can-delete="{{ perms.prebirth.delete_contraction|yesno:'true,false' }}">
+                <h2>{% trans "Contraction timer" %}</h2>
+                <p class="small text-body-secondary">{% trans "Time each contraction. Frequency is measured from the start of one to the start of the next." %}</p>
+                <div class="contraction-clock"
+                     data-contraction-clock
+                     aria-label="{% trans 'Current contraction duration' %}">0:00</div>
+                <p class="text-center text-body-secondary" data-contraction-label>{% trans "Ready when you are" %}</p>
+                <div class="care-toolbar justify-content-center">
+                    {% if perms.prebirth.add_contraction %}
+                        <button type="button"
+                                class="btn btn-primary btn-lg"
+                                data-contraction-start>{% trans "Start contraction" %}</button>
+                    {% endif %}
+                    {% if perms.prebirth.change_contraction %}
+                        <button type="button"
+                                class="btn btn-outline-primary btn-lg"
+                                data-contraction-stop
+                                hidden>{% trans "Stop contraction" %}</button>
+                    {% endif %}
+                </div>
+                {% if perms.prebirth.change_contraction %}
+                    <div data-contraction-notes hidden>
+                        <label for="contraction-notes" class="form-label mt-3">{% trans "Notes (optional)" %}</label>
+                        <input class="form-control" id="contraction-notes" maxlength="1000">
+                    </div>
+                {% endif %}
+                <p class="text-danger small mt-3"
+                   role="status"
+                   data-contraction-error
+                   hidden></p>
+                <div class="care-summary mt-4">
+                    <div><span>{% trans "Past hour" %}</span><strong data-contraction-count>—</strong></div>
+                    <div><span>{% trans "Average duration" %}</span><strong data-contraction-duration>—</strong></div>
+                    <div><span>{% trans "Average start-to-start" %}</span><strong data-contraction-interval>—</strong></div>
+                </div>
+                <div class="table-responsive mt-3">
+                    <table class="table record-table contraction-table">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Start" %}</th>
+                                <th>{% trans "Duration" %}</th>
+                                <th>{% trans "Start to start" %}</th>
+                                <th>{% trans "Notes" %}</th>
+                                {% if perms.prebirth.delete_contraction %}
+                                    <th>{% trans "Actions" %}</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody data-contraction-history>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="small text-body-secondary mt-3">{% trans "Timing alone cannot tell whether labor has started. Call your care team if you think labor is starting or are unsure. Get urgent care for heavy bleeding, severe constant pain, or less baby movement; contact your care team if your water breaks or contractions start before 37 weeks." %} <a href="https://www.acog.org/womens-health/faqs/how-to-tell-when-labor-begins"
+    target="_blank"
+    rel="noopener noreferrer">{% trans "Labor guidance" %}</a></p>
+            </section>
+        {% endif %}
+        {% if perms.prebirth.view_checklistitem %}
+            <section class="care-panel" id="hospital-bag">
+                <div class="care-panel-heading"><h2>{% trans "Hospital bag" %}</h2><span class="badge text-bg-secondary" data-packing-count>{{ packed }} / {{ total }}</span></div>
+                <p class="small text-body-secondary">{% trans "Customize this shared list for your hospital and your family." %}</p>
+                {% for group in checklist_groups %}
+                    <fieldset class="packing-group">
+                        <legend>{{ group.label }}</legend>
+                        {% for item in group.items %}
+                            <div class="packing-item">
+                                <form method="post" data-pack-item class="packing-toggle">{% csrf_token %}<input type="hidden" name="action" value="toggle-item"><input type="hidden" name="id" value="{{ item.pk }}"><input type="hidden"
+       name="packed"
+       value="{% if item.packed %}0{% else %}1{% endif %}"><label><input type="checkbox"
+       class="form-check-input"
+       {% if item.packed %}checked{% endif %}
+       {% if not perms.prebirth.change_checklistitem %}disabled{% endif %}> <span>{{ item.display_label }}</span></label><button type="submit" class="visually-hidden">{% trans "Save" %}</button></form>
+                                {% if perms.prebirth.delete_checklistitem %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete-item"><input type="hidden" name="id" value="{{ item.pk }}"><button class="btn btn-sm btn-outline-secondary"
+        aria-label="{% trans 'Remove item' %}">
+                                            <i class="icon-delete" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% empty %}
+                            <p class="small text-body-secondary">{% trans "No items yet." %}</p>
+                        {% endfor %}
+                    </fieldset>
+                {% endfor %}
+                {% if perms.prebirth.add_checklistitem %}
+                    <details class="mt-3" {% if checklist_form.errors %}open{% endif %}>
+                        <summary>{% trans "Add an item" %}</summary>
+                        <form method="post" class="mt-3">{% csrf_token %}<input type="hidden"
+       name="action"
+       value="add-item">{{ checklist_form.non_field_errors }}
+                            {% for field in checklist_form %}<div class="mb-3"><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+                            <button class="btn btn-primary" type="submit">{% trans "Add item" %}</button>
+                        </form>
+                    </details>
+                {% endif %}
+                <p role="status" class="text-danger small" data-packing-error hidden></p>
+                <a class="small"
+                   href="https://www.nhs.uk/best-start-in-life/pregnancy/preparing-for-labour-and-birth/hospital-bag-checklist/"
+                   target="_blank"
+                   rel="noopener noreferrer">{% trans "Hospital-bag ideas" %}</a>
+            </section>
+        {% endif %}
+        <section class="care-panel prebirth-plan" id="birth-plan">
+            <h2>{% trans "Hospital & birth notes" %}</h2>
+            <form method="post">{% csrf_token %}<input type="hidden"
+       name="action"
+       value="save-plan">{{ plan_form.non_field_errors }}
+                <div class="care-fields">
+                    {% for field in plan_form %}<div {% if field.name == 'notes' %}class="care-full-width"{% endif %}><label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>{% if perms.prebirth.change_plan %}{{ field }}{{ field.errors }}{% else %}<p>{{ field.value|default:"—"|linebreaksbr }}</p>{% endif %}</div>{% endfor %}
+                </div>
+                {% if perms.prebirth.change_plan %}
+                    <button class="btn btn-primary mt-3" type="submit">{% trans "Save notes" %}</button>
+                {% endif %}
+            </form>
+        </section>
+    </div>
+    {% if contractions %}{{ contractions|json_script:"contraction-initial-state" }}{% endif %}
+{% endblock %}

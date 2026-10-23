@@ -11,6 +11,7 @@
                 <th data-column="duration">{% trans "Duration" %}</th>
                 <th data-column="recorded-by">{% trans "Recorded by" %}</th>
                 <th data-column="tags">{% trans "Tags" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
                 <th data-column="actions" class="record-actions">{% trans "Actions" %}</th>
             </tr>
         </thead>
@@ -27,6 +28,7 @@
                     <td data-column="duration">{{ bathtime.duration|duration_string }}</td>
                     <td data-column="recorded-by">{{ bathtime.created_by_display|default:"—" }}</td>
                     <td data-column="tags">{% include "core/render_tag_list.html" with tags=bathtime.tags.all %}</td>
+                    <td data-column="notes" class="record-notes">{{ bathtime.notes|default:"—"|linebreaksbr }}</td>
                     <td data-column="actions">
                         <div class="btn-group btn-group-sm"
                              role="group"
@@ -51,16 +53,9 @@
                         </div>
                     </td>
                 </tr>
-                {% if bathtime.notes %}
-                    <tr class="row-details" data-column="notes">
-                        <td colspan="6">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ bathtime.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="6">{% trans "No entries found." %}</th>
+                    <th colspan="{% if not unique_child %}8{% else %}7{% endif %}">{% trans "No entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>

@@ -10,6 +10,7 @@
                 <th data-column="bmi">{% trans "BMI" %}</th>
                 <th data-column="weight">{% trans "Weight" %}</th>
                 <th data-column="height">{% trans "Height" %}</th>
+                <th data-column="notes">{% trans "Notes" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -24,17 +25,11 @@
                     <td data-column="bmi">{{ bmi.bmi|floatformat:2 }}</td>
                     <td data-column="weight">{% measurement bmi.source_weight "weight" %}</td>
                     <td data-column="height">{% measurement bmi.source_height "height" %}</td>
+                    <td data-column="notes" class="record-notes">{{ bmi.notes|default:"—"|linebreaksbr }}</td>
                 </tr>
-                {% if bmi.notes %}
-                    <tr class="{{ row_class }} row-details" data-column="notes">
-                        <td colspan="5">
-                            <i class="icon-note me-2" aria-hidden="true"></i>{{ bmi.notes }}
-                        </td>
-                    </tr>
-                {% endif %}
             {% empty %}
                 <tr>
-                    <th colspan="{% if not unique_child %}5{% else %}4{% endif %}">{% trans "No BMI entries found." %}</th>
+                    <th colspan="{% if not unique_child %}6{% else %}5{% endif %}">{% trans "No BMI entries found." %}</th>
                 </tr>
             {% endfor %}
         </tbody>
