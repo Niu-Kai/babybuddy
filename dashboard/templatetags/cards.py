@@ -806,6 +806,7 @@ def _sleep_statistics(child):
 def _weekly_change(instances, attribute):
     """
     Average weekly change of a measurement between its oldest and newest entry.
+    A weekly rate requires at least seven days of measurements.
     :param instances: a QuerySet of a dated measurement model, any ordering.
     :param attribute: name of the measurement attribute on the model.
     :returns: a dictionary of statistics, or False when there are no entries.
@@ -816,10 +817,10 @@ def _weekly_change(instances, attribute):
 
     newest = instances.first()
     oldest = instances.last()
-    change = {"change_weekly": 0.0}
+    change = {"change_weekly": None}
 
     days = (newest.date - oldest.date).days
-    if newest != oldest and days > 0:
+    if days >= 7:
         total_change = getattr(newest, attribute) - getattr(oldest, attribute)
         change["change_weekly"] = total_change / (days / 7)
 
@@ -1001,7 +1002,11 @@ def card_notes_recent(context, child):
     time and text so caregivers can see what's been recorded without
     navigating to the notes list.
     """
-    recent = models.Note.objects.filter(child=child).order_by("-time")[:4]
+    recent = (
+        models.Note.objects.filter(child=child)
+        .filter(**_filter_data_age(context, "time"))
+        .order_by("-time", "-pk")[:4]
+    )
 
     empty = len(recent) == 0
 

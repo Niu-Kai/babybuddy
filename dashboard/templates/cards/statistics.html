@@ -14,7 +14,7 @@
                         {% for stat in stats %}
                             <div class="carousel-item{% if forloop.counter == 1 %} active{% endif %}">
                                 <span class="card-title">
-                                    {% if stat.stat %}
+                                    {% if stat.stat != None %}
                                         {% if stat.type == "duration" %}
                                             {{ stat.stat|duration_string:'m' }}
                                         {% elif stat.type == "float" %}

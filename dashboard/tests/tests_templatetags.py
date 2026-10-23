@@ -397,7 +397,90 @@ class TemplateTagsTestCase(TestCase):
         date = timezone.localdate()
         models.Weight.objects.create(child=child, weight=2.49, date=date)
         models.Weight.objects.create(child=child, weight=2.42, date=date)
+        self.assertEqual(cards._weight_statistics(child), {"change_weekly": None})
+
+    def test_weekly_change_requires_a_week_for_each_measurement(self):
+        child = models.Child.objects.create(
+            first_name="Short", birth_date=timezone.localdate()
+        )
+        day = timezone.localdate()
+        for model, attribute, initial, latest in (
+            (models.Weight, "weight", 3.0, 3.2),
+            (models.Height, "height", 50.0, 51.0),
+            (models.HeadCircumference, "head_circumference", 34.0, 35.0),
+        ):
+            with self.subTest(model=model.__name__):
+                first = model.objects.create(
+                    child=child, date=day, **{attribute: initial}
+                )
+                series = model.objects.filter(child=child)
+                self.assertIsNone(
+                    cards._weekly_change(series, attribute)["change_weekly"]
+                )
+                model.objects.create(
+                    child=child,
+                    date=day + timezone.timedelta(days=6),
+                    **{attribute: latest},
+                )
+                self.assertIsNone(
+                    cards._weekly_change(series, attribute)["change_weekly"]
+                )
+                first.date = day - timezone.timedelta(days=1)
+                first.save()
+                self.assertAlmostEqual(
+                    cards._weekly_change(series, attribute)["change_weekly"],
+                    latest - initial,
+                )
+
+    def test_weekly_change_keeps_a_measured_zero(self):
+        from django.template.loader import render_to_string
+
+        child = models.Child.objects.create(
+            first_name="Steady", birth_date=timezone.localdate()
+        )
+        for age in (0, 7):
+            models.Weight.objects.create(
+                child=child,
+                date=timezone.localdate() - timezone.timedelta(days=age),
+                weight=3.0,
+            )
         self.assertEqual(cards._weight_statistics(child), {"change_weekly": 0.0})
+        context = {
+            "child": child,
+            "stats": [{"type": "float", "stat": 0.0, "title": "No change"}],
+        }
+        self.assertNotIn(
+            "Not enough data", render_to_string("cards/statistics.html", context)
+        )
+        context["stats"][0]["stat"] = None
+        self.assertIn(
+            "Not enough data", render_to_string("cards/statistics.html", context)
+        )
+
+    def test_recent_notes_respect_age_and_keep_newest_four(self):
+        child = models.Child.objects.create(
+            first_name="Notes", birth_date=timezone.localdate()
+        )
+        user = get_user_model().objects.first()
+        user.settings.dashboard_hide_age = timezone.timedelta(days=1)
+        context = {"request": MockUserRequest(user)}
+        now = timezone.now()
+        old = models.Note.objects.create(
+            child=child, note="Old", time=now - timezone.timedelta(days=2)
+        )
+        recent = [
+            models.Note.objects.create(
+                child=child, note=str(hours), time=now - timezone.timedelta(hours=hours)
+            )
+            for hours in range(1, 6)
+        ]
+        data = cards.card_notes_recent(context, child)
+        self.assertEqual(data["notes"], recent[:4])
+        for note in recent:
+            note.delete()
+        self.assertTrue(cards.card_notes_recent(context, child)["empty"])
+        user.settings.dashboard_hide_age = None
+        self.assertEqual(cards.card_notes_recent(context, child)["notes"], [old])
 
     def test_weekly_change_is_per_week(self):
         child = models.Child.objects.create(

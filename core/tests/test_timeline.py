@@ -12,6 +12,28 @@ class TimelineTestCase(TestCase):
             first_name="Test", last_name="Child", birth_date=timezone.now().date()
         )
 
+    def test_same_time_dose_end_then_note_then_new_dose(self):
+        when = timezone.now() - datetime.timedelta(hours=1)
+        models.Medication.objects.create(
+            child=self.child,
+            name="Earlier",
+            time=when - datetime.timedelta(hours=2),
+            next_dose_interval=datetime.timedelta(hours=2),
+        )
+        models.Medication.objects.create(
+            child=self.child,
+            name="Next",
+            time=when,
+            next_dose_interval=datetime.timedelta(hours=2),
+        )
+        models.Note.objects.create(child=self.child, note="At the same time", time=when)
+        events = [
+            event for event in get_objects(child=self.child) if event["time"] == when
+        ]
+        self.assertEqual(
+            [event.get("type") for event in events], ["end", None, "start"]
+        )
+
     def test_cross_midnight_events(self):
         """Overnight sessions appear once, with their full range on either day."""
         day_1 = timezone.make_aware(datetime.datetime(2023, 1, 1))

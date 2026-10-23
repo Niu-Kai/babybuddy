@@ -146,11 +146,13 @@ def get_objects(date=None, child=None, user=None, activity="", end_date=None):
     if user is not None and user.has_perm("core.view_timer"):
         _add_active_timers(min_date, max_date, events, child, user, permitted)
 
-    explicit_type_ordering = {"start": 0, "end": 1}
+    # At the same time, show an ending dose, other entries, then a new dose.
+    # Saved activity sessions remain one event with their full time range.
+    explicit_type_ordering = {"start": -1, "end": 1}
     events.sort(
         key=lambda x: (
             x["time"],
-            explicit_type_ordering.get(x.get("type"), -1),
+            explicit_type_ordering.get(x.get("type"), 0),
         ),
         reverse=True,
     )

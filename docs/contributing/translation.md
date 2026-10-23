@@ -16,7 +16,7 @@ process will look something like this:
 
 2. Run `gulp makemessages -l xx` where `xx` is a specific locale code in the
    [ISO 639-1 format](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g.,
-   "il" for Italian or "es" for Spanish). This creates a new translation file at
+   "it" for Italian or "es" for Spanish). This creates a new translation file at
    `locale/xx/LC_MESSAGES/django.po`, or updates one if it exists.
 
 3. Open the created/updated `django.po` file and update the header template
@@ -24,7 +24,8 @@ process will look something like this:
 
 4. Start translating! Each translatable string will have a `msgid` value with
    the string in English and a corresponding (empty) `msgstr` value where a
-   translated string can be filled in.
+   translated string can be filled in. Pluralized messages have several
+   `msgstr[n]` entries; see [Plural forms](#plural-forms) below.
 
 5. Once all strings have been translated, run `gulp compilemessages -l xx` to
    compile an optimized translation file (`locale/xx/LC_MESSAGES/django.mo`).
@@ -47,3 +48,16 @@ and [create a pull request](pull-requests.md) for review.
 
 For more information on the Django translation process, see Django's
 documentation section: [Translation](https://docs.djangoproject.com/en/5.0/topics/i18n/translation/).
+
+## Plural forms
+
+A pluralized message has `msgid` and `msgid_plural` source strings, followed by
+numbered translations (`msgstr[0]`, `msgstr[1]`, and so on). Fill every numbered
+form declared by the catalog's `Plural-Forms: nplurals=N; ...` header. The count
+depends on the target language; it does not have to match English's two forms.
+
+Keep named placeholders such as `%(count)s` in each translated form. Translate
+the complete phrase rather than appending a suffix such as `%(plural)s`, which
+cannot express the plural rules of many languages. Empty forms fall back to
+English for the counts that use those forms. Review examples with different
+counts in the interface after compiling the catalog.

@@ -1447,6 +1447,25 @@ class CaregiverWebTestCase(APITestCase):
 
 
 class SchemaAPITestCase(APITestCase):
+    def test_schema_lists_the_allowed_feeding_methods(self):
+        from api.filters import DjangoFilterBackend, FeedingFilter
+        from api.views import FeedingViewSet
+
+        parameters = DjangoFilterBackend().get_schema_operation_parameters(
+            FeedingViewSet()
+        )
+        method = next(item for item in parameters if item["name"] == "method")
+        self.assertEqual(
+            method["schema"]["enum"],
+            [
+                value
+                for value, label in FeedingFilter.base_filters["method"].extra[
+                    "choices"
+                ]
+            ],
+        )
+        self.assertIn("bottle", method["schema"]["enum"])
+
     def test_openapi_schema(self):
         """The live OpenAPI schema must render, including filter parameters."""
         user = get_user_model().objects.first()

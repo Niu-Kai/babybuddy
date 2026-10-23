@@ -151,6 +151,10 @@ class DjangoFilterBackend(django_filters.rest_framework.DjangoFilterBackend):
                     "schema": {"type": "string"},
                 }
             )
+            if "choices" in field.extra:
+                parameters[-1]["schema"]["enum"] = [
+                    value for value, label in field.extra["choices"]
+                ]
         return parameters
 
 
